@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, BookOpen } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { navConfig } from '@/lib/nav-config';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/lib/nav-config';
@@ -43,10 +43,14 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="pr-0">
-        <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
-          <BookOpen className="h-6 w-6 mr-2 text-primary" />
-          <span className="font-bold">CourseVerse</span>
-        </Link>
+        <SheetHeader>
+          <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
+            <BookOpen className="h-6 w-6 mr-2 text-primary" />
+            <span className="font-bold">CourseVerse</span>
+          </Link>
+           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+        </SheetHeader>
+
         <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="flex flex-col space-y-3">
             {allNavLinks.map(
