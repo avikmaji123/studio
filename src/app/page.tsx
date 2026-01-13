@@ -5,9 +5,14 @@ import Link from 'next/link';
 import {
   ArrowRight,
   BookOpen,
-  ChartNoAxesColumnIncreasing,
   Award,
   Star,
+  Library,
+  ShieldCheck,
+  TrendingUp,
+  Download,
+  LayoutGrid,
+  Lock,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -104,21 +109,36 @@ function HeroSection() {
 function FeaturesSection() {
   const features = [
     {
-      icon: <BookOpen className="h-8 w-8 text-primary" />,
-      title: 'Expert-Led Courses',
+      icon: <Library className="h-8 w-8 text-primary" />,
+      title: 'Licensed Content',
       description:
-        'Access content from industry professionals with real-world experience.',
+        'Access a curated library of high-quality, licensed courses from trusted creators.',
     },
     {
-      icon: <Award className="h-8 w-8 text-primary" />,
-      title: 'Earn Certificates',
+      icon: <ShieldCheck className="h-8 w-8 text-primary" />,
+      title: 'Secure Access',
       description:
-        'Receive a certificate upon course completion to showcase your skills.',
+        'Your learning environment is protected with secure account management and access controls.',
     },
     {
-      icon: <ChartNoAxesColumnIncreasing className="h-8 w-8 text-primary" />,
+      icon: <TrendingUp className="h-8 w-8 text-primary" />,
       title: 'Track Your Progress',
-      description: 'Stay motivated with our intuitive progress tracking system.',
+      description: 'Stay motivated with our intuitive progress tracking system for every course.',
+    },
+     {
+      icon: <Download className="h-8 w-8 text-primary" />,
+      title: 'Offline-Friendly Access',
+      description: 'Download course materials to learn on the go, anytime, anywhere.',
+    },
+    {
+      icon: <LayoutGrid className="h-8 w-8 text-primary" />,
+      title: 'Clean Dashboard',
+      description: 'A beautifully designed, clutter-free dashboard to manage your learning journey.',
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-primary" />,
+      title: 'Verified Certificates',
+      description: 'Earn verifiable certificates to showcase your skills and accomplishments.',
     },
   ];
 
@@ -127,11 +147,11 @@ function FeaturesSection() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-            Why CourseVerse?
+            A Better Way to Learn
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             We provide the tools and high-quality licensed content you need to
-            succeed.
+            succeed, without the noise.
           </p>
         </div>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
