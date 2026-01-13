@@ -40,8 +40,6 @@ const maxPrice = Math.max(...courses.map(c => parseInt(c.price.replace('₹', ''
 
 function FilterSidebar() {
   const {
-    searchTerm,
-    setSearchTerm,
     selectedCategories,
     toggleCategory,
     selectedLevels,
@@ -53,19 +51,6 @@ function FilterSidebar() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Search</h3>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search courses..." 
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
       <Accordion type="multiple" defaultValue={['category', 'level', 'price']} className="w-full">
         <AccordionItem value="category">
           <AccordionTrigger>Category</AccordionTrigger>
@@ -128,7 +113,7 @@ function FilterSidebar() {
 
 
 export default function CoursesPage() {
-  const { filteredCourses, setSortBy } = useSearchAndFilter();
+  const { filteredCourses, setSortBy, searchTerm, setSearchTerm } = useSearchAndFilter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   return (
@@ -144,12 +129,24 @@ export default function CoursesPage() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block lg:col-span-1">
           <div className="sticky top-24">
+            <h3 className="text-lg font-semibold mb-3">Filters</h3>
             <FilterSidebar />
           </div>
         </aside>
 
         {/* Main Content */}
         <main className="lg:col-span-3">
+            <div className="mb-6">
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search courses..." 
+                        className="pl-9 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
             <div className="flex justify-between items-center mb-6">
                 <p className="text-sm text-muted-foreground">{filteredCourses.length} courses found</p>
                 <Select onValueChange={setSortBy}>
@@ -165,13 +162,13 @@ export default function CoursesPage() {
                 </Select>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
                 {filteredCourses.length > 0 ? (
                     filteredCourses.map(course => (
                     <CourseCard key={course.id} course={course} />
                     ))
                 ) : (
-                    <div className="sm:col-span-2 xl:col-span-3 text-center py-16">
+                    <div className="col-span-full text-center py-16">
                         <h3 className="text-xl font-semibold">No Courses Found</h3>
                         <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
                     </div>
