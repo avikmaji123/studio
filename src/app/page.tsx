@@ -1,6 +1,14 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, ChartNoAxesColumnIncreasing, Award } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  ChartNoAxesColumnIncreasing,
+  Award,
+  Star,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,12 +22,13 @@ const testimonialImages = {
   'testimonial-1': PlaceHolderImages.find(p => p.id === 'testimonial-1'),
   'testimonial-2': PlaceHolderImages.find(p => p.id === 'testimonial-2'),
   'testimonial-3': PlaceHolderImages.find(p => p.id === 'testimonial-3'),
+  'testimonial-4': PlaceHolderImages.find(p => p.id === 'testimonial-4'),
 };
 
 function HeroSection() {
   return (
     <section className="relative w-full overflow-hidden bg-background pt-16 md:pt-24 lg:pt-32">
-       <div
+      <div
         aria-hidden="true"
         className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-40 dark:opacity-20"
       >
@@ -33,7 +42,9 @@ function HeroSection() {
               Unlock Your Potential with CourseVerse
             </h1>
             <p className="max-w-[600px] text-lg text-muted-foreground">
-              A course distribution and access management platform. My role is limited to platform administration, content distribution, and access control.
+              A course distribution and access management platform. My role is
+              limited to platform administration, content distribution, and
+              access control.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg">
@@ -57,20 +68,28 @@ function HeroSection() {
                 className="rounded-xl object-cover shadow-2xl"
               />
             )}
-             <div className="absolute -bottom-8 -right-8 z-10 hidden lg:block">
+            <div className="absolute -bottom-8 -right-8 z-10 hidden lg:block">
               <div className="rounded-lg bg-card p-4 shadow-lg">
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-2">
-                    {Object.values(testimonialImages).map((img, i) => img && (
-                      <Avatar key={i}>
-                        <AvatarImage src={img.imageUrl} alt={img.description} />
-                        <AvatarFallback>U{i+1}</AvatarFallback>
-                      </Avatar>
-                    ))}
+                    {Object.values(testimonialImages).map(
+                      (img, i) =>
+                        img && (
+                          <Avatar key={i}>
+                            <AvatarImage
+                              src={img.imageUrl}
+                              alt={img.description}
+                            />
+                            <AvatarFallback>U{i + 1}</AvatarFallback>
+                          </Avatar>
+                        )
+                    )}
                   </div>
                   <div>
                     <p className="font-bold">+10k</p>
-                    <p className="text-sm text-muted-foreground">Happy Students</p>
+                    <p className="text-sm text-muted-foreground">
+                      Happy Students
+                    </p>
                   </div>
                 </div>
               </div>
@@ -82,18 +101,19 @@ function HeroSection() {
   );
 }
 
-
 function FeaturesSection() {
   const features = [
     {
       icon: <BookOpen className="h-8 w-8 text-primary" />,
       title: 'Expert-Led Courses',
-      description: 'Access content from industry professionals with real-world experience.',
+      description:
+        'Access content from industry professionals with real-world experience.',
     },
     {
       icon: <Award className="h-8 w-8 text-primary" />,
       title: 'Earn Certificates',
-      description: 'Receive a certificate upon course completion to showcase your skills.',
+      description:
+        'Receive a certificate upon course completion to showcase your skills.',
     },
     {
       icon: <ChartNoAxesColumnIncreasing className="h-8 w-8 text-primary" />,
@@ -106,14 +126,20 @@ function FeaturesSection() {
     <section id="features" className="py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">Why CourseVerse?</h2>
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+            Why CourseVerse?
+          </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            We provide the tools and high-quality licensed content you need to succeed.
+            We provide the tools and high-quality licensed content you need to
+            succeed.
           </p>
         </div>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Card key={index} className="text-center transition-transform hover:scale-105 hover:shadow-lg">
+            <Card
+              key={index}
+              className="text-center transition-transform hover:scale-105 hover:shadow-lg"
+            >
               <CardHeader>
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   {feature.icon}
@@ -137,7 +163,9 @@ function FeaturedCoursesSection() {
     <section id="courses" className="bg-muted/50 py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">Featured Courses</h2>
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+            Featured Courses
+          </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             Handpicked courses to kickstart your learning adventure.
           </p>
@@ -161,30 +189,59 @@ function TestimonialsSection() {
   return (
     <section id="testimonials" className="py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">What Our Students Say</h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Real stories from users who transformed their careers with courses from CourseVerse.
+        <div className="mb-12 text-center max-w-3xl mx-auto">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+            What Our Students Say
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Real stories from users who transformed their careers with courses
+            from CourseVerse.
           </p>
         </div>
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           {testimonials.map(testimonial => (
-            <Card key={testimonial.id} className="flex flex-col">
-              <CardContent className="flex-grow pt-6">
-                <blockquote className="text-lg text-foreground">
+            <Card
+              key={testimonial.id}
+              className="flex flex-col transition-transform transform hover:-translate-y-1 hover:shadow-xl"
+            >
+              <CardContent className="flex-grow p-6 space-y-4">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${
+                        i < testimonial.rating
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-muted-foreground/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <blockquote className="text-base text-foreground/90 italic">
                   "{testimonial.quote}"
                 </blockquote>
               </CardContent>
-              <CardHeader className="mt-4 flex flex-row items-center gap-4">
-                {testimonialImages[testimonial.imageId as keyof typeof testimonialImages] && (
+              <CardHeader className="pt-0 p-6 flex flex-row items-center gap-4">
+                {testimonialImages[
+                  testimonial.imageId as keyof typeof testimonialImages
+                ] && (
                   <Avatar>
-                    <AvatarImage src={testimonialImages[testimonial.imageId as keyof typeof testimonialImages]?.imageUrl} alt={testimonial.name} />
+                    <AvatarImage
+                      src={
+                        testimonialImages[
+                          testimonial.imageId as keyof typeof testimonialImages
+                        ]?.imageUrl
+                      }
+                      alt={testimonial.name}
+                    />
                     <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                 )}
                 <div>
                   <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.title}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {testimonial.title}
+                  </p>
                 </div>
               </CardHeader>
             </Card>
