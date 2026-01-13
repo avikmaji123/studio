@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Twitter, Github, Linkedin, BookOpen } from 'lucide-react';
+import { Github, Instagram, Send, BookOpen } from 'lucide-react';
 
 export default function Footer() {
   const navLinks = [
@@ -9,9 +9,9 @@ export default function Footer() {
     { label: 'Privacy Policy', href: '/privacy' },
   ];
   const socialLinks = [
-    { icon: <Twitter />, href: '#', label: 'Twitter' },
-    { icon: <Github />, href: '#', label: 'Github' },
-    { icon: <Linkedin />, href: '#', label: 'LinkedIn' },
+    { icon: <Github />, href: 'https://github.com/alexavik', label: 'Github' },
+    { icon: <Send />, href: 'https://t.me/Avikmaji122911', label: 'Telegram' },
+    { icon: <Instagram />, href: 'https://instagram.com/avik_911', label: 'Instagram' },
   ];
   return (
     <footer className="border-t">
@@ -49,7 +49,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
               {socialLinks.map(link => (
-                 <a key={link.label} href={link.href} className="text-muted-foreground hover:text-primary transition-colors" aria-label={link.label}>
+                 <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label={link.label}>
                     {link.icon}
                  </a>
               ))}
