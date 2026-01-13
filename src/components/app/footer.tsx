@@ -25,8 +25,8 @@ export default function Footer() {
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-3 sm:col-span-2 lg:col-span-1">
+        <div className="grid gap-8 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-3 col-span-2 sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
               <BookOpen className="h-7 w-7 text-primary" />
               <span className="text-lg font-bold">CourseVerse</span>
@@ -65,19 +65,22 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          <div className="flex items-center space-x-4 mt-4 sm:mt-0 sm:justify-self-end">
-            {socialLinks.map(link => (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label={link.label}
-              >
-                {link.icon}
-              </a>
-            ))}
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1">
+             <h3 className="text-sm font-semibold mb-3">Connect</h3>
+            <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+                {socialLinks.map(link => (
+                <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    aria-label={link.label}
+                >
+                    {link.icon}
+                </a>
+                ))}
+            </div>
           </div>
         </div>
         <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
