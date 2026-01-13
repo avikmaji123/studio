@@ -24,6 +24,10 @@ export const navConfig: NavConfig = {
       href: '/pricing',
     },
     {
+      title: 'Payment',
+      href: '/payment',
+    },
+    {
       title: 'Affiliates',
       href: '/affiliates',
     },
@@ -44,6 +48,10 @@ export const navConfig: NavConfig = {
     {
       title: 'Courses',
       href: '/courses',
+    },
+     {
+      title: 'Payment',
+      href: '/payment',
     },
     {
       title: 'About',

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import Link from "next/link";
 
 export default function PricingPage() {
     const plans = [
@@ -9,7 +10,9 @@ export default function PricingPage() {
             price: "Free",
             description: "Get started with our basic features.",
             features: ["Access to 3 courses", "Community support", "Progress tracking"],
-            cta: "Get Started"
+            cta: "Get Started",
+            href: "/signup",
+            variant: "outline"
         },
         {
             name: "Pro",
@@ -18,13 +21,17 @@ export default function PricingPage() {
             features: ["Unlimited course access", "Completion certificates", "Project reviews", "Priority support"],
             cta: "Upgrade to Pro",
             popular: true,
+            href: "/payment",
+            variant: "default"
         },
         {
             name: "Team",
             price: "Custom",
             description: "For organizations and teams.",
             features: ["All Pro features", "Team management dashboard", "Dedicated account manager"],
-            cta: "Contact Sales"
+            cta: "Contact Sales",
+            href: "/contact",
+            variant: "outline"
         }
     ];
   return (
@@ -54,7 +61,9 @@ export default function PricingPage() {
                     </ul>
                 </CardContent>
                 <CardFooter>
-                    <Button className="w-full" variant={plan.popular ? 'default' : 'outline'}>{plan.cta}</Button>
+                    <Button asChild className="w-full" variant={plan.variant as any}>
+                        <Link href={plan.href}>{plan.cta}</Link>
+                    </Button>
                 </CardFooter>
             </Card>
         ))}

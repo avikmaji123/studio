@@ -13,6 +13,12 @@
       "imageHint": "creator portrait"
     },
     {
+      "id": "payment-qr-code",
+      "description": "QR code for payment",
+      "imageUrl": "https://i.ibb.co/cS1LWSL4/Screenshot-20251122-073557.png",
+      "imageHint": "payment qr code"
+    },
+    {
       "id": "course-1",
       "description": "Abstract code on a screen",
       "imageUrl": "https://images.unsplash.com/photo-1593720213428-28a5b9e94613?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3ZWIlMjBkZXZlbG9wbWVudHxlbnwwfHx8fDE3NjgyNTM4MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
