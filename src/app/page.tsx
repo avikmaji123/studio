@@ -178,7 +178,7 @@ function FeaturesSection() {
 }
 
 function FeaturedCoursesSection() {
-  const featuredCourses = courses.slice(0, 3);
+  const featuredCourses = courses.slice(0, 6);
   return (
     <section id="courses" className="bg-muted/50 py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
