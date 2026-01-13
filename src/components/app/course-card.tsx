@@ -19,7 +19,7 @@ export function CourseCard({ course }: CourseCardProps) {
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
       <Link href={`/courses/${course.id}`} className="flex flex-col h-full">
-        <div className="relative aspect-square w-full">
+        <div className="relative aspect-video w-full">
           {image && (
                <Image
                   src={image.imageUrl}
@@ -42,7 +42,7 @@ export function CourseCard({ course }: CourseCardProps) {
             </div>
           )}
         </div>
-        <CardHeader className="p-3">
+        <CardHeader className="p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="flex items-center gap-1">
                 <BarChart className="h-3 w-3" />
@@ -55,17 +55,17 @@ export function CourseCard({ course }: CourseCardProps) {
                 </Badge>
             )}
           </div>
-          <CardTitle className="line-clamp-2 text-base h-12 leading-tight">{course.title}</CardTitle>
+          <CardTitle className="line-clamp-2 text-base h-[2.5em] leading-tight">{course.title}</CardTitle>
         </CardHeader>
-        <CardContent className="flex-grow p-3 pt-0 pb-2 hidden sm:block">
-          <CardDescription className="line-clamp-2 text-xs">{course.description}</CardDescription>
+        <CardContent className="flex-grow p-4 pt-0 pb-2">
+          <CardDescription className="line-clamp-2 text-sm">{course.description}</CardDescription>
         </CardContent>
-        <CardFooter className="p-3 pt-0 flex justify-between items-center">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <CardFooter className="p-4 pt-0 flex justify-between items-center">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
               <span>{course.enrollmentCount}</span>
           </div>
-          <div className="text-base font-bold text-primary">
+          <div className="text-lg font-bold text-primary">
             {course.price}
           </div>
         </CardFooter>

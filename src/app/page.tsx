@@ -33,7 +33,7 @@ function HeroSection() {
               Unlock Your Potential with CourseVerse
             </h1>
             <p className="max-w-[600px] text-lg text-muted-foreground">
-              Explore our curated selection of high-quality licensed courses to take your skills to the next level. Access expert content at your own pace.
+              A course distribution and access management platform. My role is limited to platform administration, content distribution, and access control.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg">
@@ -142,7 +142,7 @@ function FeaturedCoursesSection() {
             Handpicked courses to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featuredCourses.map(course => (
             <CourseCard key={course.id} course={course} />
           ))}
