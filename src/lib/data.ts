@@ -6,6 +6,11 @@ export type Course = {
   category: string;
   imageId: string;
   lessons: { id: string; title: string; duration: string }[];
+  level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  isNew?: boolean;
+  isBestseller?: boolean;
+  hasPreview?: boolean;
+  enrollmentCount?: number;
 };
 
 export type Testimonial = {
@@ -29,6 +34,10 @@ export const courses: Course[] = [
       { id: 'l2', title: 'HTML & CSS Basics', duration: '45:10' },
       { id: 'l3', title: 'JavaScript Fundamentals', duration: '1:20:00' },
     ],
+    level: 'Beginner',
+    isNew: true,
+    hasPreview: true,
+    enrollmentCount: 25032
   },
   {
     id: '2',
@@ -42,6 +51,10 @@ export const courses: Course[] = [
       { id: 'l2', title: 'Python for Data Analysis', duration: '2:10:30' },
       { id: 'l3', title: 'Machine Learning Concepts', duration: '1:45:00' },
     ],
+    level: 'Intermediate',
+    isBestseller: true,
+    hasPreview: true,
+    enrollmentCount: 32104
   },
   {
     id: '3',
@@ -55,6 +68,9 @@ export const courses: Course[] = [
       { id: 'l2', title: 'SEO for Beginners', duration: '1:15:20' },
       { id: 'l3', title: 'Social Media Strategy', duration: '1:05:10' },
     ],
+    level: 'Beginner',
+    isBestseller: true,
+    enrollmentCount: 45876
   },
     {
     id: '4',
@@ -68,6 +84,9 @@ export const courses: Course[] = [
       { id: 'l2', title: 'User Research and Personas', duration: '1:02:00' },
       { id: 'l3', title: 'Wireframing and Prototyping', duration: '1:30:00' },
     ],
+    level: 'Beginner',
+    hasPreview: true,
+    enrollmentCount: 18453
   },
   {
     id: '5',
@@ -81,6 +100,8 @@ export const courses: Course[] = [
       { id: 'l2', title: 'Network Security Fundamentals', duration: '1:10:00' },
       { id: 'l3', title: 'Ethical Hacking Basics', duration: '1:50:00' },
     ],
+    level: 'Advanced',
+    enrollmentCount: 9784
   },
   {
     id: '6',
@@ -94,6 +115,9 @@ export const courses: Course[] = [
       { id: 'l2', title: 'Core AWS Services', duration: '2:00:00' },
       { id: 'l3', title: 'Building a Serverless App', duration: '1:40:00' },
     ],
+    level: 'Intermediate',
+    isNew: true,
+    enrollmentCount: 15342
   },
 ];
 
