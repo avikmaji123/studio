@@ -23,7 +23,7 @@ export default function Footer() {
               <span className="text-xl font-bold">CourseVerse</span>
             </Link>
             <p className="text-muted-foreground">
-              Your universe of knowledge.
+              A course distribution and access management platform.
             </p>
           </div>
           <div>
@@ -43,6 +43,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li><Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link></li>
+               <li><Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors">Admin</Link></li>
             </ul>
           </div>
           <div>
