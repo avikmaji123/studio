@@ -33,7 +33,7 @@ function HeroSection() {
               Unlock Your Potential with CourseVerse
             </h1>
             <p className="max-w-[600px] text-lg text-muted-foreground">
-              Explore our curated selection of high-quality courses and take your skills to the next level. Learn from industry experts at your own pace.
+              Explore our curated selection of high-quality licensed courses to take your skills to the next level. Access expert content at your own pace.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg">
@@ -88,7 +88,7 @@ function FeaturesSection() {
     {
       icon: <BookOpen className="h-8 w-8 text-primary" />,
       title: 'Expert-Led Courses',
-      description: 'Learn from industry professionals with real-world experience.',
+      description: 'Access content from industry professionals with real-world experience.',
     },
     {
       icon: <Award className="h-8 w-8 text-primary" />,
@@ -108,7 +108,7 @@ function FeaturesSection() {
         <div className="mb-12 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">Why CourseVerse?</h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            We provide the tools and content you need to succeed in your learning journey.
+            We provide the tools and high-quality licensed content you need to succeed.
           </p>
         </div>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -164,7 +164,7 @@ function TestimonialsSection() {
         <div className="mb-12 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">What Our Students Say</h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Real stories from students who transformed their careers with CourseVerse.
+            Real stories from users who transformed their careers with courses from CourseVerse.
           </p>
         </div>
         <div className="grid gap-8 lg:grid-cols-3">

@@ -10,12 +10,12 @@ export default function AboutPage() {
   const creatorImage = PlaceHolderImages.find(p => p.id === 'creator-avik');
 
   const trustFactors = [
-    'Carefully designed courses for practical skills.',
+    'Carefully selected courses for practical skills.',
     'Transparent, points-based pricing system.',
-    'Real progress tracking to see your growth.',
+    'Access to high-quality, licensed third-party content.',
     'Verified completion certificates.',
-    'Built and maintained by a real, passionate creator.',
-    'Continuous updates and improvements.'
+    'Platform managed by a dedicated administrator.',
+    'Continuous platform updates and improvements.'
   ];
 
   return (
@@ -27,7 +27,7 @@ export default function AboutPage() {
             About Course Verse
           </h1>
           <p className="mt-4 md:mt-6 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground">
-            A learning platform built with care, for those who are serious about growth.
+            A premium platform for accessing high-quality, licensed course content.
           </p>
         </div>
       </section>
@@ -38,10 +38,10 @@ export default function AboutPage() {
             <div className="prose dark:prose-invert max-w-none text-muted-foreground space-y-4 text-lg">
                 <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">What is Course Verse?</h2>
                 <p>
-                Course Verse was born from a simple idea: online education should be about long-term value, not just a transaction. It’s a place for practical learning and structured growth, designed to solve the problem of low-quality, mass-produced online courses that often leave learners with more questions than answers.
+                Course Verse is a course distribution and access management platform. It was born from a simple idea: online education should be about long-term value, not just a transaction. It’s a place for practical learning and structured growth, designed to solve the problem of low-quality, mass-produced online courses.
                 </p>
                 <p>
-                Unlike other platforms, every course here is carefully structured to provide honest, effective education. We focus on real-world skills that you can apply immediately, ensuring that your investment of time and effort translates into meaningful progress.
+                Unlike other platforms, every course here is carefully selected and licensed from trusted third-party creators to provide honest, effective education. We focus on delivering courses that teach real-world skills, ensuring that your investment translates into meaningful progress.
                 </p>
             </div>
             <div className="relative h-80 hidden md:block">
@@ -72,15 +72,15 @@ export default function AboutPage() {
               )}
             </div>
             <div className="prose dark:prose-invert max-w-none text-muted-foreground space-y-4 text-lg">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">About the Creator</h2>
-              <p>
-                I'm Avik, a full-stack developer with a deep passion for technology and education. I created Course Verse because I believe everyone deserves access to high-quality learning materials without the noise and false promises common in the online course world.
+              <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">About the Platform Administrator</h2>
+               <p>
+                I'm Avik, a full-stack developer with a passion for technology and building great user experiences. I created Course Verse as a high-quality distribution platform for licensed educational content.
               </p>
               <p>
-                This platform is my personal commitment to that belief. I oversee every detail to ensure a learning-first experience. My goal is to build a platform that genuinely helps you grow your skills, with a transparent and honest approach.
+                My role is limited to platform administration, content distribution, and access control. I do NOT teach students and I am NOT an instructor. I manage the technology and curate the course catalog to ensure a reliable and effective content delivery system for our users. My goal is to build a platform that genuinely helps you access the skills you need, with a transparent and honest approach.
               </p>
                <Link href="https://AvikSec.xo.je" target="_blank" className="text-primary hover:underline transition-colors no-underline">
-                View Creator Portfolio
+                View Administrator's Portfolio
               </Link>
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4 max-w-4xl">
            <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">Our Vision & Mission</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-                Our mission is to build a trusted, community-driven platform where learners can achieve their goals through clear, practical, and high-quality education. We are committed to continuous improvement, ensuring Course Verse evolves with the needs of our students.
+                Our mission is to build a trusted, community-driven content delivery platform where users can achieve their goals through clear, practical, and high-quality licensed courses. We are committed to continuous improvement, ensuring Course Verse evolves with the needs of our users.
             </p>
         </div>
       </section>
@@ -124,7 +124,7 @@ export default function AboutPage() {
             Join the Course Verse Journey
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Ready to take the next step in your learning adventure? Explore our courses and find the perfect fit for you.
+            Ready to find the right course for your learning adventure? Explore our catalog of licensed content.
           </p>
           <div className="mt-8">
             <Button asChild size="lg">

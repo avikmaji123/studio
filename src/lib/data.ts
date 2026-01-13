@@ -25,7 +25,7 @@ export const courses: Course[] = [
   {
     id: '1',
     title: 'The Complete 2024 Web Development Bootcamp',
-    description: 'Become a Full-Stack Web Developer with just one course. HTML, CSS, Javascript, Node, React, MongoDB, Web3 and DApps.',
+    description: 'A comprehensive course covering HTML, CSS, Javascript, Node, React, MongoDB, Web3 and DApps.',
     price: '₹499',
     category: 'Web Development',
     imageId: 'course-1',
@@ -42,7 +42,7 @@ export const courses: Course[] = [
   {
     id: '2',
     title: 'The Data Science Course 2024: Complete Data Science Bootcamp',
-    description: 'Complete Data Science Training: Mathematics, Statistics, Python, Advanced Statistics in Python, Machine & Deep Learning.',
+    description: 'A complete Data Science training covering Mathematics, Statistics, Python, Advanced Statistics in Python, Machine & Deep Learning.',
     price: '₹599',
     category: 'Data Science',
     imageId: 'course-2',
@@ -59,7 +59,7 @@ export const courses: Course[] = [
   {
     id: '3',
     title: 'Digital Marketing Masterclass - 23 Courses in 1',
-    description: 'Grow Your Business with Digital Marketing: Social Media Marketing, SEO, YouTube, Email, Facebook Marketing, Analytics & More!',
+    description: 'A masterclass on Digital Marketing: Social Media Marketing, SEO, YouTube, Email, Facebook Marketing, Analytics & More!',
     price: '₹399',
     category: 'Marketing',
     imageId: 'course-3',
@@ -91,7 +91,7 @@ export const courses: Course[] = [
   {
     id: '5',
     title: 'Cyber Security for Beginners',
-    description: 'Protect yourself and your organization from cyber threats. Learn about ethical hacking, network security, and cryptography.',
+    description: 'A course on how to protect yourself and your organization from cyber threats. Learn about ethical hacking, network security, and cryptography.',
     price: '₹799',
     category: 'IT & Software',
     imageId: 'course-5',
@@ -127,7 +127,7 @@ export const testimonials: Testimonial[] = [
         id: '1',
         name: 'Sarah Johnson',
         title: 'Web Developer',
-        quote: "CourseVerse transformed my career. The web development bootcamp was comprehensive and the instructor was amazing. I landed a new job within a month of completing the course!",
+        quote: "CourseVerse has been a game-changer. The web development course was comprehensive and from a great instructor. I landed a new job within a month of completing it!",
         imageId: 'testimonial-1',
     },
     {
