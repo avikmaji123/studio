@@ -1,12 +1,9 @@
 'use client';
 
-import {
-  ArrowUpRight,
-  Book,
-  CheckCircle,
-  Download,
-} from 'lucide-react';
+import { ArrowUpRight, Book, CheckCircle, Download } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
+import { collection } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,72 +15,120 @@ import {
 } from '@/components/ui/card';
 import { CourseCard } from '@/components/app/course-card';
 import { courses } from '@/lib/data';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  footerText,
+  isLoading,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  footerText: string;
+  isLoading: boolean;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <>
+            <Skeleton className="h-8 w-1/4" />
+            <Skeleton className="h-4 w-1/2 mt-1" />
+          </>
+        ) : (
+          <>
+            <div className="text-2xl font-bold">{value}</div>
+            <p className="text-xs text-muted-foreground">{footerText}</p>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DashboardOverviewPage() {
-  const { profile } = useUser();
-  const featuredCourses = courses.slice(0, 3); // Placeholder for purchased courses
+  const { user, profile, isUserLoading } = useUser();
+  const firestore = useFirestore();
 
+  const enrollmentsQuery = useMemoFirebase(
+    () =>
+      user ? collection(firestore, 'users', user.uid, 'enrollments') : null,
+    [firestore, user]
+  );
+  const { data: enrollments, isLoading: isEnrollmentsLoading } =
+    useCollection(enrollmentsQuery);
+
+  const certificatesQuery = useMemoFirebase(
+    () =>
+      user ? collection(firestore, 'users', user.uid, 'certificates') : null,
+    [firestore, user]
+  );
+  const { data: certificates, isLoading: isCertificatesLoading } =
+    useCollection(certificatesQuery);
+
+  const purchasedCourses = useMemo(() => {
+    if (!enrollments) return [];
+    const enrolledCourseIds = enrollments.map(e => e.courseId);
+    return courses.filter(c => enrolledCourseIds.includes(c.id)).slice(0, 3);
+  }, [enrollments]);
+
+  const isLoading = isUserLoading || isEnrollmentsLoading || isCertificatesLoading;
+  
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="mb-4">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, {profile?.firstName || 'Student'}!
-        </h1>
+        {isUserLoading ? (
+            <Skeleton className="h-10 w-1/2" />
+        ) : (
+            <h1 className="text-3xl font-bold tracking-tight">
+                Welcome back, {profile?.firstName || 'Student'}!
+            </h1>
+        )}
         <p className="text-muted-foreground">
           Here is a snapshot of your learning journey.
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Courses Purchased
-            </CardTitle>
-            <Book className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">
-              Keep up the great work!
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Available Downloads
-            </CardTitle>
-            <Download className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              Assets ready for offline use.
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Certificates Earned
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground">
-              1 more to become a master.
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
+        <StatCard
+          title="Courses Purchased"
+          value={enrollments?.length ?? 0}
+          icon={Book}
+          footerText="Keep up the great work!"
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Available Downloads"
+          value={enrollments?.length ?? 0}
+          icon={Download}
+          footerText="Assets ready for offline use."
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Certificates Earned"
+          value={certificates?.length ?? 0}
+          icon={CheckCircle}
+          footerText={certificates?.length === 1 ? '1 earned so far' : `${certificates?.length || 0} earned so far`}
+          isLoading={isLoading}
+        />
+         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Account Status</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Active</div>
+            {isLoading ? (
+                <Skeleton className="h-8 w-1/2"/>
+            ) : (
+                <div className="text-2xl font-bold">Active</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Your account is in good standing.
             </p>
@@ -107,11 +152,28 @@ export default function DashboardOverviewPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {featuredCourses.map(course => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
+            {isLoading ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-64" />
+                    <Skeleton className="h-64" />
+                    <Skeleton className="h-64" />
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {purchasedCourses.length > 0 ? (
+                        purchasedCourses.map(course => (
+                            <CourseCard key={course.id} course={course} />
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-8">
+                            <p className="text-muted-foreground">You haven't enrolled in any courses yet.</p>
+                            <Button asChild variant="link" className="mt-2">
+                                <Link href="/courses">Explore Courses</Link>
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
           </CardContent>
         </Card>
       </div>
