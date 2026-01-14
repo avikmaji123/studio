@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, UserCredential } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
@@ -103,40 +103,25 @@ export default function LoginPage() {
       });
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (!auth) return;
-    setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-      .then(async (result) => {
-        await createUserProfileIfNotExists(result);
-        toast({
-            title: "Login Successful",
-            description: "Welcome back! Redirecting you to the dashboard...",
-        });
-        router.push('/dashboard');
-      })
-      .catch((error) => {
-        if (error.code === 'auth/operation-not-allowed') {
-          toast({
-            variant: "destructive",
-            title: "Login Method Disabled",
-            description: "Google Sign-In is not enabled for this project. Please enable it in the Firebase console.",
-            duration: 9000,
-          });
-        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-          console.error("Google Sign-In Error:", error);
-          toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: error.message || "An unexpected error occurred during Google sign-in.",
-          });
-        }
-      })
-      .finally(() => {
-        setIsSubmitting(false);
+    setIsSubmitting(true);
+    try {
+      await signInWithRedirect(auth, provider);
+      // The user will be redirected to Google to sign in.
+      // The result is handled in the FirebaseProvider.
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Google Sign-In Failed",
+        description: error.message || "Could not initiate Google Sign-In. Please try again.",
       });
+      setIsSubmitting(false);
+    }
   };
+
 
   if (isUserLoading || user) {
     return (

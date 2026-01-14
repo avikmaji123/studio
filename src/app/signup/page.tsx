@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from "@/firebase";
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithRedirect, UserCredential } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -105,32 +105,23 @@ export default function SignupPage() {
       });
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
     setIsSubmitting(true);
-    signInWithPopup(auth, provider)
-      .then(async (result) => {
-        await createUserProfileIfNotExists(result);
-        toast({
-            title: "Account Created",
-            description: "Welcome! Redirecting you to the dashboard...",
-        });
-        router.push('/dashboard');
-      })
-      .catch((error) => {
-        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-          console.error("Google Sign-In Error:", error);
-          toast({
-            variant: "destructive",
-            title: "Sign-up Failed",
-            description: error.message || "An unexpected error occurred during Google sign-up.",
-          });
-        }
-      })
-      .finally(() => {
-        setIsSubmitting(false);
+    try {
+      await signInWithRedirect(auth, provider);
+      // The user will be redirected to Google to sign in.
+      // The result is handled in the FirebaseProvider.
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Google Sign-In Failed",
+        description: error.message || "Could not initiate Google Sign-In. Please try again.",
       });
+      setIsSubmitting(false);
+    }
   };
   
   if (isUserLoading || user) {
