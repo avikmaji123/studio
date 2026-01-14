@@ -18,7 +18,7 @@ export function CourseCard({ course }: CourseCardProps) {
 
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
-      <Link href={`/courses/${course.id}`} className="flex flex-col h-full">
+      <Link href={`/courses/${course.slug}`} className="flex flex-col h-full">
         <div className="relative aspect-video w-full">
           {image && (
                <Image

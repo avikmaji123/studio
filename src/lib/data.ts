@@ -1,5 +1,6 @@
 export type Course = {
   id: string;
+  slug: string;
   title: string;
   description: string;
   price: string;
@@ -25,6 +26,7 @@ export type Testimonial = {
 export const courses: Course[] = [
   {
     id: '1',
+    slug: 'the-complete-2024-web-development-bootcamp',
     title: 'The Complete 2024 Web Development Bootcamp',
     description:
       'A comprehensive course covering HTML, CSS, Javascript, Node, React, MongoDB, Web3 and DApps.',
@@ -43,6 +45,7 @@ export const courses: Course[] = [
   },
   {
     id: '2',
+    slug: 'the-data-science-course-2024-complete-data-science-bootcamp',
     title: 'The Data Science Course 2024: Complete Data Science Bootcamp',
     description:
       'A complete Data Science training covering Mathematics, Statistics, Python, Advanced Statistics in Python, Machine & Deep Learning.',
@@ -61,6 +64,7 @@ export const courses: Course[] = [
   },
   {
     id: '3',
+    slug: 'digital-marketing-masterclass-23-courses-in-1',
     title: 'Digital Marketing Masterclass - 23 Courses in 1',
     description:
       'A masterclass on Digital Marketing: Social Media Marketing, SEO, YouTube, Email, Facebook Marketing, Analytics & More!',
@@ -78,6 +82,7 @@ export const courses: Course[] = [
   },
   {
     id: '4',
+    slug: 'ui-ux-design-essentials',
     title: 'UI/UX Design Essentials',
     description:
       'Learn the fundamentals of UI/UX design, from user research to creating beautiful and intuitive interfaces.',
@@ -95,6 +100,7 @@ export const courses: Course[] = [
   },
   {
     id: '5',
+    slug: 'cyber-security-for-beginners',
     title: 'Cyber Security for Beginners',
     description:
       'A course on how to protect yourself and your organization from cyber threats. Learn about ethical hacking, network security, and cryptography.',
@@ -111,6 +117,7 @@ export const courses: Course[] = [
   },
   {
     id: '6',
+    slug: 'cloud-computing-with-aws',
     title: 'Cloud Computing with AWS',
     description:
       'Master Amazon Web Services from scratch. Learn about EC2, S3, Lambda, and build scalable cloud applications.',
