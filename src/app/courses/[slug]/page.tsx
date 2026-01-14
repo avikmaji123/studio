@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Clock, BarChart, Star } from 'lucide-react';
