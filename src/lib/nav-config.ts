@@ -23,10 +23,6 @@ export const navConfig: NavConfig = {
       title: 'Downloads',
       href: '/downloads',
     },
-    {
-      title: 'Affiliates',
-      href: '/affiliates',
-    },
      {
       title: 'About',
       href: '/about',
