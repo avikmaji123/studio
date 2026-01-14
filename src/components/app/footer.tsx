@@ -4,13 +4,13 @@ import { Github, Send, Instagram, BookOpen } from 'lucide-react';
 export default function Footer() {
   const navLinks = [
     { label: 'Courses', href: '/courses' },
+    { label: 'Downloads', href: '/downloads' },
     { label: 'About Us', href: '/about' },
     { label: 'Contact', href: '/contact' },
   ];
   const legalLinks = [
     { label: 'Terms of Service', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Admin', href: '/admin' },
   ];
   const socialLinks = [
     { icon: <Github />, href: 'https://github.com/alexavik', label: 'Github' },

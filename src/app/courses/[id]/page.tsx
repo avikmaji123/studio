@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import Link from 'next/link';
 
 type CoursePageProps = {
   params: {
@@ -61,11 +62,13 @@ export default function CoursePage({ params }: CoursePageProps) {
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Course Details</CardTitle>
+              <CardTitle>Purchase Course</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Badge variant="secondary" className="text-2xl font-bold w-full justify-center py-2">{course.price}</Badge>
-              <Button className="w-full" size="lg">Enroll Now</Button>
+              <Button asChild className="w-full" size="lg">
+                <Link href={`/courses/${course.id}/payment`}>Buy Course</Link>
+              </Button>
               <div className="space-y-2 text-sm text-muted-foreground pt-4">
                 <p className="flex items-center"><Star className="w-4 h-4 mr-2 text-yellow-400" /> 4.5 star rating</p>
                 <p className="flex items-center"><BarChart className="w-4 h-4 mr-2" /> All levels</p>

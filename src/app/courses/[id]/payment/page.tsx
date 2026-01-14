@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { notFound, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,30 @@ import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { autoHandleEngine, AutoHandleEngineInput } from '@/ai/flows/auto-handle-engine';
 import { Loader2 } from 'lucide-react';
+import { courses } from '@/lib/data';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
-export default function PaymentPage() {
+type CoursePaymentPageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default function CoursePaymentPage({ params }: CoursePaymentPageProps) {
+    const router = useRouter();
     const { toast } = useToast();
     const [utr, setUtr] = useState('');
     const [screenshot, setScreenshot] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const course = courses.find(c => c.id === params.id);
+
+    if (!course) {
+        notFound();
+    }
+
+    const courseImage = PlaceHolderImages.find(p => p.id === course.imageId);
     const qrCodeImage = PlaceHolderImages.find(p => p.id === 'payment-qr-code');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +54,8 @@ export default function PaymentPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // NOTE: In a real app, you would check for user authentication here.
+        
         if (!utr || !screenshot) {
             toast({
                 variant: "destructive",
@@ -58,23 +78,33 @@ export default function PaymentPage() {
 
             const result = await autoHandleEngine(input);
             
-            toast({
-                title: "Submission Analysis",
-                description: (
-                    <div className="space-y-2">
-                        <p>{result.reasoning}</p>
-                        <p>Trust Score: {result.trustScore}</p>
-                        <p className="font-bold">Suggestion: <span className="capitalize">{result.suggestion}</span></p>
-                    </div>
-                )
-            });
+            if (result.suggestion === 'approve') {
+                toast({
+                    title: "Payment Verified!",
+                    description: "Your access to the course has been granted.",
+                });
+                // In a real app, you would grant access and then redirect.
+                router.push('/downloads');
+            } else {
+                 toast({
+                    title: "Submission Under Review",
+                    description: (
+                        <div className="space-y-2">
+                            <p>{result.reasoning}</p>
+                            <p className="font-bold">Suggestion: <span className="capitalize">{result.suggestion}</span></p>
+                            <p>Please wait for manual approval or contact support if this seems incorrect.</p>
+                        </div>
+                    ),
+                    duration: 9000,
+                });
+            }
 
         } catch (error) {
             console.error("Payment submission error:", error);
             toast({
                 variant: "destructive",
-                title: "Submission Failed",
-                description: "There was an error submitting your payment details. Please try again.",
+                title: "Verification Failed",
+                description: "There was an error verifying your payment. Please try again or contact support.",
             });
         } finally {
             setIsLoading(false);
@@ -83,20 +113,51 @@ export default function PaymentPage() {
 
     return (
         <div className="container mx-auto px-4 py-16 sm:py-24">
+             <div className="mb-8">
+                <Button asChild variant="ghost">
+                    <Link href={`/courses/${course.id}`}>
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Course
+                    </Link>
+                </Button>
+            </div>
             <div className="grid md:grid-cols-2 gap-12">
-                <div className="space-y-6">
-                    <Card>
+                <div className="space-y-8">
+                    {/* Course Info Card */}
+                    <Card className="overflow-hidden">
                         <CardHeader>
-                            <CardTitle className="text-3xl">Scan & Pay</CardTitle>
-                            <CardDescription>Use your favorite UPI app to make the payment.</CardDescription>
+                             <CardTitle>Order Summary</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           {courseImage && (
+                                <div className="relative aspect-video w-full">
+                                    <Image
+                                        src={courseImage.imageUrl}
+                                        alt={course.title}
+                                        data-ai-hint={courseImage.imageHint}
+                                        fill
+                                        className="object-cover rounded-md"
+                                    />
+                                </div>
+                            )}
+                            <h2 className="text-xl font-semibold">{course.title}</h2>
+                            <p className="text-3xl font-bold text-primary">{course.price}</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Payment QR Code Card */}
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Scan & Pay</CardTitle>
+                            <CardDescription>Use your favorite UPI app to pay the exact amount.</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center justify-center space-y-4">
                             {qrCodeImage && (
                                 <Image 
                                     src={qrCodeImage.imageUrl} 
                                     alt="Payment QR Code" 
-                                    width={300} 
-                                    height={300}
+                                    width={250} 
+                                    height={250}
                                     data-ai-hint={qrCodeImage.imageHint}
                                     className="rounded-lg border p-2"
                                 />
@@ -107,25 +168,15 @@ export default function PaymentPage() {
                             </div>
                         </CardContent>
                     </Card>
-                     <div className="prose dark:prose-invert text-muted-foreground space-y-4">
-                        <h3 className="text-foreground">Instructions</h3>
-                        <ol className="list-decimal list-inside space-y-2">
-                            <li>Scan the QR code using any UPI payment app (Google Pay, PhonePe, Paytm, etc.).</li>
-                            <li>Enter the amount for your chosen plan.</li>
-                            <li>After a successful payment, take a screenshot of the confirmation screen.</li>
-                            <li>Note down the UTR/Transaction ID.</li>
-                            <li>Fill out the form on the right and upload the screenshot.</li>
-                            <li>Your access will be activated upon successful verification by our system.</li>
-                        </ol>
-                    </div>
                 </div>
 
+                {/* Submission Form */}
                 <div>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Submit Payment Details</CardTitle>
+                            <CardTitle>Confirm Your Payment</CardTitle>
                             <CardDescription>
-                                After payment, please submit the details below for verification.
+                                After paying, submit the details below for instant verification.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -149,10 +200,11 @@ export default function PaymentPage() {
                                         onChange={handleFileChange}
                                         required 
                                     />
+                                     <p className="text-xs text-muted-foreground">Upload a screenshot of the payment confirmation.</p>
                                 </div>
                                 <Button type="submit" className="w-full" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {isLoading ? 'Verifying...' : 'Submit for Verification'}
+                                    {isLoading ? 'Verifying...' : 'Verify & Get Access'}
                                 </Button>
                             </form>
                         </CardContent>
