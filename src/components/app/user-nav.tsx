@@ -20,7 +20,7 @@ import { Loader2 } from 'lucide-react';
 
 
 export function UserNav() {
-  const { user, isUserLoading } = useUser();
+  const { user, profile, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -48,20 +48,23 @@ export function UserNav() {
   }
 
   if (user) {
+    const displayName = profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user.displayName;
+    const fallback = (profile?.firstName?.charAt(0) || '') + (profile?.lastName?.charAt(0) || '') || user.email?.charAt(0) || 'U';
+
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-              <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
+              <AvatarImage src={user.photoURL || ''} alt={displayName || 'User'} />
+              <AvatarFallback>{fallback}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+              <p className="text-sm font-medium leading-none">{displayName || 'User'}</p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user.email}
               </p>
@@ -92,5 +95,3 @@ export function UserNav() {
     </Button>
   );
 }
-
-    

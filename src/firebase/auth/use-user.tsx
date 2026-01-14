@@ -1,14 +1,13 @@
-"use client"
+'use client';
 
-import { useFirebase } from "@/firebase/provider"
-import type { UserHookResult } from "@/firebase/provider"
+import { useFirebase } from '@/firebase/provider';
+import type { UserAuthAndProfileHookResult } from '@/firebase/provider';
 
 /**
- * Hook specifically for accessing the authenticated user's state.
- * This provides the User object, loading status, and any auth errors.
- * @returns {UserHookResult} Object with user, isUserLoading, userError.
+ * Hook specifically for accessing the authenticated user's state, including their Firestore profile.
+ * @returns {UserAuthAndProfileHookResult} Object with user, profile, loading status, and errors.
  */
-export const useUser = (): UserHookResult => {
-  const { user, isUserLoading, userError } = useFirebase()
-  return { user, isUserLoading, userError }
-}
+export const useUser = (): UserAuthAndProfileHookResult => {
+  const { user, profile, isUserLoading, userError, isProfileLoading, profileError } = useFirebase();
+  return { user, profile, isUserLoading, userError, isProfileLoading, profileError };
+};

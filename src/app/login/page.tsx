@@ -6,34 +6,58 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser } from '@/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Redirect if user is already logged in
     if (!isUserLoading && user) {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
+      });
+      router.push('/');
+    } catch (error: any) {
+      console.error("Email/Password Sign-In Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "An unexpected error occurred during login.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleGoogleSignIn = () => {
     const provider = new GoogleAuthProvider();
-    // Non-blocking sign-in. onAuthStateChanged will handle the redirect.
     signInWithPopup(auth, provider)
       .then((result) => {
         toast({
           title: "Login Successful",
           description: "Welcome back!",
         });
-        router.push('/'); // Redirect on success
+        router.push('/');
       })
       .catch((error) => {
         if (error.code === 'auth/operation-not-allowed') {
@@ -54,6 +78,14 @@ export default function LoginPage() {
       });
   };
 
+  if (isUserLoading || user) {
+    return (
+        <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-15rem)] py-12">
       <Card className="w-full max-w-sm">
@@ -64,7 +96,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <form onSubmit={handleEmailLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -72,6 +104,9 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -81,15 +116,23 @@ export default function LoginPage() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting}
+              />
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} type="button" disabled={isSubmitting}>
               Login with Google
             </Button>
-          </div>
+          </form>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline">
