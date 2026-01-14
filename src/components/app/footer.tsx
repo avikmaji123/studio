@@ -4,6 +4,7 @@ import { Github, Send, Instagram, BookOpen } from 'lucide-react';
 export default function Footer() {
   const navLinks = [
     { label: 'Courses', href: '/courses' },
+    { label: 'News', href: '/news' },
     { label: 'Downloads', href: '/downloads' },
     { label: 'About Us', href: '/about' },
     { label: 'Contact', href: '/contact' },

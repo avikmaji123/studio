@@ -20,6 +20,10 @@ export const navConfig: NavConfig = {
       href: '/courses',
     },
     {
+      title: 'News',
+      href: '/news',
+    },
+    {
       title: 'Downloads',
       href: '/downloads',
     },
@@ -40,6 +44,10 @@ export const navConfig: NavConfig = {
     {
       title: 'Courses',
       href: '/courses',
+    },
+    {
+      title: 'News',
+      href: '/news',
     },
      {
       title: 'Downloads',
