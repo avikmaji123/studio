@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 
 export default function SignupPage() {
@@ -26,7 +26,30 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
+    const user = userCredential.user;
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ['', ''];
+      const lastName = lastNameParts.join(' ');
+      
+      await setDoc(userDocRef, {
+        id: user.uid,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        email: user.email,
+        role: 'student',
+        themePreference: 'light',
+        walletBalance: 0,
+        affiliateCode: '',
+        suspended: false,
+      });
+    }
+  };
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -72,6 +95,33 @@ export default function SignupPage() {
     }
   };
 
+  const handleGoogleSignIn = () => {
+    const provider = new GoogleAuthProvider();
+    setIsSubmitting(true);
+    signInWithPopup(auth, provider)
+      .then(async (result) => {
+        await createUserProfileIfNotExists(result);
+        toast({
+          title: "Account Created",
+          description: "You have successfully signed up with Google.",
+        });
+        router.push('/');
+      })
+      .catch((error) => {
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+          console.error("Google Sign-In Error:", error);
+          toast({
+            variant: "destructive",
+            title: "Sign-up Failed",
+            description: error.message || "An unexpected error occurred during sign-up.",
+          });
+        }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
+  };
+
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-15rem)] py-12">
       <Card className="w-full max-w-sm">
@@ -82,7 +132,7 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignUp} className="grid gap-4">
+          <form onSubmit={handleEmailSignUp} className="grid gap-4">
              <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="first-name">First name</Label>
@@ -113,7 +163,8 @@ export default function SignupPage() {
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create an account
             </Button>
-            <Button variant="outline" className="w-full" type="button" disabled={isSubmitting}>
+            <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isSubmitting}>
+               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign up with Google
             </Button>
           </form>

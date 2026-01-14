@@ -5,15 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useAuth, useUser } from '@/firebase';
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { useAuth, useUser, useFirestore } from '@/firebase';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -26,6 +28,30 @@ export default function LoginPage() {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
+
+  const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
+    const user = userCredential.user;
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ['', ''];
+      const lastName = lastNameParts.join(' ');
+      
+      await setDoc(userDocRef, {
+        id: user.uid,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        email: user.email,
+        role: 'student',
+        themePreference: 'light',
+        walletBalance: 0,
+        affiliateCode: '',
+        suspended: false,
+      });
+    }
+  };
+
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +78,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
-      .then((result) => {
+      .then(async (result) => {
+        await createUserProfileIfNotExists(result);
         toast({
           title: "Login Successful",
           description: "Welcome back!",
