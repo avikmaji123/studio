@@ -95,12 +95,13 @@ export default function CoursePaymentPage() {
                 });
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Payment submission error:", error);
+            const errorMessage = error?.message || "An unknown error occurred with the AI verification service. Please try again later.";
             toast({
                 variant: "destructive",
                 title: "Verification Failed",
-                description: "There was an error verifying your payment. Please try again or contact support.",
+                description: errorMessage,
             });
         } finally {
             setIsLoading(false);
