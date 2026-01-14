@@ -8,12 +8,31 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/index';
+import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 
-// Initialize Firebase Admin SDK to interact with Firestore
-// Note: This assumes server-side execution with appropriate credentials.
-const { firestore } = initializeFirebase();
+// Initialize Firebase Admin SDK only if it hasn't been initialized yet.
+// This is safe to run on the server and prevents re-initialization errors in Next.js hot-reloading environments.
+if (!admin.apps.length) {
+  try {
+    // The FIREBASE_CONFIG env var is set by Firebase App Hosting.
+    // It's a JSON string that needs to be parsed.
+    const firebaseConfig = process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG) : {};
+    
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      // Use environment variables provided by Firebase App Hosting if available
+      databaseURL: firebaseConfig.databaseURL,
+      storageBucket: firebaseConfig.storageBucket,
+    });
+    console.log("Firebase Admin initialized successfully.");
+  } catch (e) {
+    console.error("Firebase Admin initialization error:", e);
+  }
+}
+
+const firestore = admin.firestore();
+
 
 const verifyPaymentInputSchema = z.object({
   courseId: z.string().describe("The ID of the course being purchased."),
@@ -107,17 +126,17 @@ const verifyFamPayPaymentFlow = ai.defineFlow(
     // If payment is verified by the AI, grant course access
     if (result.verified) {
       try {
-        const enrollmentRef = doc(firestore, 'users', input.userId, 'enrollments', input.courseId);
-        await setDoc(enrollmentRef, {
+        const enrollmentRef = firestore.collection('users').doc(input.userId).collection('enrollments').doc(input.courseId);
+        await enrollmentRef.set({
           id: input.courseId,
           userId: input.userId,
           courseId: input.courseId,
-          enrollmentDate: serverTimestamp(),
+          enrollmentDate: Timestamp.now(),
           completionPercentage: 0,
         });
         
         // Optionally, log this action
-        // await addDoc(collection(firestore, 'adminActionLogs'), { ... });
+        // await firestore.collection('adminActionLogs').add({ ... });
 
       } catch (error: any) {
         console.error("Firestore error: Failed to create enrollment.", error);
