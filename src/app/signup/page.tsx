@@ -28,11 +28,15 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      router.push('/');
+      toast({
+        title: "Account Created",
+        description: "Welcome! Redirecting you to the dashboard...",
+      });
+      router.push('/dashboard');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, toast]);
 
-  const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
+  const createUserProfileIfNotExists = async (userCredential: UserCredential, fName?: string, lName?: string) => {
     if (!firestore) return;
     const user = userCredential.user;
     const userDocRef = doc(firestore, 'users', user.uid);
@@ -40,13 +44,13 @@ export default function SignupPage() {
 
     if (!userDoc.exists()) {
       const displayName = user.displayName;
-      const fName = displayName ? displayName.split(' ')[0] : firstName;
-      const lName = displayName ? displayName.split(' ').slice(1).join(' ') : lastName;
+      const firstNameToSet = fName || (displayName ? displayName.split(' ')[0] : '');
+      const lastNameToSet = lName || (displayName ? displayName.split(' ').slice(1).join(' ') : '');
       
       await setDoc(userDocRef, {
         id: user.uid,
-        firstName: fName || '',
-        lastName: lName || '',
+        firstName: firstNameToSet,
+        lastName: lastNameToSet,
         email: user.email,
         role: 'student',
         themePreference: 'light',
@@ -57,38 +61,48 @@ export default function SignupPage() {
     }
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !firestore) return;
     setIsSubmitting(true);
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        await updateProfile(user, {
+          displayName: `${firstName} ${lastName}`.trim(),
+        });
+        await createUserProfileIfNotExists(userCredential, firstName, lastName);
+        // Success case is handled by useEffect
+      })
+      .catch((error: any) => {
+        let title = "Sign-up Failed";
+        let description = "An unexpected error occurred. Please try again.";
 
-      await updateProfile(user, {
-        displayName: `${firstName} ${lastName}`.trim(),
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            title = "Email In Use";
+            description = "This email is already registered. Please try logging in instead.";
+            break;
+          case 'auth/invalid-email':
+            title = "Invalid Email";
+            description = "Please enter a valid email address.";
+            break;
+          case 'auth/weak-password':
+            title = "Weak Password";
+            description = "Your password must be at least 6 characters long.";
+            break;
+          default:
+             console.error("Sign-up Error:", error);
+             description = error.message;
+             break;
+        }
+        
+        toast({ variant: "destructive", title, description });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-
-      // Call createUserProfileIfNotExists to create the firestore doc
-      await createUserProfileIfNotExists(userCredential);
-
-      toast({
-        title: "Account Created",
-        description: "You have been successfully signed up.",
-      });
-      // The useEffect will handle the redirect
-
-    } catch (error: any) {
-      console.error("Sign-up Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Sign-up Failed",
-        description: error.message || "An unexpected error occurred during sign-up.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleGoogleSignIn = () => {
@@ -98,11 +112,7 @@ export default function SignupPage() {
     signInWithPopup(auth, provider)
       .then(async (result) => {
         await createUserProfileIfNotExists(result);
-        toast({
-          title: "Account Created",
-          description: "You have successfully signed up with Google.",
-        });
-        // The useEffect will handle the redirect
+        // Success is handled by useEffect
       })
       .catch((error) => {
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
@@ -110,7 +120,7 @@ export default function SignupPage() {
           toast({
             variant: "destructive",
             title: "Sign-up Failed",
-            description: error.message || "An unexpected error occurred during sign-up.",
+            description: error.message || "An unexpected error occurred during Google sign-up.",
           });
         }
       })

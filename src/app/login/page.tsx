@@ -25,9 +25,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      router.push('/');
+      toast({
+        title: "Login Successful",
+        description: "Welcome back! Redirecting you to the dashboard...",
+      });
+      router.push('/dashboard');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, toast]);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
     if (!firestore) return;
@@ -53,42 +57,57 @@ export default function LoginPage() {
     }
   };
 
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     setIsSubmitting(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await createUserProfileIfNotExists(userCredential);
-      toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+    
+    // Non-blocking call
+    signInWithEmailAndPassword(auth, email, password)
+      .catch((error: any) => {
+        let title = "Login Failed";
+        let description = "An unexpected error occurred. Please try again.";
+
+        switch (error.code) {
+          case 'auth/invalid-credential':
+          case 'auth/invalid-email':
+          case 'auth/wrong-password':
+            title = "Invalid Credentials";
+            description = "The email or password you entered is incorrect. Please check and try again.";
+            break;
+          case 'auth/user-disabled':
+            title = "Account Disabled";
+            description = "Your account has been disabled. Please contact support.";
+            break;
+          case 'auth/user-not-found':
+            title = "Account Not Found";
+            description = "No account found with this email. You may want to sign up instead.";
+            break;
+          case 'auth/too-many-requests':
+            title = "Too Many Attempts";
+            description = "Access to this account has been temporarily disabled due to many failed login attempts. Please reset your password or try again later.";
+            break;
+          default:
+            console.error("Email/Password Sign-In Error:", error);
+            description = error.message;
+            break;
+        }
+
+        toast({ variant: "destructive", title, description });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-      // The useEffect will handle the redirect
-    } catch (error: any) {
-      console.error("Email/Password Sign-In Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "An unexpected error occurred during login.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleGoogleSignIn = () => {
     if (!auth) return;
+    setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(async (result) => {
+        // The success case is handled by the useEffect hook watching the user state
         await createUserProfileIfNotExists(result);
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        });
-        // The useEffect will handle the redirect
       })
       .catch((error) => {
         if (error.code === 'auth/operation-not-allowed') {
@@ -103,9 +122,12 @@ export default function LoginPage() {
           toast({
             variant: "destructive",
             title: "Login Failed",
-            description: error.message || "An unexpected error occurred during login.",
+            description: error.message || "An unexpected error occurred during Google sign-in.",
           });
         }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
@@ -161,6 +183,7 @@ export default function LoginPage() {
               Login
             </Button>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} type="button" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login with Google
             </Button>
           </form>
