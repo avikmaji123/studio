@@ -1,3 +1,4 @@
+
 export type Course = {
   id: string;
   slug: string;
