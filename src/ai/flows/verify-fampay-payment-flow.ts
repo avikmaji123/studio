@@ -117,7 +117,7 @@ const verifyFamPayPaymentFlow = ai.defineFlow(
       },
     });
 
-    const result = verificationResult.output();
+    const result = verificationResult.output;
 
     if (!result) {
         throw new Error("AI verification returned no result.");
