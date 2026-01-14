@@ -5,33 +5,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Login Successful",
-        description: "You have successfully logged in.",
-      });
-      router.push('/'); // Redirect to home page after successful login
-    } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "An unexpected error occurred during login.",
-      });
+  useEffect(() => {
+    // Redirect if user is already logged in
+    if (!isUserLoading && user) {
+      router.push('/');
     }
+  }, [user, isUserLoading, router]);
+
+  const handleGoogleSignIn = () => {
+    const provider = new GoogleAuthProvider();
+    // Non-blocking sign-in. onAuthStateChanged will handle the redirect.
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        router.push('/'); // Redirect on success
+      })
+      .catch((error) => {
+        // Only show a toast if the error is not a user cancellation
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+          console.error("Google Sign-In Error:", error);
+          toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: error.message || "An unexpected error occurred during login.",
+          });
+        }
+      });
   };
 
   return (
@@ -81,5 +95,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
