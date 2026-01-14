@@ -109,7 +109,13 @@ export default function CoursePaymentPage() {
 
         } catch (error: any) {
             console.error("Payment submission error:", error);
-            const errorMessage = error?.message || "An unknown error occurred with the AI verification service. Please try again later.";
+            let errorMessage = "An unknown error occurred with the AI verification service. Please try again later.";
+            if (error?.message && error.message.includes('503 Service Unavailable')) {
+                errorMessage = "The verification service is currently busy. Please wait a moment and try again.";
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+            
             toast({
                 variant: "destructive",
                 title: "Verification Service Error",
