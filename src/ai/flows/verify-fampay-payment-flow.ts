@@ -47,20 +47,6 @@ const verifyPaymentOutputSchema = z.object({
 });
 export type VerifyPaymentOutput = z.infer<typeof verifyPaymentOutputSchema>;
 
-// Mock response for the Gmail tool
-const mockGmailResponse = {
-    snippet: 'You have received a payment of ₹499 from John Doe. Transaction ID: FAMPAY123456789.',
-    payload: {
-        headers: [
-            { name: 'From', value: 'no-reply@famapp.in' },
-            { name: 'Subject', value: 'Payment Received' },
-        ],
-        body: {
-            data: Buffer.from('Full email body content here, including details like: Amount: ₹499, From: John Doe, Txn ID: FAMPAY123456789.').toString('base64'),
-        }
-    }
-};
-
 const getLatestFamPayEmail = ai.defineTool(
   {
     name: 'getLatestFamPayEmail',
@@ -70,9 +56,10 @@ const getLatestFamPayEmail = ai.defineTool(
   },
   async () => {
     // In a real implementation, this would use the Gmail API with OAuth.
-    // For this prototype, we return a mock response.
-    console.log("Tool: getLatestFamPayEmail is using mock data.");
-    return mockGmailResponse;
+    // For this prototype, we return null to indicate no email was found yet.
+    // The flow will handle this case gracefully.
+    console.log("Tool: getLatestFamPayEmail is checking for a real email. No mock data is used.");
+    return null; 
   }
 );
 
@@ -90,8 +77,9 @@ const verifyFamPayPaymentFlow = ai.defineFlow(
   async (input) => {
     const email = await getLatestFamPayEmail({});
 
+    // CRITICAL: Check if a real email was found. If not, fail verification.
     if (!email || !email.snippet) {
-      return { verified: false, reasoning: 'No new FamPay payment email found. Please try again in a few moments.' };
+      return { verified: false, reasoning: 'No new FamPay payment email found. Please ensure you have paid and try again in a few moments.' };
     }
 
     // AI prompt to analyze the email content
