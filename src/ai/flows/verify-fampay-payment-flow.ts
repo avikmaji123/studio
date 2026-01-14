@@ -15,19 +15,14 @@ import { Timestamp } from 'firebase-admin/firestore';
 // This is safe to run on the server and prevents re-initialization errors in Next.js hot-reloading environments.
 if (!admin.apps.length) {
   try {
-    // The FIREBASE_CONFIG env var is set by Firebase App Hosting.
-    // It's a JSON string that needs to be parsed.
-    const firebaseConfig = process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG) : {};
-    
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      // Use environment variables provided by Firebase App Hosting if available
-      databaseURL: firebaseConfig.databaseURL,
-      storageBucket: firebaseConfig.storageBucket,
-    });
+    // In a Firebase App Hosting environment, initializeApp() with no arguments 
+    // automatically uses the service account credentials and project configuration.
+    admin.initializeApp();
     console.log("Firebase Admin initialized successfully.");
   } catch (e) {
     console.error("Firebase Admin initialization error:", e);
+    // This flow will not work without Firebase Admin.
+    // We log the error, and subsequent Firestore calls will fail.
   }
 }
 
