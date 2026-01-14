@@ -58,7 +58,7 @@ function HeroSection() {
                 </Link>
               </Button>
               <Button asChild variant="secondary" size="lg">
-                <Link href="/signup">Get Started Free</Link>
+                <Link href="/login">Login / Sign Up</Link>
               </Button>
             </div>
           </div>
