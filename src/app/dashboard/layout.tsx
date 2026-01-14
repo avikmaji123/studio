@@ -72,7 +72,6 @@ function DashboardSidebar() {
     <Sidebar
       collapsible="icon"
       className="border-r"
-      defaultOpen
       variant="sidebar"
     >
       <SidebarHeader className="h-16 justify-center">
@@ -185,7 +184,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen>
       <DashboardSidebar />
       <SidebarInset>
         <header className="flex h-16 items-center border-b px-4 md:hidden">
