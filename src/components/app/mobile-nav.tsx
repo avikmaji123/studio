@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, BookOpen } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { navConfig } from '@/lib/nav-config';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
@@ -15,10 +15,6 @@ export function MobileNav() {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
-
-  const mainNavLinks = navConfig.sidebarNav.filter(item => 
-    !['Login', 'Register', 'Logout', 'Downloads'].includes(item.title)
-  );
 
   const authNavLinks = user
     ? [
@@ -29,6 +25,9 @@ export function MobileNav() {
         { title: 'Login', href: '/login' },
         { title: 'Sign Up', href: '/signup' },
       ];
+
+  // Filter out the duplicate /downloads link from the main navigation
+  const uniqueMainNavs = navConfig.mainNav.filter(item => item.href !== '/downloads');
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -47,11 +46,12 @@ export function MobileNav() {
             <BookOpen className="h-6 w-6 mr-2 text-primary" />
             <span className="font-bold">CourseVerse</span>
           </Link>
+           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         </SheetHeader>
 
         <div className="my-8 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="flex flex-col space-y-3">
-            {[...mainNavLinks, ...authNavLinks].map(
+            {[...uniqueMainNavs, ...authNavLinks].map(
               (item) =>
                 item.href && (
                   <Link
