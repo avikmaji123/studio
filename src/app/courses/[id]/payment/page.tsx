@@ -21,14 +21,14 @@ type CoursePaymentPageProps = {
   };
 };
 
-export default function CoursePaymentPage({ params }: CoursePaymentPageProps) {
+export default function CoursePaymentPage({ params: { id } }: CoursePaymentPageProps) {
     const router = useRouter();
     const { toast } = useToast();
     const [utr, setUtr] = useState('');
     const [screenshot, setScreenshot] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     
-    const course = courses.find(c => c.id === params.id);
+    const course = courses.find(c => c.id === id);
 
     if (!course) {
         notFound();

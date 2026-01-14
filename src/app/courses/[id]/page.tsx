@@ -16,7 +16,8 @@ type CoursePageProps = {
 };
 
 export default function CoursePage({ params }: CoursePageProps) {
-  const course = courses.find(c => c.id === params.id);
+  const { id } = params;
+  const course = courses.find(c => c.id === id);
 
   if (!course) {
     notFound();
