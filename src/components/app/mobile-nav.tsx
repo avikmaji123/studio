@@ -17,7 +17,7 @@ export function MobileNav() {
   const { user, isUserLoading } = useUser();
 
   const mainNavLinks = navConfig.sidebarNav.filter(item => 
-    !['Login', 'Register', 'Logout'].includes(item.title)
+    !['Login', 'Register', 'Logout', 'Downloads'].includes(item.title)
   );
 
   const authNavLinks = user
