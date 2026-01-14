@@ -160,7 +160,7 @@ export default function CoursePaymentPage() {
                             )}
                              <div className="text-center">
                                 <p className="font-bold text-lg">CourseVerse</p>
-                                <p className="text-muted-foreground">UPI ID: courseverse@example</p>
+                                <p className="text-muted-foreground">UPI ID: avik911@fam</p>
                             </div>
                         </CardContent>
                     </Card>
