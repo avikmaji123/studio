@@ -3,23 +3,32 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { notFound, useRouter, useParams } from 'next/navigation';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { verifyFamPayPayment } from '@/ai/flows/verify-fampay-payment-flow';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { autoHandleEngine } from '@/ai/flows/auto-handle-engine';
+import { Loader2, ArrowLeft, Upload } from 'lucide-react';
 import { courses } from '@/lib/data';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function CoursePaymentPage() {
     const router = useRouter();
     const params = useParams();
     const { user } = useUser();
+    const firestore = useFirestore();
     const id = params.id as string;
     const { toast } = useToast();
+
     const [isLoading, setIsLoading] = useState(false);
+    const [utr, setUtr] = useState('');
+    const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+    const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
     
     const course = courses.find(c => c.id === id);
 
@@ -30,10 +39,22 @@ export default function CoursePaymentPage() {
     const courseImage = PlaceHolderImages.find(p => p.id === course.imageId);
     const qrCodeImage = PlaceHolderImages.find(p => p.id === 'payment-qr-code');
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setScreenshotFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setScreenshotPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!user) {
+        if (!user || !firestore) {
             toast({
                 variant: "destructive",
                 title: "Authentication Error",
@@ -43,16 +64,35 @@ export default function CoursePaymentPage() {
             return;
         }
 
+        if (!utr || !screenshotFile || !screenshotPreview) {
+            toast({
+                variant: "destructive",
+                title: "Missing Information",
+                description: "Please provide both a UTR/Transaction ID and a screenshot.",
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            const result = await verifyFamPayPayment({ 
-                courseId: course.id,
+            const result = await autoHandleEngine({ 
                 coursePrice: course.price,
-                userId: user.uid,
+                utr,
+                screenshotDataUri: screenshotPreview,
             });
             
             if (result.verified) {
+                // Grant course access in Firestore
+                const enrollmentRef = doc(firestore, 'users', user.uid, 'enrollments', course.id);
+                await setDoc(enrollmentRef, {
+                    id: course.id,
+                    userId: user.uid,
+                    courseId: course.id,
+                    enrollmentDate: Timestamp.now(),
+                    completionPercentage: 0,
+                });
+
                 toast({
                     title: "Payment Verified!",
                     description: "Your access to the course has been granted. Redirecting...",
@@ -62,7 +102,7 @@ export default function CoursePaymentPage() {
                  toast({
                     variant: "destructive",
                     title: "Verification Failed",
-                    description: result.reasoning || "Could not verify payment. Please ensure you have paid the correct amount and try again in a moment.",
+                    description: result.reasoning || "Could not verify payment. Please check your details and try again.",
                     duration: 9000,
                 });
             }
@@ -145,14 +185,46 @@ export default function CoursePaymentPage() {
                         <CardHeader>
                             <CardTitle>2. Confirm Your Payment</CardTitle>
                             <CardDescription>
-                                After paying, click the button below. Our automated system will verify your payment via Gmail.
+                                After paying, enter your transaction details and upload a screenshot to verify.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <p className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
-                                   Our system will securely check for a new payment confirmation email from FamPay in the administrator's Gmail account. No UTR or screenshot is needed.
-                                </p>
+                                <div className="space-y-2">
+                                    <Label htmlFor="utr">UTR / Transaction ID</Label>
+                                    <Input 
+                                        id="utr"
+                                        value={utr}
+                                        onChange={(e) => setUtr(e.target.value)}
+                                        placeholder="Enter your 12-digit UTR"
+                                        required
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="screenshot">Payment Screenshot</Label>
+                                     <div className="relative">
+                                        <Input
+                                            id="screenshot"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            required
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={isLoading}
+                                        />
+                                        <div className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+                                            {screenshotPreview ? (
+                                                <Image src={screenshotPreview} alt="Screenshot preview" width={150} height={150} className="mx-auto rounded-md object-contain h-32" />
+                                            ) : (
+                                                <div className="space-y-2 text-muted-foreground">
+                                                    <Upload className="mx-auto h-8 w-8" />
+                                                    <p>Click or drag to upload</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                                 <Button type="submit" className="w-full" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {isLoading ? 'Verifying Payment...' : 'Verify My Payment & Get Access'}

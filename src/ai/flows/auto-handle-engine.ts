@@ -1,44 +1,29 @@
 'use server';
 
 /**
- * @fileOverview This file defines the autoHandleEngine flow, which uses AI to analyze payment submissions and provide trust scores.
+ * @fileOverview This file defines the autoHandleEngine flow, which uses AI to verify UPI payments.
+ * It analyzes a user-submitted screenshot and UTR to confirm payment details against the course price.
  *
- * The flow analyzes UTR format, timestamp behavior, duplicate detection and screenshot reuse to assess the trustworthiness of a payment.
- * It outputs a trust score and a suggestion for approval or rejection.
- *
- * @requires genkit
+ * It performs a primary check on the screenshot content and a fallback check on the UTR format.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AutoHandleEngineInputSchema = z.object({
+  coursePrice: z.string().describe("The expected price of the course (e.g., '₹499')."),
   utr: z.string().describe('The UTR (Unique Transaction Reference) of the payment.'),
-  timestamp: z.string().describe('The timestamp of the payment submission.'),
   screenshotDataUri: z
     .string()
     .describe(
       "A screenshot of the payment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  previousScreenshots: z
-    .array(z.string())
-    .optional()
-    .describe('A list of data URIs of previously submitted screenshots by the user.'),
 });
 export type AutoHandleEngineInput = z.infer<typeof AutoHandleEngineInputSchema>;
 
 const AutoHandleEngineOutputSchema = z.object({
-  trustScore: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe('A score between 0 and 100 indicating the trustworthiness of the payment.'),
-  suggestion: z
-    .enum(['approve', 'reject', 'review'])
-    .describe('A suggestion for the admin to approve, reject, or review the payment.'),
-  reasoning: z
-    .string()
-    .describe('The AI’s reasoning behind the trust score and suggestion.'),
+  verified: z.boolean().describe('Whether the payment was successfully verified.'),
+  reasoning: z.string().describe('The AI’s reasoning behind the verification outcome.'),
 });
 export type AutoHandleEngineOutput = z.infer<typeof AutoHandleEngineOutputSchema>;
 
@@ -52,29 +37,29 @@ const autoHandleEnginePrompt = ai.definePrompt({
   name: 'autoHandleEnginePrompt',
   input: {schema: AutoHandleEngineInputSchema},
   output: {schema: AutoHandleEngineOutputSchema},
-  prompt: `You are an AI assistant that helps admins to decide whether to approve or reject payments.
+  prompt: `You are a highly accurate AI payment verification assistant. Your task is to verify a UPI payment for a course that costs exactly {{{coursePrice}}}.
 
-You will receive the UTR, timestamp, and screenshot of the payment submission, along with any previous screenshots submitted by the user.
+You will be given the user-submitted UTR and a payment screenshot. Follow these steps strictly:
 
-Analyze the information and provide a trust score between 0 and 100, a suggestion to approve, reject, or review the payment, and your reasoning.
+**1. PRIMARY CHECK (Screenshot Analysis):**
+   - Analyze the payment screenshot: {{media url=screenshotDataUri}}
+   - Extract the paid amount, date/time, and UTR from the image.
+   - **Crucial:** Does the paid amount in the screenshot EXACTLY match {{{coursePrice}}}?
+   - Is the timestamp recent and plausible?
+   - Does the screenshot look authentic (not cropped, edited, or fake)?
+   - If all conditions are met, the payment is verified.
 
-Consider the following factors:
+**2. FALLBACK CHECK (UTR Validation - only if screenshot analysis fails):**
+   - If the screenshot is unclear or fails analysis, examine the user-submitted UTR: {{{utr}}}
+   - Does the UTR follow a valid UPI format (typically 12 alphanumeric characters)?
+   - If the UTR format is valid and the screenshot wasn't obviously fraudulent, you can consider the payment verified with lower confidence.
 
-*   UTR format: Is the UTR valid?
-*   Timestamp behavior: Is the timestamp consistent with the payment submission time?
-*   Screenshot reuse: Has the screenshot been used before by the same user? Compare to the following previous screenshots: {{#each previousScreenshots}}{{{media url=this}}}{{#sep}}, {{/sep}}{{/each}}
+**3. FINAL DECISION:**
+   - If the Primary Check passes, set 'verified' to true. The reasoning should state that the screenshot details matched.
+   - If the Primary Check fails but the Fallback Check passes, set 'verified' to true. The reasoning should state that verification is based on the submitted UTR as the screenshot was unclear.
+   - If both checks fail, set 'verified' to false. Explain clearly why verification failed (e.g., "Amount in screenshot does not match course price," "Screenshot appears to be fake," or "Invalid UTR format").
 
-Here's the payment information:
-
-UTR: {{{utr}}}
-Timestamp: {{{timestamp}}}
-Screenshot: {{media url=screenshotDataUri}}
-
-Output should be in JSON format, following this schema: ${JSON.stringify(
-    AutoHandleEngineOutputSchema.shape
-  )}.
-
-Make sure to include "trustScore", "suggestion", and "reasoning" fields in the output.`,
+Your output MUST be a JSON object with two fields: 'verified' (boolean) and 'reasoning' (string).`,
 });
 
 const autoHandleEngineFlow = ai.defineFlow(
@@ -84,6 +69,14 @@ const autoHandleEngineFlow = ai.defineFlow(
     outputSchema: AutoHandleEngineOutputSchema,
   },
   async input => {
+    // Ensure all inputs are present
+    if (!input.coursePrice || !input.utr || !input.screenshotDataUri) {
+      return {
+        verified: false,
+        reasoning: "Missing required information. Please provide Course Price, UTR, and a Screenshot."
+      };
+    }
+    
     const {output} = await autoHandleEnginePrompt(input);
     return output!;
   }
