@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CourseCard } from '@/components/app/course-card';
 import { courses, testimonials } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useUser } from '@/firebase';
 
 const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 const testimonialImages = {
@@ -31,6 +32,7 @@ const testimonialImages = {
 };
 
 function HeroSection() {
+  const { user } = useUser();
   return (
     <section className="relative w-full overflow-hidden bg-background pt-16 md:pt-24 lg:pt-32">
       <div
@@ -57,9 +59,15 @@ function HeroSection() {
                   Explore Courses <ArrowRight className="ml-2" />
                 </Link>
               </Button>
-              <Button asChild variant="secondary" size="lg">
-                <Link href="/login">Login / Sign Up</Link>
-              </Button>
+              {user ? (
+                 <Button asChild variant="secondary" size="lg">
+                    <Link href="/downloads">Go to Dashboard</Link>
+                </Button>
+              ) : (
+                <Button asChild variant="secondary" size="lg">
+                    <Link href="/login">Login / Sign Up</Link>
+                </Button>
+              )}
             </div>
           </div>
           <div className="relative flex items-center justify-center">
