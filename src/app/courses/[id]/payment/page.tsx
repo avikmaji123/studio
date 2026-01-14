@@ -5,23 +5,20 @@ import Image from 'next/image';
 import { notFound, useRouter, useParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { autoHandleEngine, AutoHandleEngineInput } from '@/ai/flows/auto-handle-engine';
-import { Loader2 } from 'lucide-react';
+import { verifyFamPayPayment } from '@/ai/flows/verify-fampay-payment-flow';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { courses } from '@/lib/data';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { useUser } from '@/firebase';
 
 export default function CoursePaymentPage() {
     const router = useRouter();
     const params = useParams();
+    const { user } = useUser();
     const id = params.id as string;
     const { toast } = useToast();
-    const [utr, setUtr] = useState('');
-    const [screenshot, setScreenshot] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     
     const course = courses.find(c => c.id === id);
@@ -33,64 +30,39 @@ export default function CoursePaymentPage() {
     const courseImage = PlaceHolderImages.find(p => p.id === course.imageId);
     const qrCodeImage = PlaceHolderImages.find(p => p.id === 'payment-qr-code');
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setScreenshot(e.target.files[0]);
-        }
-    };
-
-    const fileToDataUri = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // NOTE: In a real app, you would check for user authentication here.
         
-        if (!utr || !screenshot) {
+        if (!user) {
             toast({
                 variant: "destructive",
-                title: "Missing Information",
-                description: "Please provide both the UTR and a screenshot.",
+                title: "Authentication Error",
+                description: "You must be logged in to verify a payment.",
             });
+            router.push('/login');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const screenshotDataUri = await fileToDataUri(screenshot);
+            const result = await verifyFamPayPayment({ 
+                courseId: course.id,
+                coursePrice: course.price,
+                userId: user.uid,
+            });
             
-            const input: AutoHandleEngineInput = {
-                utr,
-                timestamp: new Date().toISOString(),
-                screenshotDataUri,
-            };
-
-            const result = await autoHandleEngine(input);
-            
-            if (result.suggestion === 'approve') {
+            if (result.verified) {
                 toast({
                     title: "Payment Verified!",
-                    description: "Your access to the course has been granted.",
+                    description: "Your access to the course has been granted. Redirecting...",
                 });
-                // In a real app, you would grant access and then redirect.
-                router.push('/downloads');
+                router.push('/dashboard/courses');
             } else {
                  toast({
-                    title: "Submission Under Review",
-                    description: (
-                        <div className="space-y-2">
-                            <p>{result.reasoning}</p>
-                            <p className="font-bold">Suggestion: <span className="capitalize">{result.suggestion}</span></p>
-                            <p>Please wait for manual approval or contact support if this seems incorrect.</p>
-                        </div>
-                    ),
+                    variant: "destructive",
+                    title: "Verification Failed",
+                    description: result.reasoning || "Could not verify payment. Please ensure you have paid the correct amount and try again in a moment.",
                     duration: 9000,
                 });
             }
@@ -100,7 +72,7 @@ export default function CoursePaymentPage() {
             const errorMessage = error?.message || "An unknown error occurred with the AI verification service. Please try again later.";
             toast({
                 variant: "destructive",
-                title: "Verification Failed",
+                title: "Verification Service Error",
                 description: errorMessage,
             });
         } finally {
@@ -145,8 +117,8 @@ export default function CoursePaymentPage() {
                     {/* Payment QR Code Card */}
                      <Card>
                         <CardHeader>
-                            <CardTitle>Scan & Pay</CardTitle>
-                            <CardDescription>Use your favorite UPI app to pay the exact amount.</CardDescription>
+                            <CardTitle>1. Scan & Pay</CardTitle>
+                            <CardDescription>Use your favorite UPI app to pay the exact amount shown above.</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center justify-center space-y-4">
                             {qrCodeImage && (
@@ -171,37 +143,19 @@ export default function CoursePaymentPage() {
                 <div>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Confirm Your Payment</CardTitle>
+                            <CardTitle>2. Confirm Your Payment</CardTitle>
                             <CardDescription>
-                                After paying, submit the details below for instant verification.
+                                After paying, click the button below. Our automated system will verify your payment via Gmail.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="utr">UTR / Transaction ID</Label>
-                                    <Input 
-                                        id="utr" 
-                                        placeholder="Enter the 12-digit UTR"
-                                        value={utr}
-                                        onChange={(e) => setUtr(e.target.value)}
-                                        required 
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="screenshot">Payment Screenshot</Label>
-                                    <Input 
-                                        id="screenshot" 
-                                        type="file" 
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                        required 
-                                    />
-                                     <p className="text-xs text-muted-foreground">Upload a screenshot of the payment confirmation.</p>
-                                </div>
+                                <p className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
+                                   Our system will securely check for a new payment confirmation email from FamPay in the administrator's Gmail account. No UTR or screenshot is needed.
+                                </p>
                                 <Button type="submit" className="w-full" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {isLoading ? 'Verifying...' : 'Verify & Get Access'}
+                                    {isLoading ? 'Verifying Payment...' : 'Verify My Payment & Get Access'}
                                 </Button>
                             </form>
                         </CardContent>
