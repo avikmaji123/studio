@@ -1,22 +1,22 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useAuth } from "@/firebase";
+import { useAuth, useUser, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
 
 export default function SignupPage() {
   const auth = useAuth();
   const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -26,7 +26,14 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
+    if (!firestore) return;
     const user = userCredential.user;
     const userDocRef = doc(firestore, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
@@ -51,25 +58,24 @@ export default function SignupPage() {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth || !firestore) return;
     setIsSubmitting(true);
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Update user profile in Firebase Auth
       await updateProfile(user, {
         displayName: `${firstName} ${lastName}`.trim(),
       });
 
-      // Create user profile document in Firestore
       const userDocRef = doc(firestore, 'users', user.uid);
       await setDoc(userDocRef, {
         id: user.uid,
         firstName,
         lastName,
         email: user.email,
-        role: 'student', // Default role
+        role: 'student',
         themePreference: 'light',
         walletBalance: 0,
         affiliateCode: '',
@@ -80,8 +86,7 @@ export default function SignupPage() {
         title: "Account Created",
         description: "You have been successfully signed up.",
       });
-
-      router.push('/');
+      // The useEffect will handle the redirect
 
     } catch (error: any) {
       console.error("Sign-up Error:", error);
@@ -96,6 +101,7 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignIn = () => {
+    if (!auth) return;
     const provider = new GoogleAuthProvider();
     setIsSubmitting(true);
     signInWithPopup(auth, provider)
@@ -105,7 +111,7 @@ export default function SignupPage() {
           title: "Account Created",
           description: "You have successfully signed up with Google.",
         });
-        router.push('/');
+        // The useEffect will handle the redirect
       })
       .catch((error) => {
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
@@ -121,6 +127,14 @@ export default function SignupPage() {
         setIsSubmitting(false);
       });
   };
+  
+  if (isUserLoading || user) {
+    return (
+        <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-15rem)] py-12">

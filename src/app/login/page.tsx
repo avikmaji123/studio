@@ -30,6 +30,7 @@ export default function LoginPage() {
   }, [user, isUserLoading, router]);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
+    if (!firestore) return;
     const user = userCredential.user;
     const userDocRef = doc(firestore, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
@@ -55,6 +56,7 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return;
     setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -62,7 +64,7 @@ export default function LoginPage() {
         title: "Login Successful",
         description: "Welcome back!",
       });
-      router.push('/');
+      // The useEffect will handle the redirect
     } catch (error: any) {
       console.error("Email/Password Sign-In Error:", error);
       toast({
@@ -76,6 +78,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = () => {
+    if (!auth) return;
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(async (result) => {
@@ -84,7 +87,7 @@ export default function LoginPage() {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        router.push('/');
+        // The useEffect will handle the redirect
       })
       .catch((error) => {
         if (error.code === 'auth/operation-not-allowed') {
