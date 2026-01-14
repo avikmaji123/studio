@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileWarning, Loader2 } from "lucide-react";
@@ -9,36 +10,25 @@ import Link from "next/link";
 
 export default function DownloadsPage() {
   const router = useRouter();
-  // This is a placeholder for real authentication state.
-  // In a real app, this would come from a context or a hook like useUser().
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // Simulate checking for authentication status.
-    // Replace this with your actual auth check.
-    const checkAuth = () => {
-        // For demonstration, we'll assume the user is not signed in.
-        const userIsAuthenticated = false; 
-        
-        if (!userIsAuthenticated) {
-            router.push('/login');
-        } else {
-            setIsSignedIn(true);
-            setIsLoading(false);
-        }
-    };
-    checkAuth();
-  }, [router]);
+    // If the user data is finished loading and there's no user, redirect to login.
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   // In a real application, you would fetch the user's purchased courses.
   const purchasedCourses: any[] = [];
 
-  if (isLoading || !isSignedIn) {
+  // Show a loading spinner while auth state is being determined.
+  // This prevents flashing the content for non-authenticated users before redirection.
+  if (isUserLoading || !user) {
     return (
-        <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
+      <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
     );
   }
 

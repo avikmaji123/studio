@@ -6,30 +6,29 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, BookOpen } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
 import { navConfig } from '@/lib/nav-config';
 import { cn } from '@/lib/utils';
-import type { NavItem } from '@/lib/nav-config';
+import { useUser } from '@/firebase';
 
 export function MobileNav() {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
+  const { user, isUserLoading } = useUser();
 
-  // Placeholder for user auth state
-  const isSignedIn = false;
+  const mainNavLinks = navConfig.sidebarNav.filter(item => 
+    !['Login', 'Register', 'Logout'].includes(item.title)
+  );
 
-  const allNavLinks = [
-    ...navConfig.sidebarNav,
-    ...(isSignedIn
-      ? [
-          { title: 'Dashboard', href: '/dashboard' },
-          { title: 'Logout', href: '/logout' },
-        ]
-      : [
-          { title: 'Login', href: '/login' },
-          { title: 'Register', href: '/signup' },
-        ]),
-  ];
+  const authNavLinks = user
+    ? [
+        { title: 'My Downloads', href: '/downloads' },
+        { title: 'Logout', href: '/logout' }, // This should probably be a button with an action
+      ]
+    : [
+        { title: 'Login', href: '/login' },
+        { title: 'Sign Up', href: '/signup' },
+      ];
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -48,12 +47,11 @@ export function MobileNav() {
             <BookOpen className="h-6 w-6 mr-2 text-primary" />
             <span className="font-bold">CourseVerse</span>
           </Link>
-           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         </SheetHeader>
 
-        <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
+        <div className="my-8 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="flex flex-col space-y-3">
-            {allNavLinks.map(
+            {[...mainNavLinks, ...authNavLinks].map(
               (item) =>
                 item.href && (
                   <Link
