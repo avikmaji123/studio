@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,14 +15,10 @@ import { courses } from '@/lib/data';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-type CoursePaymentPageProps = {
-  params: {
-    id: string;
-  };
-};
-
-export default function CoursePaymentPage({ params: { id } }: CoursePaymentPageProps) {
+export default function CoursePaymentPage() {
     const router = useRouter();
+    const params = useParams();
+    const id = params.id as string;
     const { toast } = useToast();
     const [utr, setUtr] = useState('');
     const [screenshot, setScreenshot] = useState<File | null>(null);
