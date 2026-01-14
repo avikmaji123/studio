@@ -25,40 +25,64 @@
       "imageHint": "abstract background"
     },
     {
-      "id": "course-1",
-      "description": "Abstract code on a screen",
-      "imageUrl": "https://images.unsplash.com/photo-1593720213428-28a5b9e94613?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3ZWIlMjBkZXZlbG9wbWVudHxlbnwwfHx8fDE3NjgyNTM4MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "web development"
+      "id": "course-cyber-1",
+      "description": "Digital matrix representing C2 development",
+      "imageUrl": "https://images.unsplash.com/photo-1592609931095-54a2168ae893?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWQlMjB0ZWFtfGVufDB8fHx8MTc3MDcwMzgxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red team"
     },
     {
-      "id": "course-2",
-      "description": "A chart showing data points",
-      "imageUrl": "https://images.unsplash.com/photo-1625535069654-cfeb8f829088?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkYXRhJTIwc2NpZW5jZXxlbnwwfHx8fDE3NjgyNzU2ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "data science"
+      "id": "course-cyber-2",
+      "description": "Code on a screen with a security lock overlay",
+      "imageUrl": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYWNraW5nJTIwY29kZXxlbnwwfHx8fDE3NzA3MDM4ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hacking code"
     },
     {
-      "id": "course-3",
-      "description": "Social media icons on a phone",
-      "imageUrl": "https://images.unsplash.com/photo-1586880244406-556ebe35f282?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkaWdpdGFsJTIwbWFya2V0aW5nfGVufDB8fHx8MTc2ODI3OTI0MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "digital marketing"
+      "id": "course-cyber-3",
+      "description": "Wireless signals and network indicators",
+      "imageUrl": "https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3aXJlbGVzcyUyMHNlY3VyaXR5fGVufDB8fHx8MTc3MDcwNDA4MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wireless security"
     },
     {
-      "id": "course-4",
-      "description": "A person designing a user interface on a computer",
-      "imageUrl": "https://images.unsplash.com/photo-1587440871875-191322ee64b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx1aSUyMGRlc2lnbnxlbnwwfHx8fDE3NjgyNDMxMTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "ui design"
+      "id": "course-cyber-4",
+      "description": "Android logo with a hacking motif",
+      "imageUrl": "https://images.unsplash.com/photo-1614332287897-cdc485fa562d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbmRyb2lkJTIwc2VjdXJpdHl8ZW58MHx8fHwxNzcwNzAzOTQyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "android security"
     },
     {
-      "id": "course-5",
-      "description": "Cyber security lock icon",
-      "imageUrl": "https://images.unsplash.com/photo-1548092372-0d1bd40894a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjeWJlciUyMHNlY3VyaXR5fGVufDB8fHx8MTc2ODIxNjMxNHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "cyber security"
+      "id": "course-cyber-5",
+      "description": "Abstract representation of human connection and manipulation",
+      "imageUrl": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBlbmdpbmVlcmluZ3xlbnwwfHx8fDE3NzA3MDQxNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "social engineering"
     },
     {
-      "id": "course-6",
-      "description": "Cloud computing illustration",
-      "imageUrl": "https://images.unsplash.com/photo-1667984390535-6d03cff0b11a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjbG91ZCUyMGNvbXB1dGluZ3xlbnwwfHx8fDE3NjgxOTI0Mzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "cloud computing"
+      "id": "course-cyber-6",
+      "description": "Digital shield deflecting viruses",
+      "imageUrl": "https://images.unsplash.com/photo-1562823824-a1b2839b2b52?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbnRpdmlydXN8ZW58MHx8fHwxNzcwNzA0MTg4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "antivirus shield"
+    },
+    {
+      "id": "course-cyber-7",
+      "description": "The Kali Linux dragon logo",
+      "imageUrl": "https://images.unsplash.com/photo-1633356122544-f2ba8a620542?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYWxpJTIwbGludXh8ZW58MHx8fHwxNzcwNzA0MjMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "kali linux"
+    },
+    {
+      "id": "course-cyber-8",
+      "description": "Magnifying glass over code looking for bugs",
+      "imageUrl": "https://images.unsplash.com/photo-1573865526739-10659fec78a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWclMjBodW50aW5nfGVufDB8fHx8MTc3MDcwNDI3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bug hunting"
+    },
+    {
+      "id": "course-cyber-9",
+      "description": "Binary code and disassembly view",
+      "imageUrl": "https://images.unsplash.com/photo-1579442562639-7a049103a453?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXZlcnNlJTIwZW5naW5lZXJpbmd8ZW58MHx8fHwxNzcwNzA0MzMyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "reverse engineering"
+    },
+    {
+      "id": "course-cyber-10",
+      "description": "Hacker in a hoodie with binary code overlay",
+      "imageUrl": "https://images.unsplash.com/photo-1547958432-5a9e52c85a93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYWNrZXJ8ZW58MHx8fHwxNzcwNzA0MzY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hacker zero"
     },
     {
       "id": "testimonial-1",
