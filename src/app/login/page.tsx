@@ -36,8 +36,14 @@ export default function LoginPage() {
         router.push('/'); // Redirect on success
       })
       .catch((error) => {
-        // Only show a toast if the error is not a user cancellation
-        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+        if (error.code === 'auth/operation-not-allowed') {
+          toast({
+            variant: "destructive",
+            title: "Login Method Disabled",
+            description: "Google Sign-In is not enabled for this project. Please enable it in the Firebase console.",
+            duration: 9000,
+          });
+        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
           console.error("Google Sign-In Error:", error);
           toast({
             variant: "destructive",
