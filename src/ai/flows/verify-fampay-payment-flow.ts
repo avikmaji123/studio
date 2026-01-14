@@ -10,9 +10,9 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { google } from 'googleapis';
 
 // Initialize Firebase Admin SDK only if it hasn't been initialized yet.
-// This is safe to run on the server and prevents re-initialization errors in Next.js hot-reloading environments.
 if (!admin.apps.length) {
   try {
     // In a Firebase App Hosting environment, initializeApp() with no arguments 
@@ -21,8 +21,6 @@ if (!admin.apps.length) {
     console.log("Firebase Admin initialized successfully.");
   } catch (e) {
     console.error("Firebase Admin initialization error:", e);
-    // This flow will not work without Firebase Admin.
-    // We log the error, and subsequent Firestore calls will fail.
   }
 }
 
@@ -50,11 +48,53 @@ const getLatestFamPayEmail = ai.defineTool(
     outputSchema: z.any(),
   },
   async () => {
-    // In a real implementation, this would use the Gmail API with OAuth.
-    // For this prototype, we return null to indicate no email was found yet.
-    // The flow will handle this case gracefully.
-    console.log("Tool: getLatestFamPayEmail is checking for a real email. No mock data is used.");
-    return null; 
+    try {
+      const auth = new google.auth.GoogleAuth({
+        credentials: {
+          client_email: process.env.GOOGLE_CLIENT_EMAIL,
+          private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        },
+        scopes: ['https://www.googleapis.com/auth/gmail.readonly'],
+      });
+
+      const gmail = google.gmail({ version: 'v1', auth });
+
+      const response = await gmail.users.messages.list({
+        userId: 'me',
+        q: 'from:no-reply@famapp.in is:unread',
+        maxResults: 1,
+      });
+
+      if (!response.data.messages || response.data.messages.length === 0) {
+        return null;
+      }
+
+      const messageId = response.data.messages[0].id;
+      if (!messageId) {
+        return null;
+      }
+      
+      const message = await gmail.users.messages.get({
+        userId: 'me',
+        id: messageId,
+      });
+
+      // Mark the email as read
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId,
+        requestBody: {
+          removeLabelIds: ['UNREAD'],
+        }
+      });
+
+      return {
+        snippet: message.data.snippet,
+      };
+    } catch(e) {
+      console.error("Error fetching email", e);
+      return null;
+    }
   }
 );
 
@@ -118,9 +158,6 @@ const verifyFamPayPaymentFlow = ai.defineFlow(
           completionPercentage: 0,
         });
         
-        // Optionally, log this action
-        // await firestore.collection('adminActionLogs').add({ ... });
-
       } catch (error: any) {
         console.error("Firestore error: Failed to create enrollment.", error);
         // Even if verification was "correct", we return false if the DB operation fails.
