@@ -25,13 +25,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back! Redirecting you to the dashboard...",
-      });
       router.push('/dashboard');
     }
-  }, [user, isUserLoading, router, toast]);
+  }, [user, isUserLoading, router]);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
     if (!firestore) return;
@@ -62,8 +58,15 @@ export default function LoginPage() {
     if (!auth) return;
     setIsSubmitting(true);
     
-    // Non-blocking call
     signInWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
+        await createUserProfileIfNotExists(userCredential);
+        toast({
+          title: "Login Successful",
+          description: "Welcome back! Redirecting you to the dashboard...",
+        });
+        // The useEffect hook will handle the redirect
+      })
       .catch((error: any) => {
         let title = "Login Failed";
         let description = "An unexpected error occurred. Please try again.";
@@ -106,8 +109,12 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(async (result) => {
-        // The success case is handled by the useEffect hook watching the user state
         await createUserProfileIfNotExists(result);
+        toast({
+            title: "Login Successful",
+            description: "Welcome back! Redirecting you to the dashboard...",
+        });
+        router.push('/dashboard');
       })
       .catch((error) => {
         if (error.code === 'auth/operation-not-allowed') {

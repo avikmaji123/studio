@@ -28,13 +28,9 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      toast({
-        title: "Account Created",
-        description: "Welcome! Redirecting you to the dashboard...",
-      });
       router.push('/dashboard');
     }
-  }, [user, isUserLoading, router, toast]);
+  }, [user, isUserLoading, router]);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential, fName?: string, lName?: string) => {
     if (!firestore) return;
@@ -73,7 +69,11 @@ export default function SignupPage() {
           displayName: `${firstName} ${lastName}`.trim(),
         });
         await createUserProfileIfNotExists(userCredential, firstName, lastName);
-        // Success case is handled by useEffect
+        toast({
+            title: "Account Created",
+            description: "Welcome! Redirecting you to the dashboard...",
+        });
+        // The useEffect hook will handle the redirect
       })
       .catch((error: any) => {
         let title = "Sign-up Failed";
@@ -112,7 +112,11 @@ export default function SignupPage() {
     signInWithPopup(auth, provider)
       .then(async (result) => {
         await createUserProfileIfNotExists(result);
-        // Success is handled by useEffect
+        toast({
+            title: "Account Created",
+            description: "Welcome! Redirecting you to the dashboard...",
+        });
+        router.push('/dashboard');
       })
       .catch((error) => {
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
