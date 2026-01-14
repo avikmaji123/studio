@@ -61,7 +61,7 @@ function HeroSection() {
               </Button>
               {user ? (
                  <Button asChild variant="secondary" size="lg">
-                    <Link href="/downloads">Go to Dashboard</Link>
+                    <Link href="/dashboard">Go to Dashboard</Link>
                 </Button>
               ) : (
                 <Button asChild variant="secondary" size="lg">
