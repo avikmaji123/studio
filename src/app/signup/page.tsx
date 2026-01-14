@@ -39,13 +39,14 @@ export default function SignupPage() {
     const userDoc = await getDoc(userDocRef);
 
     if (!userDoc.exists()) {
-      const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ['', ''];
-      const lastName = lastNameParts.join(' ');
+      const displayName = user.displayName;
+      const fName = displayName ? displayName.split(' ')[0] : firstName;
+      const lName = displayName ? displayName.split(' ').slice(1).join(' ') : lastName;
       
       await setDoc(userDocRef, {
         id: user.uid,
-        firstName: firstName || '',
-        lastName: lastName || '',
+        firstName: fName || '',
+        lastName: lName || '',
         email: user.email,
         role: 'student',
         themePreference: 'light',
@@ -69,18 +70,8 @@ export default function SignupPage() {
         displayName: `${firstName} ${lastName}`.trim(),
       });
 
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await setDoc(userDocRef, {
-        id: user.uid,
-        firstName,
-        lastName,
-        email: user.email,
-        role: 'student',
-        themePreference: 'light',
-        walletBalance: 0,
-        affiliateCode: '',
-        suspended: false,
-      });
+      // Call createUserProfileIfNotExists to create the firestore doc
+      await createUserProfileIfNotExists(userCredential);
 
       toast({
         title: "Account Created",
