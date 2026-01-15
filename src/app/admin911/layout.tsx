@@ -54,6 +54,7 @@ function AdminSidebar() {
     const { toast } = useToast();
 
     const handleLogout = async () => {
+        if (!auth) return;
         try {
         await signOut(auth);
         toast({
@@ -106,9 +107,6 @@ function AdminSidebar() {
             >
               <CreditCard className="h-4 w-4" />
               Payments
-              <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                6
-              </Badge>
             </Link>
             <Link
               href="/admin911/users"
@@ -165,38 +163,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
-    // If finished loading and not an admin, redirect.
     if (!isLoading && !isAdmin) {
       router.replace('/admin911/login');
     }
   }, [isLoading, isAdmin, router]);
 
-  // While loading, show a full-screen loader to prevent flashing content
-  if (isLoading) {
+  if (isLoading || !isAdmin) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="flex h-screen w-full items-center justify-center bg-background dark">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
-  // If the user is an admin, render the admin layout
-  if (isAdmin) {
-    return (
-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
-        <AdminSidebar />
-        <div className="flex flex-col">
-          {children}
-        </div>
-      </div>
-    );
-  }
-  
-  // If not loading and not an admin, this will be briefly rendered before the redirect.
-  // The redirect in useEffect is the primary mechanism.
   return (
-     <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
+      <AdminSidebar />
+      <div className="flex flex-col">
+        {children}
       </div>
+    </div>
   );
 }

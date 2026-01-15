@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (!isLoading && user && isAdmin) {
-      router.push('/admin911');
+      router.replace('/admin911');
     }
   }, [user, isLoading, isAdmin, router]);
 
@@ -87,9 +87,9 @@ export default function AdminLoginPage() {
     }
   };
 
-  if (isLoading || isAdmin) {
+  if (isLoading || (user && isAdmin)) {
     return (
-        <div className="flex h-screen w-full justify-center items-center bg-background">
+        <div className="flex h-screen w-full justify-center items-center bg-background dark">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
         </div>
     );
@@ -148,4 +148,3 @@ export default function AdminLoginPage() {
     </div>
   );
 }
-
