@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -52,3 +53,4 @@ export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
 export * from './auth/use-user';
+// Do not export server-only files from the main index
