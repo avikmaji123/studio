@@ -63,7 +63,7 @@
     {
       "id": "course-cyber-7",
       "description": "A person using a laptop with the Kali Linux operating system.",
-      "imageUrl": "https://images.unsplash.com/photo-1634224143536-62a41792b6a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYWxpJTIwbGludXglMjBoYWNraW5nfGVufDB8fHx8fDE3NzE1NjA5NDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1634224143536-62a41792b6a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYWxpJTIwbGludXglMjBoYWNraW5nfGVufDB8fHx8fDE3NzE1NjA5NDN8MA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "kali linux"
     },
     {
@@ -81,7 +81,7 @@
     {
       "id": "course-cyber-10",
       "description": "A person in a hoodie at a computer, symbolizing a beginner hacker.",
-      "imageUrl": "https://images.unsplash.com/photo-1598520106831-6a4a6e388b1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYWNraW5nJTIwYmVnaW5uZXJ8ZW58MHx8fHwxNzcxNTYxMDM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1547658719-da2b51169166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxoYWNrZXIlMjBiZWdpbm5lcnxlbnwwfHx8fDE3NzE1NjE5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "hacker beginner"
     },
     {
@@ -105,7 +105,7 @@
     {
       "id": "testimonial-4",
       "description": "A professional man looking at the camera",
-      "imageUrl": "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwcm9mZXNzaW9uYWwlMjBtYW58ZW58MHx8fHwxNzY4MzAzODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwcm9mZXNzaW9uYWwlMjBtYW58ZW58MHx8fHwxNzY4MzAzODUxfDA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "professional man"
     }
   ]
