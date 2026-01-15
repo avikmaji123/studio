@@ -1,18 +1,45 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
-import { courses, Course } from '@/lib/data';
+import type { Course } from '@/lib/data';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
 type SortOption = 'newest' | 'popular' | 'price-asc' | 'price-desc';
 
-const maxPrice = Math.max(...courses.map(c => parseInt(c.price.replace('₹', ''))));
-
 export function useSearchAndFilter() {
+  const firestore = useFirestore();
+  
+  // Fetch all published courses from Firestore
+  const coursesQuery = useMemoFirebase(() => query(
+    collection(firestore, 'courses'), 
+    where('status', '==', 'published')
+  ), [firestore]);
+  const { data: courses, isLoading } = useCollection<Course>(coursesQuery);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  
+  const maxPrice = useMemo(() => {
+    if (!courses) return 10000;
+    return Math.max(...courses.map(c => parseInt(c.price.replace('₹', ''))));
+  }, [courses]);
+  
   const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPrice]);
   const [sortBy, setSortBy] = useState<SortOption>('popular');
+
+  const categories = useMemo(() => {
+    if (!courses) return [];
+    return Array.from(new Set(courses.map(c => c.category)));
+  }, [courses]);
+  
+  // Update price range when maxPrice changes
+  useState(() => {
+    setPriceRange([0, maxPrice]);
+  }, [maxPrice]);
+
 
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev =>
@@ -35,6 +62,8 @@ export function useSearchAndFilter() {
   };
 
   const filteredCourses = useMemo(() => {
+    if (!courses) return [];
+
     let filtered = courses.filter(course => {
       // Search term filter
       const searchMatch =
@@ -65,7 +94,7 @@ export function useSearchAndFilter() {
 
         switch (sortBy) {
             case 'newest':
-                return b.id.localeCompare(a.id); // Assuming higher ID is newer
+                return (b.id > a.id) ? 1 : -1; 
             case 'popular':
                 return (b.enrollmentCount || 0) - (a.enrollmentCount || 0);
             case 'price-asc':
@@ -78,17 +107,20 @@ export function useSearchAndFilter() {
     });
 
     return filtered;
-  }, [searchTerm, selectedCategories, selectedLevels, priceRange, sortBy]);
+  }, [courses, searchTerm, selectedCategories, selectedLevels, priceRange, sortBy]);
 
   return {
+    isLoading,
     searchTerm,
     setSearchTerm,
+    categories,
     selectedCategories,
     toggleCategory,
     selectedLevels,
     toggleLevel,
     priceRange,
     setPriceRange,
+    maxPrice,
     sortBy,
     setSortBy,
     filteredCourses,

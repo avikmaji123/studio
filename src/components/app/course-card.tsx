@@ -1,18 +1,18 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Course } from '@/lib/data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Eye, Users, BarChart } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type CourseCardProps = {
   course: Course;
 };
 
 export function CourseCard({ course }: CourseCardProps) {
-  const image = PlaceHolderImages.find(p => p.id === course.imageId);
   const isEnrolled = false; // Placeholder
   const progress = 30; // Placeholder
 
@@ -20,15 +20,14 @@ export function CourseCard({ course }: CourseCardProps) {
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
       <Link href={`/courses/${course.slug}`} className="flex flex-col h-full">
         <div className="relative aspect-video w-full">
-          {image && (
+          {course.imageUrl ? (
                <Image
-                  src={image.imageUrl}
+                  src={course.imageUrl}
                   alt={course.title}
-                  data-ai-hint={image.imageHint}
                   fill
                   className="object-cover"
               />
-          )}
+          ) : <Skeleton className="h-full w-full" />}
           <div className="absolute top-2 right-2 flex gap-1">
             {course.isNew && <Badge>New</Badge>}
             {course.isBestseller && <Badge variant="destructive">Bestseller</Badge>}
@@ -58,7 +57,7 @@ export function CourseCard({ course }: CourseCardProps) {
           <CardTitle className="line-clamp-2 text-base h-[2.5em] leading-tight">{course.title}</CardTitle>
         </CardHeader>
         <CardContent className="flex-grow p-4 pt-0 pb-2">
-          <CardDescription className="line-clamp-2 text-sm">{course.description}</CardDescription>
+          <CardDescription className="line-clamp-2 text-sm">{course.shortDescription || course.description}</CardDescription>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

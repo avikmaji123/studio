@@ -1,7 +1,7 @@
+
 'use client';
 import { useState } from 'react';
 import { CourseCard } from "@/components/app/course-card";
-import { courses } from "@/lib/data";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SlidersHorizontal, Search, X } from 'lucide-react';
@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchAndFilter } from '@/hooks/use-search-and-filter';
 import {
   Select,
@@ -32,20 +32,18 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-const categories = Array.from(new Set(courses.map(c => c.category)));
 const levels = ["Beginner", "Intermediate", "Advanced"];
-const durations = ["Short (< 2 hours)", "Medium (2-5 hours)", "Long (5+ hours)"];
-const maxPrice = Math.max(...courses.map(c => parseInt(c.price.replace('₹', ''))));
-
 
 function FilterSidebar() {
   const {
+    categories,
     selectedCategories,
     toggleCategory,
     selectedLevels,
     toggleLevel,
     priceRange,
     setPriceRange,
+    maxPrice,
     resetFilters,
   } = useSearchAndFilter();
 
@@ -113,7 +111,7 @@ function FilterSidebar() {
 
 
 export default function CoursesPage() {
-  const { filteredCourses, setSortBy, searchTerm, setSearchTerm } = useSearchAndFilter();
+  const { filteredCourses, setSortBy, searchTerm, setSearchTerm, isLoading } = useSearchAndFilter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   return (
@@ -148,24 +146,28 @@ export default function CoursesPage() {
                 </div>
             </div>
             <div className="flex justify-between items-center mb-6">
-                <p className="text-sm text-muted-foreground">{filteredCourses.length} courses found</p>
+                <p className="text-sm text-muted-foreground">{isLoading ? <Skeleton className="h-5 w-24" /> : `${filteredCourses.length} courses found`}</p>
                 <Select onValueChange={setSortBy}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="newest">Newest</SelectItem>
                         <SelectItem value="popular">Most Popular</SelectItem>
+                        <SelectItem value="newest">Newest</SelectItem>
                         <SelectItem value="price-asc">Price: Low to High</SelectItem>
                         <SelectItem value="price-desc">Price: High to Low</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
-                {filteredCourses.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {isLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                        <Skeleton key={i} className="h-[350px] w-full" />
+                    ))
+                ) : filteredCourses.length > 0 ? (
                     filteredCourses.map(course => (
-                    <CourseCard key={course.id} course={course} />
+                        <CourseCard key={course.id} course={course} />
                     ))
                 ) : (
                     <div className="col-span-full text-center py-16">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -14,14 +15,18 @@ import {
   LayoutGrid,
   Lock,
 } from 'lucide-react';
+import { useMemo } from 'react';
+import { collection, query, where, limit } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CourseCard } from '@/components/app/course-card';
-import { courses, testimonials } from '@/lib/data';
+import { testimonials } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 const testimonialImages = {
@@ -186,7 +191,14 @@ function FeaturesSection() {
 }
 
 function FeaturedCoursesSection() {
-  const featuredCourses = courses.slice(0, 6);
+  const firestore = useFirestore();
+  const coursesQuery = useMemoFirebase(() => query(
+    collection(firestore, 'courses'), 
+    where('status', '==', 'published'),
+    limit(6)
+  ), [firestore]);
+  const { data: featuredCourses, isLoading } = useCollection(coursesQuery);
+
   return (
     <section id="courses" className="bg-muted/50 py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
@@ -198,10 +210,16 @@ function FeaturedCoursesSection() {
             Handpicked courses to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredCourses.map(course => (
-            <CourseCard key={course.id} course={course} />
-          ))}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+           {isLoading ? (
+             Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-[350px] w-full" />
+             ))
+           ) : (
+            featuredCourses?.map(course => (
+              <CourseCard key={course.id} course={course} />
+            ))
+           )}
         </div>
         <div className="mt-12 text-center">
           <Button asChild variant="outline">
