@@ -41,22 +41,21 @@ import {
     TabsTrigger,
   } from '@/components/ui/tabs'
   import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+  import { useCollection, useFirestore, useMemoFirebase } from '@/firebase'
+  import { collection } from 'firebase/firestore'
+  import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminUsersPage() {
+    const firestore = useFirestore();
     
-    const users = [
-        { id: '1', name: 'Liam Johnson', email: 'liam@example.com', role: 'Student', status: 'Active', courses: 5, photo: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f' },
-        { id: '2', name: 'Olivia Smith', email: 'olivia@example.com', role: 'Student', status: 'Active', courses: 2, photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80' },
-        { id: '3', name: 'Noah Williams', email: 'noah@example.com', role: 'Student', status: 'Suspended', courses: 8, photo: 'https://images.unsplash.com/photo-1523287281576-5b596107a6ae' },
-        { id: '4', name: 'Emma Brown', email: 'emma@example.com', role: 'Affiliate', status: 'Active', courses: 1, photo: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5' },
-        { id: '5', name: 'Admin User', email: 'admin@courseverse.com', role: 'Admin', status: 'Active', courses: 10, photo: 'https://i.ibb.co/W4WtfC39/1763449062738.png' },
-    ]
+    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+    const { data: users, isLoading } = useCollection(usersQuery);
 
     const getRoleBadge = (role: string) => {
         switch(role) {
-            case 'Admin': return <Badge variant="destructive">{role}</Badge>;
-            case 'Affiliate': return <Badge variant="secondary">{role}</Badge>;
-            default: return <Badge variant="outline">{role}</Badge>;
+            case 'admin': return <Badge variant="destructive">Admin</Badge>;
+            case 'affiliate': return <Badge variant="secondary">Affiliate</Badge>;
+            default: return <Badge variant="outline">Student</Badge>;
         }
     }
     
@@ -124,16 +123,35 @@ export default function AdminUsersPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.map(user => (
+                        {isLoading && Array.from({ length: 5 }).map((_, i) => (
+                             <TableRow key={i}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <Skeleton className="h-9 w-9 rounded-full" />
+                                        <div>
+                                            <Skeleton className="h-4 w-24" />
+                                            <Skeleton className="h-3 w-32 mt-1" />
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-4" /></TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-8 w-8" />
+                                </TableCell>
+                             </TableRow>
+                        ))}
+                        {users?.map(user => (
                              <TableRow key={user.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-9 w-9">
-                                            <AvatarImage src={user.photo} alt={user.name} />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            <AvatarImage src={user.profilePicture || ''} alt={user.firstName} />
+                                            <AvatarFallback>{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <div className="font-medium">{user.name}</div>
+                                            <div className="font-medium">{user.firstName} {user.lastName}</div>
                                             <div className="text-sm text-muted-foreground">{user.email}</div>
                                         </div>
                                     </div>
@@ -142,12 +160,13 @@ export default function AdminUsersPage() {
                                     {getRoleBadge(user.role)}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={user.status === 'Active' ? 'outline' : 'destructive'}>
-                                        {user.status}
+                                    <Badge variant={!user.suspended ? 'outline' : 'destructive'}>
+                                        {user.suspended ? 'Suspended' : 'Active'}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell">
-                                    {user.courses}
+                                    {/* This would require another query */}
+                                    0
                                 </TableCell>
                                 <TableCell>
                                     <DropdownMenu>
@@ -177,7 +196,7 @@ export default function AdminUsersPage() {
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-10</strong> of <strong>124</strong> users
+                    Showing <strong>1-{users?.length || 0}</strong> of <strong>{users?.length || 0}</strong> users
                   </div>
                 </CardFooter>
               </Card>

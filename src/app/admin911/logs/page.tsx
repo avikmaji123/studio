@@ -6,13 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 
 export default function AdminLogsPage() {
-    const logs = [
-        { id: 1, adminId: 'admin@courseverse.com', action: 'Approved payment', entity: 'PaymentTransaction', entityId: 'txn_12345', timestamp: '2024-07-29 10:45:12' },
-        { id: 2, adminId: 'admin@courseverse.com', action: 'Suspended user', entity: 'User', entityId: 'user_abcde', timestamp: '2024-07-29 09:30:05' },
-        { id: 3, adminId: 'system', action: 'AI Verified payment', entity: 'PaymentTransaction', entityId: 'txn_67890', timestamp: '2024-07-29 08:15:44' },
-        { id: 4, adminId: 'admin@courseverse.com', action: 'Updated course price', entity: 'Course', entityId: 'cyber-2', timestamp: '2024-07-28 18:05:21' },
-        { id: 5, adminId: 'admin@courseverse.com', action: 'Admin Login', entity: 'System', entityId: '192.168.1.1', timestamp: '2024-07-28 18:00:10' },
-    ];
 
     const getBadgeVariant = (action: string) => {
         if (action.includes('Approved') || action.includes('Verified')) return 'default';
@@ -45,17 +38,7 @@ export default function AdminLogsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {logs.map(log => (
-                                <TableRow key={log.id}>
-                                    <TableCell>{log.timestamp}</TableCell>
-                                    <TableCell><Badge variant="secondary">{log.adminId}</Badge></TableCell>
-                                    <TableCell>
-                                        <Badge variant={getBadgeVariant(log.action)}>{log.action}</Badge>
-                                    </TableCell>
-                                    <TableCell>{log.entity}</TableCell>
-                                    <TableCell className="font-mono text-xs">{log.entityId}</TableCell>
-                                </TableRow>
-                            ))}
+                           {/* Live logs will be populated here */}
                         </TableBody>
                     </Table>
                 </CardContent>

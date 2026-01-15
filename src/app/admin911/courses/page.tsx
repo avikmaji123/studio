@@ -3,29 +3,12 @@
 
 import {
     File,
-    Home,
-    LineChart,
     ListFilter,
     MoreHorizontal,
-    Package,
-    Package2,
-    PanelLeft,
     PlusCircle,
-    Search,
-    Settings,
-    ShoppingCart,
-    Users2,
   } from 'lucide-react'
   
   import { Badge } from '@/components/ui/badge'
-  import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-  } from '@/components/ui/breadcrumb'
   import { Button } from '@/components/ui/button'
   import {
     Card,
@@ -44,8 +27,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
   } from '@/components/ui/dropdown-menu'
-  import { Input } from '@/components/ui/input'
-  import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
   import {
     Table,
     TableBody,
@@ -60,9 +41,7 @@ import {
     TabsList,
     TabsTrigger,
   } from '@/components/ui/tabs'
-  import { courses } from '@/lib/data'
   import Image from 'next/image'
-  import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export default function AdminCoursesPage() {
     return (
@@ -145,68 +124,13 @@ export default function AdminCoursesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {courses.map(course => {
-                            const image = PlaceHolderImages.find(p => p.id === course.imageId)
-                            return (
-                                <TableRow key={course.id}>
-                                    <TableCell className="hidden sm:table-cell">
-                                        {image && 
-                                            <Image
-                                                alt={course.title}
-                                                className="aspect-square rounded-md object-cover"
-                                                height="64"
-                                                src={image.imageUrl}
-                                                width="64"
-                                            />
-                                        }
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        {course.title}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={course.isNew ? "default" : "outline"}>
-                                            {course.isNew ? "Published" : "Draft"}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">
-                                        {course.price}
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">
-                                        {course.enrollmentCount}
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">
-                                        2023-07-12 10:42 AM
-                                    </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                            aria-haspopup="true"
-                                            size="icon"
-                                            variant="ghost"
-                                            >
-                                            <MoreHorizontal className="h-4 w-4" />
-                                            <span className="sr-only">Toggle menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
+                        {/* Data will be fetched from Firestore */}
                     </TableBody>
                   </Table>
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-10</strong> of <strong>{courses.length}</strong>{' '}
+                    Showing <strong>0</strong> of <strong>0</strong>{' '}
                     products
                   </div>
                 </CardFooter>

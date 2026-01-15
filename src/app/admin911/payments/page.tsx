@@ -5,7 +5,6 @@ import {
   File,
   ListFilter,
   MoreHorizontal,
-  Search,
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -43,49 +42,6 @@ import {
 } from '@/components/ui/tabs'
 
 export default function AdminPaymentsPage() {
-
-    const payments = [
-        {
-            id: 'txn_123',
-            user: 'Liam Johnson',
-            email: 'liam@example.com',
-            course: 'Website Hacking',
-            amount: '₹799',
-            status: 'AI-Approved',
-            date: '2023-06-23',
-            utr: '417682249123'
-        },
-        {
-            id: 'txn_124',
-            user: 'Olivia Smith',
-            email: 'olivia@example.com',
-            course: 'Kali Linux & Pentesting Basics',
-            amount: '₹599',
-            status: 'Pending',
-            date: '2023-06-24',
-            utr: '417682249999'
-        },
-         {
-            id: 'txn_125',
-            user: 'Noah Williams',
-            email: 'noah@example.com',
-            course: 'Advanced Social Engineering',
-            amount: '₹749',
-            status: 'Rejected',
-            date: '2023-06-25',
-            utr: '417682248888'
-        },
-        {
-            id: 'txn_126',
-            user: 'Emma Brown',
-            email: 'emma@example.com',
-            course: 'Bug Hunting A–Z',
-            amount: '₹199',
-            status: 'AI-Approved',
-            date: '2023-06-26',
-            utr: '417682247777'
-        },
-    ]
 
     const getStatusBadge = (status: string) => {
         switch(status) {
@@ -155,49 +111,13 @@ export default function AdminPaymentsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {payments.map(payment => (
-                        <TableRow key={payment.id}>
-                            <TableCell>
-                                <div className="font-medium">{payment.user}</div>
-                                <div className="hidden text-sm text-muted-foreground md:inline">
-                                {payment.email}
-                                </div>
-                            </TableCell>
-                             <TableCell>{payment.course}</TableCell>
-                            <TableCell>
-                                {getStatusBadge(payment.status)}
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell font-mono text-xs">{payment.utr}</TableCell>
-                            <TableCell className="hidden md:table-cell">{payment.date}</TableCell>
-                            <TableCell className="text-right">{payment.amount}</TableCell>
-                            <TableCell>
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                    aria-haspopup="true"
-                                    size="icon"
-                                    variant="ghost"
-                                    >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                                    <DropdownMenuItem>Approve Manually</DropdownMenuItem>
-                                    <DropdownMenuItem>Reject</DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                      ))}
+                        {/* Live data will be populated here */}
                     </TableBody>
                   </Table>
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-10</strong> of <strong>32</strong> transactions
+                    Showing <strong>0</strong> of <strong>0</strong> transactions
                   </div>
                 </CardFooter>
               </Card>
