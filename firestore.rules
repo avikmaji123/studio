@@ -6,8 +6,8 @@
  * The data is organized hierarchically. Core user data and related private subcollections (like enrollments, certificates, and payment transactions) are nested under `/users/{userId}`. This path-based structure simplifies ownership rules. Publicly-accessible data, such as the course catalog, is stored in top-level collections like `/courses` and `/lessons`. Administrative and system logs are also segregated into their own top-level collections (`/adminActionLogs`, `/apiLogs`) to isolate them from user and application data.
  *
  * # Key Security Decisions
- * - User Isolation: A user can only access documents within their own `/users/{userId}` data tree. Listing or reading other users' profiles or private data is strictly forbidden.
- * - Admin Privileges: A role-based access control (RBAC) system is implemented for administrative tasks. Users with `role == 'admin'` in their user profile can manage global collections like `/courses` and `/lessons`. This check requires a `get()` call to the user's profile, which is an acceptable performance trade-off for privileged operations.
+ * - User Isolation: A user can only access documents within their own `/users/{userId}` data tree. Listing or reading other users' profiles is strictly forbidden, except for admins.
+ * - Admin Privileges: A role-based access control (RBAC) system is implemented for administrative tasks. Users with `role == 'admin'` in their user profile can manage global collections like `/courses` and `/lessons`, and list users. This check requires a `get()` call to the user's profile, which is an acceptable performance trade-off for privileged operations.
  * - Public vs. Private: Data is structurally segregated. Public content (courses) is in a top-level collection with public read access. Private, user-specific data (enrollments) is in user subcollections, protected by ownership rules.
  * - Backend-Only Collections: Collections like `/apiLogs` and `/adminActionLogs` are considered backend-managed. Client-side writes are completely disabled to prevent tampering, and reads are restricted to administrators.
  * - Flexible Schemas: In this prototyping phase, rules focus on *who* can access *what* (authorization), not on the specific shape of the data. No rules enforce data types or the presence of non-critical fields, allowing for rapid front-end development.
@@ -68,15 +68,16 @@ service cloud.firestore {
 
     /**
      * @description Manages user profile data. A user can create their own profile,
-     *   and can only read or write their own data thereafter.
+     *   and can only read or write their own data thereafter. Admins can list all users.
      * @path /users/{userId}
-     * @allow (create) A new user signs up and creates their own user document. `request.auth.uid == userId`.
+     * @allow (get) User 'A' reads their own profile.
+     * @allow (list) An Admin lists all users for the management panel.
      * @deny (get) User 'A' tries to read the profile of User 'B'.
-     * @principle Restricts access to a user's own data tree.
+     * @principle Restricts access to a user's own data tree, with an exception for admins.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
@@ -90,7 +91,7 @@ service cloud.firestore {
      * @principle Enforces document ownership and relational integrity via path.
      */
     match /users/{userId}/enrollments/{enrollmentId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
@@ -104,7 +105,7 @@ service cloud.firestore {
      * @principle Enforces document ownership and relational integrity via path.
      */
     match /users/{userId}/certificates/{certificateId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
@@ -118,7 +119,7 @@ service cloud.firestore {
      * @principle Enforces document ownership and relational integrity via path.
      */
     match /users/{userId}/paymentTransactions/{transactionId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
@@ -132,7 +133,7 @@ service cloud.firestore {
      * @principle Enforces document ownership and relational integrity via path.
      */
     match /users/{userId}/affiliateCommissions/{affiliateCommissionId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.affiliateId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.affiliateId == resource.data.affiliateId;
       allow delete: if isExistingOwner(userId);
@@ -146,7 +147,7 @@ service cloud.firestore {
      * @principle Enforces document ownership and relational integrity via path.
      */
     match /users/{userId}/apiKeys/{apiKeyId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
@@ -217,3 +218,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
