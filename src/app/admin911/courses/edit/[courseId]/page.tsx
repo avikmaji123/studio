@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Loader2, Sparkles, Upload, X, Tag } from 'lucide-react';
-import type { Course } from '@/lib/data';
+import type { Course } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -36,6 +36,8 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { refineText, type RefineTextInput } from '@/ai/flows/refine-text';
 import { generateTags } from '@/ai/flows/generate-tags';
+import { createLogEntry } from '@/lib/actions';
+import { useUser } from '@/firebase';
 
 
 export default function EditCoursePage() {
@@ -44,6 +46,7 @@ export default function EditCoursePage() {
     const firestore = useFirestore();
     const storage = useStorage();
     const { toast } = useToast();
+    const { user } = useUser();
     
     const courseCategoriesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
     const { data: allCourses } = useCollection(courseCategoriesQuery);
@@ -87,7 +90,7 @@ export default function EditCoursePage() {
     const [originalText, setOriginalText] = useState('');
     const [isAiLoading, setIsAiLoading] = useState(false);
     const [isTagGenerationLoading, setIsTagGenerationLoading] = useState(false);
-    const [aiDialogField, setAiDialogField] = useState<keyof Course | null>(null);
+    const [aiDialogField, setAiDialogField] = useState<keyof Omit<Course, 'id'|'slug'|'price'|'lessons'|'imageId'|'isNew'|'isBestseller'|'hasPreview'|'enrollmentCount'|'status'|'category'|'level'|'tags'|'learningOutcomes'|'prerequisites'|'imageUrl'> | null>(null);
 
     // Upload state
     const [isUploading, setIsUploading] = useState(false);
@@ -147,12 +150,33 @@ export default function EditCoursePage() {
                 imageUrl: finalImageUrl,
                 // Slug is not updated to prevent breaking URLs
             });
+
+            await createLogEntry({
+                source: 'admin',
+                severity: 'info',
+                message: `Course updated: ${title}`,
+                metadata: {
+                    userId: user?.uid,
+                    courseId: courseId as string,
+                }
+            });
+
             toast({
                 title: "Course Updated",
                 description: "The course details have been successfully saved.",
             });
             router.push('/admin911/courses');
         } catch (error: any) {
+             await createLogEntry({
+                source: 'system',
+                severity: 'critical',
+                message: `Failed to update course: ${title}`,
+                metadata: {
+                    userId: user?.uid,
+                    courseId: courseId as string,
+                    error: error.message
+                }
+            });
             toast({
                 variant: 'destructive',
                 title: 'Error Saving Course',
@@ -195,7 +219,7 @@ export default function EditCoursePage() {
 
     const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file || !storage) return;
 
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -230,7 +254,7 @@ export default function EditCoursePage() {
 
 
     // AI Handlers
-    const handleAiRefine = async (field: keyof Course, fieldType: RefineTextInput['fieldType']) => {
+    const handleAiRefine = async (field: keyof Omit<Course, 'id'|'slug'|'price'|'lessons'|'imageId'|'isNew'|'isBestseller'|'hasPreview'|'enrollmentCount'|'status'|'category'|'level'|'tags'|'learningOutcomes'|'prerequisites'|'imageUrl'>, fieldType: RefineTextInput['fieldType']) => {
         let textToRefine = '';
         switch (field) {
             case 'title': textToRefine = title; break;
@@ -602,5 +626,3 @@ export default function EditCoursePage() {
         </main>
     )
 }
-
-    

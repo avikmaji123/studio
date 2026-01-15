@@ -3,13 +3,13 @@
  * This ruleset enforces a strict, user-centric security model. Data is primarily segregated into user-owned documents and publicly readable, admin-managed collections. The default posture is to deny access unless explicitly granted, ensuring that users can only interact with their own information.
  *
  * # Data Structure
- * The data is organized hierarchically. Core user data and related private subcollections (like enrollments, certificates, and payment transactions) are nested under `/users/{userId}`. This path-based structure simplifies ownership rules. Publicly-accessible data, such as the course catalog, is stored in top-level collections like `/courses` and `/lessons`. Administrative and system logs are also segregated into their own top-level collections (`/adminActionLogs`, `/apiLogs`) to isolate them from user and application data.
+ * The data is organized hierarchically. Core user data and related private subcollections (like enrollments, certificates, and payment transactions) are nested under `/users/{userId}`. This path-based structure simplifies ownership rules. Publicly-accessible data, such as the course catalog, is stored in top-level collections like `/courses` and `/lessons`. Administrative and system logs are also segregated into their own top-level collections (`/adminActionLogs`, `/apiLogs`, `/logs`) to isolate them from user and application data.
  *
  * # Key Security Decisions
  * - User Isolation: A user can only access documents within their own `/users/{userId}` data tree. Listing or reading other users' profiles is strictly forbidden, except for admins.
  * - Admin Privileges: A role-based access control (RBAC) system is implemented for administrative tasks. Users with `role == 'admin'` in their user profile can manage global collections like `/courses` and `/lessons`, and list users. This check requires a `get()` call to the user's profile, which is an acceptable performance trade-off for privileged operations.
  * - Public vs. Private: Data is structurally segregated. Public content (courses) is in a top-level collection with public read access. Private, user-specific data (enrollments) is in user subcollections, protected by ownership rules.
- * - Backend-Only Collections: Collections like `/apiLogs` and `/adminActionLogs` are considered backend-managed. Client-side writes are completely disabled to prevent tampering, and reads are restricted to administrators.
+ * - Backend-Only Collections: Collections like `/apiLogs`, `/adminActionLogs`, and the new `/logs` collection are considered backend-managed. Client-side writes are completely disabled to prevent tampering, and reads are restricted to administrators. This ensures the integrity of the audit trail.
  * - Flexible Schemas: In this prototyping phase, rules focus on *who* can access *what* (authorization), not on the specific shape of the data. No rules enforce data types or the presence of non-critical fields, allowing for rapid front-end development.
  *
  * # Denormalization for Authorization
@@ -232,6 +232,19 @@ service cloud.firestore {
       allow create: if false;
       allow update: if false;
       allow delete: if false;
+    }
+
+    /**
+     * @description Stores system-wide, immutable log entries. Writes are disallowed from the client to ensure log integrity.
+     * Only administrators can read logs for auditing and monitoring purposes.
+     * @path /logs/{logId}
+     * @allow (get, list) An admin lists logs for monitoring system activity.
+     * @deny (create, update, delete) All client-side write and delete operations are forbidden to maintain a secure audit trail.
+     * @principle Secures the system's central audit trail by making it immutable from the client-side.
+     */
+    match /logs/{logId} {
+        allow get, list: if isAdmin();
+        allow create, update, delete: if false;
     }
   }
 }

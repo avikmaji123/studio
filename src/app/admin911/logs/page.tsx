@@ -7,11 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { logData, type LogEntry } from '@/lib/log-data';
 import { Search, Loader2, ShieldCheck, ShieldAlert, ShieldX, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { analyzeLogs, type AnalyzeLogsOutput } from '@/ai/flows/analyze-logs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import type { LogEntry } from '@/lib/types';
 
 function getBadgeVariant(level: LogEntry['severity']) {
     switch (level) {
@@ -32,17 +34,21 @@ function getStatusIcon(status: AnalyzeLogsOutput['status']) {
     }
 }
 
-function LogAnalysisCard() {
+function LogAnalysisCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoading: boolean }) {
     const [analysis, setAnalysis] = useState<AnalyzeLogsOutput | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isAnalysisLoading, setIsAnalysisLoading] = useState(true);
 
     useEffect(() => {
+        if (isLoading || !logs) {
+            return;
+        }
+        
         const runAnalysis = async () => {
-            setIsLoading(true);
+            setIsAnalysisLoading(true);
             try {
-                // In a real app, you might fetch fresh logs here.
-                // For this implementation, we use the most recent 10 from mock data.
-                const recentLogs = logData.slice(0, 10);
+                // Pass the most recent 10 logs to the AI flow.
+                // The logs are already sorted by timestamp desc.
+                const recentLogs = logs.slice(0, 10);
                 const result = await analyzeLogs({ logs: recentLogs });
                 setAnalysis(result);
             } catch (error) {
@@ -53,14 +59,14 @@ function LogAnalysisCard() {
                     action: 'Check the AI service logs and ensure it is running correctly.'
                 });
             } finally {
-                setIsLoading(false);
+                setIsAnalysisLoading(false);
             }
         };
 
         runAnalysis();
-    }, []);
+    }, [logs, isLoading]);
 
-    if (isLoading) {
+    if (isAnalysisLoading) {
         return (
             <Card>
                 <CardHeader>
@@ -103,11 +109,20 @@ function LogAnalysisCard() {
 }
 
 export default function AdminLogsPage() {
+    const firestore = useFirestore();
     const [searchTerm, setSearchTerm] = useState('');
     const [severityFilter, setSeverityFilter] = useState('all');
 
+    const logsQuery = useMemoFirebase(() => 
+        query(collection(firestore, 'logs'), orderBy('timestamp', 'desc'), limit(100)),
+        [firestore]
+    );
+
+    const { data: logs, isLoading } = useCollection<LogEntry>(logsQuery);
+
     const filteredLogs = useMemo(() => {
-        return logData
+        if (!logs) return [];
+        return logs
             .filter(log => {
                 const severityMatch = severityFilter === 'all' || log.severity === severityFilter;
                 const searchMatch = searchTerm.trim() === '' || 
@@ -117,16 +132,16 @@ export default function AdminLogsPage() {
                                     (log.metadata?.ip && log.metadata.ip.includes(searchTerm));
                 return severityMatch && searchMatch;
             });
-    }, [searchTerm, severityFilter]);
+    }, [logs, searchTerm, severityFilter]);
 
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
             <h1 className="text-3xl font-bold">System & Audit Logs</h1>
             <p className="text-muted-foreground">
-                View critical system events and administrator actions.
+                View critical system events and administrator actions from the live database.
             </p>
 
-            <LogAnalysisCard />
+            <LogAnalysisCard logs={logs} isLoading={isLoading} />
 
             <Card>
                 <CardHeader>
@@ -168,10 +183,19 @@ export default function AdminLogsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
+                           {isLoading && Array.from({length: 5}).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                </TableRow>
+                           ))}
                            {filteredLogs.map(log => (
                                 <TableRow key={log.id}>
                                     <TableCell className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                                        {log.timestamp ? formatDistanceToNow(log.timestamp.toDate(), { addSuffix: true }) : 'now'}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={getBadgeVariant(log.severity)} className="capitalize">{log.severity}</Badge>
@@ -179,16 +203,16 @@ export default function AdminLogsPage() {
                                     <TableCell className="font-medium capitalize">{log.source}</TableCell>
                                     <TableCell>{log.message}</TableCell>
                                     <TableCell className="text-xs text-muted-foreground font-mono">
-                                        {log.metadata?.userId && <div>User: {log.metadata.userId}</div>}
+                                        {log.metadata?.userId && <div>User: {log.metadata.userId.substring(0, 8)}...</div>}
                                         {log.metadata?.ip && <div>IP: {log.metadata.ip}</div>}
                                         {log.metadata?.courseId && <div>Course: {log.metadata.courseId}</div>}
                                     </TableCell>
                                 </TableRow>
                            ))}
-                           {filteredLogs.length === 0 && (
+                           {!isLoading && filteredLogs.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                        No logs found matching your criteria.
+                                        No system activity recorded yet.
                                     </TableCell>
                                 </TableRow>
                            )}

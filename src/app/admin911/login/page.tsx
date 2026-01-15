@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
 import { Loader2, BookOpen } from "lucide-react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { createLogEntry } from "@/lib/actions";
 
 export default function AdminLoginPage() {
   const auth = useAuth();
@@ -43,6 +44,12 @@ export default function AdminLoginPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists() && userDoc.data().role === 'admin') {
+        await createLogEntry({
+          source: 'admin',
+          severity: 'info',
+          message: 'Admin login successful.',
+          metadata: { userId: userCredential.user.uid },
+        });
         toast({
           title: "Admin Login Successful",
           description: "Welcome back! Redirecting you to the dashboard...",
@@ -50,6 +57,12 @@ export default function AdminLoginPage() {
         // The useEffect will handle redirection
       } else {
         // This user exists but is NOT an admin. Log them out.
+        await createLogEntry({
+          source: 'system',
+          severity: 'critical',
+          message: 'Non-admin user attempted to access admin login.',
+          metadata: { userId: userCredential.user.uid, email: email },
+        });
         await signOut(auth);
         toast({
           variant: "destructive",
@@ -81,19 +94,30 @@ export default function AdminLoginPage() {
                 affiliateCode: '',
                 suspended: false,
             });
+            await createLogEntry({
+              source: 'system',
+              severity: 'info',
+              message: 'Initial admin account created.',
+              metadata: { userId: newUserCredential.user.uid },
+            });
             toast({
                 title: "Admin Account Created!",
                 description: "Login successful. Redirecting...",
             });
             // Let the useEffect handle the redirect.
         } catch (creationError: any) {
-            // This would happen if the user exists but the password was wrong.
             let title = "Login Failed";
             let description = creationError.message;
             if (creationError.code === 'auth/email-already-in-use') {
                 title = "Invalid Credentials";
                 description = "The email or password you entered is incorrect.";
             }
+             await createLogEntry({
+                source: 'admin',
+                severity: 'warning',
+                message: `Admin login failed: ${description}`,
+                metadata: { email: email, error: creationError.code },
+             });
              toast({
                 variant: "destructive",
                 title: title,
@@ -103,6 +127,12 @@ export default function AdminLoginPage() {
       } else {
         // Handle other errors like network issues, etc.
         console.error("Admin Login Error:", error);
+         await createLogEntry({
+            source: 'system',
+            severity: 'critical',
+            message: `Admin login system error: ${error.message}`,
+            metadata: { error: error.code },
+         });
         toast({
           variant: "destructive",
           title: "Login Failed",

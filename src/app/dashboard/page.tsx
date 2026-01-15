@@ -3,7 +3,7 @@
 import { ArrowUpRight, Book, CheckCircle, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { collection } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -14,9 +14,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { CourseCard } from '@/components/app/course-card';
-import { courses } from '@/lib/data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Course } from '@/lib/types';
 
 function StatCard({
   title,
@@ -65,6 +65,9 @@ export default function DashboardOverviewPage() {
   );
   const { data: enrollments, isLoading: isEnrollmentsLoading } =
     useCollection(enrollmentsQuery);
+    
+  const allCoursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
+  const { data: allCourses, isLoading: areCoursesLoading } = useCollection<Course>(allCoursesQuery);
 
   const certificatesQuery = useMemoFirebase(
     () =>
@@ -75,12 +78,12 @@ export default function DashboardOverviewPage() {
     useCollection(certificatesQuery);
 
   const purchasedCourses = useMemo(() => {
-    if (!enrollments) return [];
+    if (!enrollments || !allCourses) return [];
     const enrolledCourseIds = enrollments.map(e => e.courseId);
-    return courses.filter(c => enrolledCourseIds.includes(c.id)).slice(0, 3);
-  }, [enrollments]);
+    return allCourses.filter(c => enrolledCourseIds.includes(c.id)).slice(0, 3);
+  }, [enrollments, allCourses]);
 
-  const isLoading = isUserLoading || isEnrollmentsLoading || isCertificatesLoading;
+  const isLoading = isUserLoading || isEnrollmentsLoading || isCertificatesLoading || areCoursesLoading;
   
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">

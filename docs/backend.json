@@ -79,6 +79,10 @@
           "type": "string",
           "description": "Unique identifier for the course."
         },
+        "slug": {
+          "type": "string",
+          "description": "URL-friendly slug for the course."
+        },
         "title": {
           "type": "string",
           "description": "Title of the course."
@@ -106,6 +110,7 @@
       },
       "required": [
         "id",
+        "slug",
         "title",
         "description",
         "imageUrl",
@@ -453,6 +458,50 @@
         "affectedEntityId",
         "actionTimestamp"
       ]
+    },
+    "Log": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Log",
+      "type": "object",
+      "description": "Represents a system log entry for auditing and monitoring.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the log entry."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp when the event occurred.",
+          "format": "date-time"
+        },
+        "severity": {
+          "type": "string",
+          "description": "Log severity level.",
+          "enum": ["info", "warning", "critical"]
+        },
+        "source": {
+          "type": "string",
+          "description": "The origin of the log entry.",
+          "enum": ["admin", "user", "system", "api"]
+        },
+        "message": {
+          "type": "string",
+          "description": "A human-readable description of the event."
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional contextual data.",
+          "properties": {
+            "userId": { "type": "string" },
+            "courseId": { "type": "string" },
+            "paymentId": { "type": "string" },
+            "route": { "type": "string" },
+            "ip": { "type": "string" },
+            "error": { "type": "string" }
+          }
+        }
+      },
+      "required": ["id", "timestamp", "severity", "source", "message"]
     }
   },
   "auth": {
@@ -643,8 +692,24 @@
             }
           ]
         }
+      },
+       {
+        "path": "/logs/{logId}",
+        "definition": {
+          "entityName": "Log",
+          "schema": {
+            "$ref": "#/backend/entities/Log"
+          },
+          "description": "Stores system-wide log entries for auditing and monitoring. Access is restricted.",
+          "params": [
+            {
+              "name": "logId",
+              "description": "The unique identifier for the log entry."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the CourseVerse application, adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity. User data is stored under `/users/{userId}`. Courses are stored in a top-level `/courses` collection. Enrollments, Certificates, PaymentTransactions, and AffiliateCommissions are organized as subcollections under the respective user document (`/users/{userId}/enrollments/{enrollmentId}`, `/users/{userId}/certificates/{certificateId}`, `/users/{userId}/paymentTransactions/{transactionId}`, `/users/{userId}/affiliateCommissions/{affiliateCommissionId}`). ApiKeys are also stored as a subcollection under `/users/{userId}/apiKeys/{apiKeyId}` enabling admin-level management of keys. ApiLogs are segregated to `/apiLogs/{apiLogId}` and includes the `apiKeyId` for querying. AdminActionLogs are segregated to `/adminActionLogs/{adminActionLogId}` and include the `adminId` for querying.\\n\\nThis structure achieves Authorization Independence by avoiding hierarchical `get()` calls. For example, while Enrollments are stored under `/users/{userId}`, access control is based on `request.auth.uid === userId`. Similarly, courses are top-level with no dependency on user data for access.\\n\\nThis design supports the QAPs by segregating data based on access needs and employing path-based ownership where appropriate. Listing courses is secure because it does not require any user context. Listing a user's enrollments is restricted to the user themselves via the path-based structure and security rules."
+    "reasoning": "The Firestore data structure is designed to support the CourseVerse application, adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity. User data is stored under `/users/{userId}`. Courses are stored in a top-level `/courses` collection. Enrollments, Certificates, PaymentTransactions, and AffiliateCommissions are organized as subcollections under the respective user document (`/users/{userId}/enrollments/{enrollmentId}`, `/users/{userId}/certificates/{certificateId}`, `/users/{userId}/paymentTransactions/{transactionId}`, `/users/{userId}/affiliateCommissions/{affiliateCommissionId}`). ApiKeys are also stored as a subcollection under `/users/{userId}/apiKeys/{apiKeyId}` enabling admin-level management of keys. ApiLogs and AdminActionLogs are segregated into top-level collections for admin-only access. A new top-level `/logs` collection is added to store immutable system audit trails, accessible only by admins for reading, with writes handled by trusted backend logic.\\n\\nThis structure achieves Authorization Independence by avoiding hierarchical `get()` calls. For example, while Enrollments are stored under `/users/{userId}`, access control is based on `request.auth.uid === userId`. Similarly, courses are top-level with no dependency on user data for access.\\n\\nThis design supports the QAPs by segregating data based on access needs and employing path-based ownership where appropriate. Listing courses is secure because it does not require any user context. Listing a user's enrollments is restricted to the user themselves via the path-based structure and security rules."
   }
 }

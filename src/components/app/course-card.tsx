@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Course } from '@/lib/data';
+import type { Course } from '@/lib/types';
 import { Eye, Users, BarChart } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -62,7 +62,7 @@ export function CourseCard({ course }: CourseCardProps) {
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
-              <span>{course.enrollmentCount}</span>
+              <span>{course.enrollmentCount || 0}</span>
           </div>
           <div className="text-lg font-bold text-primary">
             {course.price}

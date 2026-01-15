@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, setDoc, Timestamp, query, where, collection, getDocs, limit } from 'firebase/firestore';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,10 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { autoHandleEngine } from '@/ai/flows/auto-handle-engine';
 import { Loader2, ArrowLeft, Upload } from 'lucide-react';
-import { courses } from '@/lib/data';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { createLogEntry } from '@/lib/actions';
+import type { Course } from '@/lib/types';
 
 export default function CoursePaymentPage() {
     const router = useRouter();
@@ -26,18 +27,37 @@ export default function CoursePaymentPage() {
     const slug = params.slug as string;
     const { toast } = useToast();
 
+    const [course, setCourse] = useState<Course | null>(null);
+    const [isLoadingCourse, setIsLoadingCourse] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [utr, setUtr] = useState('');
     const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!slug || !firestore) return;
+        const getCourse = async () => {
+            setIsLoadingCourse(true);
+            const q = query(collection(firestore, 'courses'), where('slug', '==', slug), limit(1));
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                notFound();
+            } else {
+                setCourse({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Course);
+            }
+            setIsLoadingCourse(false);
+        };
+        getCourse();
+    }, [slug, firestore]);
     
-    const course = courses.find(c => c.slug === slug);
+    if (isLoadingCourse) {
+        return <div className="flex h-screen items-center justify-center"><Loader2 className="h-16 w-16 animate-spin"/></div>
+    }
 
     if (!course) {
         notFound();
     }
-
-    const courseImage = PlaceHolderImages.find(p => p.id === course.imageId);
+    
     const qrCodeImage = PlaceHolderImages.find(p => p.id === 'payment-qr-code');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +95,12 @@ export default function CoursePaymentPage() {
         }
 
         setIsLoading(true);
+        await createLogEntry({
+            source: 'user',
+            severity: 'info',
+            message: 'Payment verification submitted.',
+            metadata: { userId: user.uid, courseId: course.id }
+        });
 
         try {
             const result = await autoHandleEngine({ 
@@ -93,6 +119,13 @@ export default function CoursePaymentPage() {
                     enrollmentDate: Timestamp.now(),
                     completionPercentage: 0,
                 });
+                
+                await createLogEntry({
+                    source: 'system',
+                    severity: 'info',
+                    message: 'AI payment verification successful.',
+                    metadata: { userId: user.uid, courseId: course.id }
+                });
 
                 toast({
                     title: "Payment Verified!",
@@ -100,6 +133,12 @@ export default function CoursePaymentPage() {
                 });
                 router.push('/dashboard/courses');
             } else {
+                 await createLogEntry({
+                    source: 'system',
+                    severity: 'warning',
+                    message: 'AI payment verification failed.',
+                    metadata: { userId: user.uid, courseId: course.id, error: result.reasoning }
+                });
                  toast({
                     variant: "destructive",
                     title: "Verification Failed",
@@ -116,6 +155,13 @@ export default function CoursePaymentPage() {
             } else if (error?.message) {
                 errorMessage = error.message;
             }
+
+            await createLogEntry({
+                source: 'system',
+                severity: 'critical',
+                message: 'AI payment verification service error.',
+                metadata: { userId: user.uid, courseId: course.id, error: errorMessage }
+            });
             
             toast({
                 variant: "destructive",
@@ -145,12 +191,11 @@ export default function CoursePaymentPage() {
                              <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                           {courseImage && (
+                           {course.imageUrl && (
                                 <div className="relative aspect-video w-full">
                                     <Image
-                                        src={courseImage.imageUrl}
+                                        src={course.imageUrl}
                                         alt={course.title}
-                                        data-ai-hint={courseImage.imageHint}
                                         fill
                                         className="object-cover rounded-md"
                                     />

@@ -42,9 +42,10 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase'
-import { collection, collectionGroup } from 'firebase/firestore'
+import { collection, collectionGroup, query } from 'firebase/firestore'
 import { Skeleton } from '@/components/ui/skeleton'
-import { courses } from '@/lib/data';
+import type { Course } from '@/lib/types';
+
 
 export default function AdminPaymentsPage() {
     const firestore = useFirestore();
@@ -56,6 +57,9 @@ export default function AdminPaymentsPage() {
     const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
     const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
     
+    const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
+    const { data: courses, isLoading: coursesLoading } = useCollection<Course>(coursesQuery);
+
     const filteredPayments = useMemo(() => {
         if (!payments) return [];
         if (activeTab === 'all') return payments;
@@ -63,7 +67,7 @@ export default function AdminPaymentsPage() {
         return payments.filter(p => p.status.toLowerCase() === activeTab);
     }, [payments, activeTab]);
 
-    const isLoading = usersLoading || paymentsLoading;
+    const isLoading = usersLoading || paymentsLoading || coursesLoading;
 
     const getStatusBadge = (status: string) => {
         switch(status) {
@@ -76,7 +80,7 @@ export default function AdminPaymentsPage() {
     }
     
     const getUserForPayment = (userId: string) => users?.find(u => u.id === userId);
-    const getCourseForPayment = (courseId: string) => courses.find(c => c.id === courseId);
+    const getCourseForPayment = (courseId: string) => courses?.find(c => c.id === courseId);
 
 
     return (

@@ -10,12 +10,12 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { LogEntry } from '@/lib/log-data';
+import type { LogEntry } from '@/lib/types';
 
 // Define Zod schema for LogEntry to use within Genkit flows
 const LogEntrySchema = z.object({
     id: z.string(),
-    timestamp: z.string(),
+    timestamp: z.any(),
     severity: z.enum(['info', 'warning', 'critical']),
     source: z.enum(['admin', 'user', 'system', 'api']),
     message: z.string(),
@@ -81,7 +81,7 @@ const analyzeLogsFlow = ai.defineFlow(
     if (!input.logs || input.logs.length === 0) {
       return {
         status: 'All OK',
-        explanation: 'No log entries were provided for analysis. The system appears quiet.',
+        explanation: 'No system activity recorded yet.',
       };
     }
     const { output } = await prompt(input);

@@ -48,30 +48,45 @@ import { signOut } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { createLogEntry } from '@/lib/actions';
 
 function AdminSidebar() {
     const auth = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const { toast } = useToast();
+    const { user } = useUser();
 
     const handleLogout = async () => {
-        if (!auth) return;
+        if (!auth || !user) return;
+        const userId = user.uid;
         try {
-        await signOut(auth);
-        toast({
-            title: 'Logged Out',
-            description: 'You have been successfully logged out.',
-        });
-        router.push('/admin911/login');
+            await signOut(auth);
+            await createLogEntry({
+                source: 'admin',
+                severity: 'info',
+                message: 'Admin logged out.',
+                metadata: { userId },
+            });
+            toast({
+                title: 'Logged Out',
+                description: 'You have been successfully logged out.',
+            });
+            router.push('/admin911/login');
         } catch (error: any) {
-        console.error('Logout Error:', error);
-        toast({
-            variant: 'destructive',
-            title: 'Logout Failed',
-            description:
-            error.message || 'An unexpected error occurred during logout.',
-        });
+            console.error('Logout Error:', error);
+            await createLogEntry({
+                source: 'admin',
+                severity: 'critical',
+                message: 'Admin logout failed.',
+                metadata: { userId, error: error.message },
+            });
+            toast({
+                variant: 'destructive',
+                title: 'Logout Failed',
+                description:
+                error.message || 'An unexpected error occurred during logout.',
+            });
         }
     };
 
@@ -83,7 +98,6 @@ function AdminSidebar() {
         { href: '/admin911/downloads', icon: <Download className="h-4 w-4" />, label: 'Downloads' },
         { href: '/admin911/settings', icon: <Settings className="h-4 w-4" />, label: 'Site Settings' },
         { href: '/admin911/logs', icon: <FileText className="h-4 w-4" />, label: 'Logs' },
-        { href: '/admin911/seed', icon: <DatabaseZap className="h-4 w-4" />, label: 'Seed Database' },
     ];
 
   return (
@@ -150,9 +164,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     // If we're done loading, not on the login page, and the user is not an admin,
     // redirect them to the admin login page.
     if (!isLoading && !isLoginPage && !isAdmin) {
+      createLogEntry({
+          source: 'system',
+          severity: 'warning',
+          message: 'Unauthorized access attempt to admin area.',
+          metadata: { userId: user?.uid || 'anonymous' },
+      });
       router.replace('/admin911/login');
     }
-  }, [isLoading, isLoginPage, isAdmin, router]);
+  }, [isLoading, isLoginPage, isAdmin, router, user]);
 
   // If we are on a protected admin page and still loading, show a spinner.
   if (!isLoginPage && isLoading) {
