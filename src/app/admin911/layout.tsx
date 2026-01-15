@@ -8,7 +8,7 @@ import {
   CircleUser,
   Download,
   Home,
-  LineChart,
+  DatabaseZap,
   Menu,
   Package,
   Package2,
@@ -103,7 +103,7 @@ function AdminSidebar() {
             </Link>
             <Link
               href="/admin911/payments"
-              className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
               <CreditCard className="h-4 w-4" />
               Payments
@@ -136,6 +136,13 @@ function AdminSidebar() {
               <FileText className="h-4 w-4" />
               Logs
             </Link>
+             <Link
+              href="/admin911/seed"
+              className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+            >
+              <DatabaseZap className="h-4 w-4" />
+              Seed Database
+            </Link>
           </nav>
         </div>
         <div className="mt-auto p-4">
@@ -161,38 +168,29 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const isLoading = isUserLoading || isProfileLoading;
-  const isAdmin = profile?.role === 'admin';
   const isLoginPage = pathname === '/admin911/login';
+  const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
-    // If we're not loading and the user is NOT an admin,
-    // and we are NOT on the login page, then redirect to login.
-    if (!isLoading && !isAdmin && !isLoginPage) {
+    // If we're done loading, not on the login page, and the user is not an admin,
+    // redirect them to the admin login page.
+    if (!isLoading && !isLoginPage && !isAdmin) {
       router.replace('/admin911/login');
     }
-  }, [isLoading, isAdmin, router, isLoginPage]);
+  }, [isLoading, isLoginPage, isAdmin, router]);
 
-  // If we are trying to access a protected admin page, show loading spinner until auth check is complete.
-  if (isLoading && !isLoginPage) {
+  // If we are on a protected admin page and still loading, show a spinner.
+  if (!isLoginPage && isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background dark">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
-  
-  // If user is not an admin and not on the login page, render nothing until redirect happens.
-  if (!isAdmin && !isLoginPage) {
-     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background dark">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
 
-  // If user IS an admin, show the protected layout with the content.
+  // If the user is a confirmed admin, show the admin layout.
   if (isAdmin) {
-    return (
+     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
         <AdminSidebar />
         <div className="flex flex-col">
@@ -201,7 +199,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
     );
   }
+  
+  // If it's the login page, render it directly.
+  if (isLoginPage) {
+      return <>{children}</>;
+  }
 
-  // If it's the login page, just render the children (the login form).
-  return <>{children}</>;
+  // If none of the above, it means the user is not an admin and not on the login page,
+  // and we are waiting for the redirect to happen. Render a loading state.
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-background dark">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    </div>
+  );
 }

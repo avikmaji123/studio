@@ -45,18 +45,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { courses } from '@/lib/data';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboard() {
   const firestore = useFirestore();
+  const { profile } = useUser();
 
   const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
   
-  // Note: collectionGroup queries require an index in Firestore. 
-  // This would need to be created in the Firebase console.
+  const coursesQuery = useMemoFirebase(() => collection(firestore, 'courses'), [firestore]);
+  const { data: courses, isLoading: coursesLoading } = useCollection(coursesQuery);
+  
   const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
   const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
   
@@ -78,12 +79,13 @@ export default function AdminDashboard() {
     };
   }, [payments]);
 
-  const isLoading = usersLoading || paymentsLoading;
+  const isLoading = usersLoading || paymentsLoading || coursesLoading;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AI-Approved':
-        return <Badge variant="default">AI-Approved</Badge>;
+      case 'approved':
+        return <Badge variant="default">Approved</Badge>;
       case 'Pending':
         return <Badge variant="secondary">Pending</Badge>;
       case 'Rejected':
@@ -168,7 +170,7 @@ export default function AdminDashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+{courses.length}</div>
+              {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">+{courses?.length || 0}</div> }
               <p className="text-xs text-muted-foreground">
                 All courses published
               </p>

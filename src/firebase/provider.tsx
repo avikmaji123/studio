@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -42,6 +43,7 @@ export interface FirebaseContextState {
   isProfileLoading: boolean;
   userError: Error | null;
   profileError: Error | null;
+  isAdmin: boolean;
 }
 
 export interface FirebaseServicesAndUser extends UserAuthAndProfileHookResult {
@@ -57,6 +59,7 @@ export interface UserAuthAndProfileHookResult {
   isProfileLoading: boolean;
   userError: Error | null;
   profileError: Error | null;
+  isAdmin: boolean;
 }
 
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
@@ -150,6 +153,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
+    const isAdmin = profile?.role === 'admin';
     return {
       areServicesAvailable: servicesAvailable,
       firebaseApp: servicesAvailable ? firebaseApp : null,
@@ -161,6 +165,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isProfileLoading: isProfileLoading,
       userError: userAuthState.userError,
       profileError: profileError,
+      isAdmin,
     };
   }, [firebaseApp, firestore, auth, userAuthState, profile, isProfileLoading, profileError]);
 
@@ -193,6 +198,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     userError: context.userError,
     isProfileLoading: context.isProfileLoading,
     profileError: context.profileError,
+    isAdmin: context.isAdmin,
   };
 };
 
@@ -223,6 +229,6 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
 }
 
 export const useUser = (): UserAuthAndProfileHookResult => {
-  const { user, profile, isUserLoading, userError, isProfileLoading, profileError } = useFirebase();
-  return { user, profile, isUserLoading, userError, isProfileLoading, profileError };
+  const { user, profile, isUserLoading, userError, isProfileLoading, profileError, isAdmin } = useFirebase();
+  return { user, profile, isUserLoading, userError, isProfileLoading, profileError, isAdmin };
 };
