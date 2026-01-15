@@ -17,8 +17,7 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
   
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
-      <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="flex flex-col h-full">
-        <div className="relative aspect-video w-full">
+        <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="relative aspect-video w-full block">
           {course.imageUrl ? (
                <Image
                   src={course.imageUrl}
@@ -39,7 +38,7 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
               </Badge>
             </div>
           )}
-        </div>
+        </Link>
         <CardHeader className="p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="flex items-center gap-1">
@@ -53,7 +52,11 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
                 </Badge>
             )}
           </div>
-          <CardTitle className="line-clamp-2 text-base h-[2.5em] leading-tight">{course.title}</CardTitle>
+          <CardTitle className="line-clamp-2 text-base h-[2.5em] leading-tight">
+            <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="hover:underline">
+              {course.title}
+            </Link>
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow p-4 pt-0 pb-2">
           <CardDescription className="line-clamp-2 text-sm">{course.shortDescription || course.description}</CardDescription>
@@ -76,7 +79,6 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
             </div>
             )}
         </CardFooter>
-      </Link>
     </Card>
   );
 }
