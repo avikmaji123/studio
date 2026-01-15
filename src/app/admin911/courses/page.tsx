@@ -1,6 +1,6 @@
 
 'use client';
-
+import { useMemo, useState } from 'react';
 import {
     File,
     ListFilter,
@@ -44,7 +44,6 @@ import {
   import Image from 'next/image'
   import { useCollection, useFirestore, useMemoFirebase } from '@/firebase'
   import { collection } from 'firebase/firestore'
-  import { PlaceHolderImages } from '@/lib/placeholder-images'
   import { Skeleton } from '@/components/ui/skeleton'
   import Link from 'next/link'
 
@@ -53,40 +52,33 @@ export default function AdminCoursesPage() {
     const coursesQuery = useMemoFirebase(() => collection(firestore, 'courses'), [firestore]);
     const { data: courses, isLoading } = useCollection(coursesQuery);
     
+    const [activeTab, setActiveTab] = useState('all');
+
+    const filteredCourses = useMemo(() => {
+        if (!courses) return [];
+        if (activeTab === 'all') return courses;
+        return courses.filter(c => c.status === activeTab);
+    }, [courses, activeTab]);
+
+     const counts = useMemo(() => {
+        if (!courses) return { all: 0, published: 0, draft: 0 };
+        return {
+            all: courses.length,
+            published: courses.filter(c => c.status === 'published').length,
+            draft: courses.filter(c => c.status === 'draft').length,
+        };
+    }, [courses]);
+    
     return (
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Tabs defaultValue="all">
+          <Tabs defaultValue="all" onValueChange={setActiveTab}>
             <div className="flex items-center">
               <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="active">Published</TabsTrigger>
-                <TabsTrigger value="draft">Draft</TabsTrigger>
-                <TabsTrigger value="archived" className="hidden sm:flex">
-                  Archived
-                </TabsTrigger>
+                <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
+                <TabsTrigger value="published">Published ({counts.published})</TabsTrigger>
+                <TabsTrigger value="draft">Draft ({counts.draft})</TabsTrigger>
               </TabsList>
               <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-3.5 w-3.5" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                      Published
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>Draft</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                      Archived
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                   <File className="h-3.5 w-3.5" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -101,7 +93,7 @@ export default function AdminCoursesPage() {
                 </Button>
               </div>
             </div>
-            <TabsContent value="all">
+            <TabsContent value={activeTab}>
               <Card x-chunk="dashboard-06-chunk-0">
                 <CardHeader>
                   <CardTitle>Courses</CardTitle>
@@ -121,9 +113,6 @@ export default function AdminCoursesPage() {
                         <TableHead className="hidden md:table-cell">
                           Price
                         </TableHead>
-                        <TableHead className="hidden md:table-cell">
-                          Enrollments
-                        </TableHead>
                         <TableHead>
                           <span className="sr-only">Actions</span>
                         </TableHead>
@@ -136,13 +125,11 @@ export default function AdminCoursesPage() {
                                 <TableCell><Skeleton className="h-5 w-48"/></TableCell>
                                 <TableCell><Skeleton className="h-5 w-20"/></TableCell>
                                 <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-16"/></TableCell>
-                                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-12"/></TableCell>
                                 <TableCell><Skeleton className="h-8 w-8"/></TableCell>
                             </TableRow>
                         ))}
-                        {courses?.map(course => {
-                            const image = PlaceHolderImages.find(p => p.id === course.imageId);
-                            const imageUrl = course.imageUrl || image?.imageUrl || '/placeholder.svg';
+                        {filteredCourses?.map(course => {
+                            const imageUrl = course.imageUrl || '/placeholder.svg';
                             const price = course.price ? parseInt(course.price.replace('₹', ''), 10) : 0;
                             return (
                                 <TableRow key={course.id}>
@@ -162,7 +149,6 @@ export default function AdminCoursesPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">₹{price.toLocaleString('en-IN')}</TableCell>
-                                    <TableCell className="hidden md:table-cell">{course.enrollmentCount}</TableCell>
                                     <TableCell>
                                         <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -190,7 +176,7 @@ export default function AdminCoursesPage() {
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>{courses?.length || 0}</strong> of <strong>{courses?.length || 0}</strong>{' '}
+                    Showing <strong>{filteredCourses?.length || 0}</strong> of <strong>{courses?.length || 0}</strong>{' '}
                     products
                   </div>
                 </CardFooter>

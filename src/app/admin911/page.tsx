@@ -79,6 +79,15 @@ export default function AdminDashboard() {
     };
   }, [payments]);
 
+  const { publishedCount } = useMemo(() => {
+    if (!courses) {
+      return { publishedCount: 0 };
+    }
+    const published = courses.filter(c => c.status === 'published').length;
+    return { publishedCount: published };
+  }, [courses]);
+
+
   const isLoading = usersLoading || paymentsLoading || coursesLoading;
 
   const getStatusBadge = (status: string) => {
@@ -172,7 +181,7 @@ export default function AdminDashboard() {
             <CardContent>
               {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">+{courses?.length || 0}</div> }
               <p className="text-xs text-muted-foreground">
-                All courses published
+                {publishedCount} of {courses?.length || 0} courses published
               </p>
             </CardContent>
           </Card>
