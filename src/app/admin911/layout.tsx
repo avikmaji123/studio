@@ -21,8 +21,9 @@ import {
   BookOpen,
   FileText,
   LogOut,
+  Loader2,
 } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,7 +43,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -59,7 +60,7 @@ function AdminSidebar() {
             title: 'Logged Out',
             description: 'You have been successfully logged out.',
         });
-        router.push('/');
+        router.push('/admin911/login');
         } catch (error: any) {
         console.error('Logout Error:', error);
         toast({
@@ -74,7 +75,7 @@ function AdminSidebar() {
     <div className="hidden border-r bg-muted/40 md:block">
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
+          <Link href="/admin911" className="flex items-center gap-2 font-semibold">
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="">CourseVerse</span>
           </Link>
@@ -157,12 +158,45 @@ function AdminSidebar() {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
+  const { user, profile, isUserLoading, isProfileLoading } = useUser();
+  const router = useRouter();
+
+  const isLoading = isUserLoading || isProfileLoading;
+  const isAdmin = profile?.role === 'admin';
+
+  useEffect(() => {
+    // If finished loading and not an admin, redirect.
+    if (!isLoading && !isAdmin) {
+      router.replace('/admin911/login');
+    }
+  }, [isLoading, isAdmin, router]);
+
+  // While loading, show a full-screen loader to prevent flashing content
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If the user is an admin, render the admin layout
+  if (isAdmin) {
+    return (
+      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
         <AdminSidebar />
         <div className="flex flex-col">
-            {children}
+          {children}
         </div>
-    </div>
+      </div>
+    );
+  }
+  
+  // If not loading and not an admin, this will be briefly rendered before the redirect.
+  // The redirect in useEffect is the primary mechanism.
+  return (
+     <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
   );
 }

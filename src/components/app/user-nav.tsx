@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -50,6 +51,7 @@ export function UserNav() {
   if (user) {
     const displayName = profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user.displayName;
     const fallback = (profile?.firstName?.charAt(0) || '') + (profile?.lastName?.charAt(0) || '') || user.email?.charAt(0) || 'U';
+    const isAdmin = profile?.role === 'admin';
 
     return (
       <DropdownMenu>
@@ -73,12 +75,16 @@ export function UserNav() {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
+                <Link href="/dashboard">Dashboard</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/downloads">My Downloads</Link>
             </DropdownMenuItem>
-             <DropdownMenuItem asChild>
-              <Link href="/admin">Admin</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+             {isAdmin && (
+                <DropdownMenuItem asChild>
+                    <Link href="/admin911">Admin Panel</Link>
+                </DropdownMenuItem>
+             )}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
