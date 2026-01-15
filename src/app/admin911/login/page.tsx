@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ import { doc, getDoc } from "firebase/firestore";
 export default function AdminLoginPage() {
   const auth = useAuth();
   const firestore = useFirestore();
-  const { user, profile, isUserLoading, isProfileLoading } = useUser();
+  const { user, profile, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -25,14 +24,13 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('122911');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const isLoading = isUserLoading || isProfileLoading;
   const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
-    if (!isLoading && user && isAdmin) {
+    if (!isUserLoading && user && isAdmin) {
       router.replace('/admin911');
     }
-  }, [user, isLoading, isAdmin, router]);
+  }, [user, isUserLoading, isAdmin, router]);
 
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -87,13 +85,16 @@ export default function AdminLoginPage() {
     }
   };
 
-  if (isLoading || (user && isAdmin)) {
+  // Do not show a loading spinner on the login page itself.
+  // The layout will handle the redirect if the user is already an admin.
+  if (!isUserLoading && user && isAdmin) {
     return (
-        <div className="flex h-screen w-full justify-center items-center bg-background dark">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
+      <div className="flex h-screen w-full justify-center items-center bg-background dark">
+          <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
     );
   }
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background dark">

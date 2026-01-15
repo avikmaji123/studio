@@ -45,7 +45,7 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 function AdminSidebar() {
@@ -158,30 +158,50 @@ function AdminSidebar() {
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, profile, isUserLoading, isProfileLoading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   const isLoading = isUserLoading || isProfileLoading;
   const isAdmin = profile?.role === 'admin';
+  const isLoginPage = pathname === '/admin911/login';
 
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
+    // If we're not loading and the user is NOT an admin,
+    // and we are NOT on the login page, then redirect to login.
+    if (!isLoading && !isAdmin && !isLoginPage) {
       router.replace('/admin911/login');
     }
-  }, [isLoading, isAdmin, router]);
+  }, [isLoading, isAdmin, router, isLoginPage]);
 
-  if (isLoading || !isAdmin) {
+  // If we are trying to access a protected admin page, show loading spinner until auth check is complete.
+  if (isLoading && !isLoginPage) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background dark">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
-
-  return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
-      <AdminSidebar />
-      <div className="flex flex-col">
-        {children}
+  
+  // If user is not an admin and not on the login page, render nothing until redirect happens.
+  if (!isAdmin && !isLoginPage) {
+     return (
+      <div className="flex h-screen w-full items-center justify-center bg-background dark">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
-    </div>
-  );
+    );
+  }
+
+  // If user IS an admin, show the protected layout with the content.
+  if (isAdmin) {
+    return (
+        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
+        <AdminSidebar />
+        <div className="flex flex-col">
+            {children}
+        </div>
+        </div>
+    );
+  }
+
+  // If it's the login page, just render the children (the login form).
+  return <>{children}</>;
 }
