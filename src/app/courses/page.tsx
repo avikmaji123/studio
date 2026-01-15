@@ -146,7 +146,7 @@ export default function CoursesPage() {
                 </div>
             </div>
             <div className="flex justify-between items-center mb-6">
-                <p className="text-sm text-muted-foreground">{isLoading ? <Skeleton className="h-5 w-24" /> : `${filteredCourses.length} courses found`}</p>
+                <div className="text-sm text-muted-foreground">{isLoading ? <Skeleton className="h-5 w-24" /> : `${filteredCourses.length} courses found`}</div>
                 <Select onValueChange={setSortBy}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Sort by" />
