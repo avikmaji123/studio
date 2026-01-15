@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
@@ -32,33 +32,6 @@ export default function AdminLoginPage() {
     }
   }, [user, isUserLoading, isAdmin, router]);
 
-  const createAdminUser = async () => {
-    if (!auth || !firestore) return null;
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-        await setDoc(userDocRef, {
-            id: userCredential.user.uid,
-            firstName: 'Admin',
-            lastName: 'User',
-            email: email,
-            role: 'admin',
-            themePreference: 'dark',
-            walletBalance: 0,
-            affiliateCode: '',
-            suspended: false,
-        });
-        return userCredential;
-    } catch (creationError: any) {
-        toast({
-            variant: "destructive",
-            title: "Admin Creation Failed",
-            description: creationError.message || "Could not create the initial admin user.",
-        });
-        return null;
-    }
-  };
-
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !firestore) return;
@@ -76,7 +49,8 @@ export default function AdminLoginPage() {
         });
         // The useEffect will handle redirection
       } else {
-        await auth.signOut();
+        // This user exists but is NOT an admin. Log them out.
+        await signOut(auth);
         toast({
           variant: "destructive",
           title: "Access Denied",
@@ -84,44 +58,65 @@ export default function AdminLoginPage() {
         });
       }
     } catch (error: any) {
-       let title = "Login Failed";
-       let description = "An unexpected error occurred. Please try again.";
-
-        switch (error.code) {
-          case 'auth/user-not-found':
-             // User doesn't exist, so let's create them.
+      // This is the primary error handler
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+        // This error code can mean "user not found" OR "wrong password".
+        // For our specific admin setup, we assume it means the admin user needs to be created.
+        toast({
+            title: "First-Time Admin Setup",
+            description: "No admin account found. Attempting to create one...",
+        });
+        try {
+            const newUserCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userDocRef = doc(firestore, 'users', newUserCredential.user.uid);
+            // Create the admin profile in Firestore
+            await setDoc(userDocRef, {
+                id: newUserCredential.user.uid,
+                firstName: 'Admin',
+                lastName: 'User',
+                email: email,
+                role: 'admin',
+                themePreference: 'dark',
+                walletBalance: 0,
+                affiliateCode: '',
+                suspended: false,
+            });
+            toast({
+                title: "Admin Account Created!",
+                description: "Login successful. Redirecting...",
+            });
+            // Let the useEffect handle the redirect.
+        } catch (creationError: any) {
+            // This would happen if the user exists but the password was wrong.
+            let title = "Login Failed";
+            let description = creationError.message;
+            if (creationError.code === 'auth/email-already-in-use') {
+                title = "Invalid Credentials";
+                description = "The email or password you entered is incorrect.";
+            }
              toast({
-                title: "First-Time Admin Setup",
-                description: "Creating your admin account. Please wait...",
-             });
-             const newUser = await createAdminUser();
-             if (newUser) {
-                 toast({
-                    title: "Admin Account Created!",
-                    description: "Login successful. Redirecting...",
-                 });
-             }
-            break;
-          case 'auth/invalid-credential':
-          case 'auth/wrong-password':
-            title = "Invalid Credentials";
-            description = "The email or password you entered is incorrect.";
-            break;
-          default:
-            console.error("Admin Sign-In Error:", error);
-            description = error.message;
-            break;
+                variant: "destructive",
+                title: title,
+                description: description,
+            });
         }
-
-        if (error.code !== 'auth/user-not-found') {
-            toast({ variant: "destructive", title, description });
-        }
+      } else {
+        // Handle other errors like network issues, etc.
+        console.error("Admin Login Error:", error);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: error.message || "An unexpected error occurred.",
+        });
+      }
     } finally {
         setIsSubmitting(false);
     }
   };
 
-  if (isUserLoading || (!isUserLoading && user && isAdmin)) {
+  // While user status is loading, or if the user is an admin, show a loader.
+  // The useEffect will handle the redirect.
+  if (isUserLoading || (user && isAdmin)) {
     return (
       <div className="flex h-screen w-full justify-center items-center bg-background dark">
           <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -129,7 +124,7 @@ export default function AdminLoginPage() {
     );
   }
 
-
+  // If loading is done and user is not an admin, show the login form.
   return (
     <div className="flex items-center justify-center min-h-screen bg-background dark">
       <Card className="w-full max-w-sm mx-4">
