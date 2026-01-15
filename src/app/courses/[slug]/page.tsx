@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -60,14 +61,14 @@ export default function CoursePage() {
       <div className="grid lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2">
           <div className="relative h-96 mb-8">
-            {course.imageUrl && (
+            {course.imageUrl ? (
                 <Image
                     src={course.imageUrl}
                     alt={course.title}
                     fill
                     className="object-cover rounded-xl"
                 />
-            )}
+            ) : <div className="w-full h-full bg-muted rounded-xl"></div>}
           </div>
           <h1 className="font-headline text-4xl font-bold tracking-tight">{course.title}</h1>
           <p className="mt-4 text-lg text-muted-foreground">{course.description}</p>

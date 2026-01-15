@@ -98,6 +98,9 @@ export const courses: Course[] = [
     level: 'Beginner',
     enrollmentCount: 19872,
      status: 'published',
+     tags: ['wifi', 'wpa2', 'kali linux'],
+     learningOutcomes: ['Understand different Wi-Fi security protocols', 'Perform a password cracking attack on a WPA2 network', 'Detect and prevent man-in-the-middle attacks'],
+     prerequisites: 'A Wi-Fi adapter that supports monitor mode.'
   },
   {
     id: 'cyber-4',
@@ -118,6 +121,9 @@ export const courses: Course[] = [
     level: 'Advanced',
     enrollmentCount: 8421,
      status: 'published',
+     tags: ['android', 'mobile security', 'rat', 'reverse engineering'],
+     learningOutcomes: ['Decompile and analyze Android application code', 'Develop a remote access trojan for Android', 'Understand techniques for making malware fully undetectable (FUD)'],
+     prerequisites: 'Experience with Java/Kotlin and understanding of client-server architecture.'
   },
   {
     id: 'cyber-5',
@@ -138,6 +144,9 @@ export const courses: Course[] = [
     level: 'Intermediate',
     enrollmentCount: 13488,
      status: 'published',
+     tags: ['social engineering', 'osint', 'phishing'],
+     learningOutcomes: ['Gather open-source intelligence (OSINT) on a target', 'Craft convincing phishing emails and pretext for vishing calls', 'Understand psychological triggers used in social engineering'],
+     prerequisites: 'Good communication skills and an understanding of basic cybersecurity concepts.'
   },
   {
     id: 'cyber-6',
@@ -158,6 +167,9 @@ export const courses: Course[] = [
     level: 'Advanced',
     enrollmentCount: 7521,
     status: 'draft',
+    tags: ['malware', 'antivirus', 'evasion', 'polymorphism'],
+    learningOutcomes: ['Understand the difference between signature, heuristic, and behavioral detection', 'Implement polymorphic and metamorphic code to evade static analysis', 'Bypass sandboxing environments used for dynamic analysis'],
+    prerequisites: 'Proficiency in C/C++ and Assembly language.'
   },
   {
     id: 'cyber-7',
@@ -179,6 +191,9 @@ export const courses: Course[] = [
     isNew: true,
     enrollmentCount: 35102,
      status: 'published',
+     tags: ['kali linux', 'pentesting', 'ethical hacking', 'beginner'],
+     learningOutcomes: ['Set up a virtual lab environment with Kali Linux', 'Use essential tools like Nmap, Metasploit, and Burp Suite', 'Conduct a basic penetration test from start to finish'],
+     prerequisites: 'None! This course is designed for absolute beginners.'
   },
   {
     id: 'cyber-8',
@@ -200,6 +215,9 @@ export const courses: Course[] = [
     isBestseller: true,
     enrollmentCount: 52198,
      status: 'published',
+     tags: ['bug bounty', 'web security', 'recon'],
+     learningOutcomes: ['Find and participate in bug bounty programs', 'Write high-quality bug reports that get paid', 'Discover common vulnerabilities like XSS, CSRF, and IDORs'],
+     prerequisites: 'Basic familiarity with how websites work.'
   },
   {
     id: 'cyber-9',
@@ -220,6 +238,9 @@ export const courses: Course[] = [
     level: 'Advanced',
     enrollmentCount: 6843,
      status: 'published',
+     tags: ['reverse engineering', 'malware analysis', 'ida pro', 'x64dbg'],
+     learningOutcomes: ['Read and understand x86/x64 Assembly language', 'Analyze packed and obfuscated malware', 'Use debuggers and disassemblers effectively'],
+     prerequisites: 'Solid understanding of operating system concepts and C/C++.'
   },
   {
     id: 'cyber-10',
@@ -241,6 +262,9 @@ export const courses: Course[] = [
     hasPreview: true,
     enrollmentCount: 41337,
      status: 'published',
+     tags: ['ethical hacking', 'beginner', 'cybersecurity fundamentals'],
+     learningOutcomes: ['Understand the core concepts of cybersecurity', 'Learn the basics of networking required for hacking', 'Gain confidence to explore more advanced topics'],
+     prerequisites: 'A curious mind and a willingness to learn.'
   },
 ];
 

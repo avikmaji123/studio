@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -53,6 +54,7 @@ export default function EditCoursePage() {
 
     // Form state
     const [title, setTitle] = useState('');
+    const [slug, setSlug] = useState('');
     const [shortDescription, setShortDescription] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -94,6 +96,7 @@ export default function EditCoursePage() {
                     const courseData = docSnap.data() as Course;
                     setCourse(courseData);
                     setTitle(courseData.title);
+                    setSlug(courseData.slug);
                     setDescription(courseData.description);
                     setShortDescription(courseData.shortDescription || '');
                     setPrice(courseData.price.replace('₹', ''));
@@ -135,6 +138,7 @@ export default function EditCoursePage() {
                 learningOutcomes: learningOutcomes.filter(o => o.trim() !== ''),
                 prerequisites,
                 imageUrl: finalImageUrl,
+                // Slug is not updated to prevent breaking URLs
             });
             toast({
                 title: "Course Updated",
@@ -347,6 +351,10 @@ export default function EditCoursePage() {
                                 <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="flex-grow"/>
                                 <Button variant="outline" size="icon" onClick={() => handleAiRefine('title', 'title')}><Sparkles className="h-4 w-4" /></Button>
                                 </div>
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="slug">URL Slug</Label>
+                                <Input id="slug" value={slug} disabled className="bg-muted"/>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="short-description">Short Description (for cards)</Label>

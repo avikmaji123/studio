@@ -36,14 +36,19 @@ export default function SeedDatabasePage() {
             courses.forEach(course => {
                 // Use the existing string ID from the mock data file as the document ID
                 const courseRef = doc(firestore, 'courses', course.id);
-                batch.set(courseRef, course);
+                // Ensure the course object includes the slug
+                const courseWithSlug = {
+                    ...course,
+                    slug: course.slug || course.title.toLowerCase().replace(/\s+/g, '-'),
+                };
+                batch.set(courseRef, courseWithSlug);
             });
 
             await batch.commit();
 
             toast({
                 title: 'Database Seeded!',
-                description: `${courses.length} courses have been added to Firestore.`,
+                description: `${courses.length} courses have been added to Firestore with slugs.`,
             });
             setIsDone(true);
         } catch (error: any) {
@@ -70,7 +75,7 @@ export default function SeedDatabasePage() {
                     <CardHeader>
                         <CardTitle>Course Data Seeding</CardTitle>
                         <CardDescription>
-                            This will add {courses.length} courses from the application's mock data file (`src/lib/data.ts`) into your live `courses` collection in Firestore. This is a one-time setup action.
+                            This will add {courses.length} courses from the application's mock data file (`src/lib/data.ts`) into your live `courses` collection in Firestore. This action now includes the critical `slug` field for routing.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -78,7 +83,7 @@ export default function SeedDatabasePage() {
                             <AlertTriangle className="h-4 w-4" />
                             <AlertTitle>Warning</AlertTitle>
                             <AlertDescription>
-                                Running this action will overwrite any existing courses in Firestore that have the same ID. This action cannot be undone.
+                                Running this action will overwrite any existing courses in Firestore that have the same ID. This should be done one time to fix the missing slug data.
                             </AlertDescription>
                         </Alert>
                         
@@ -93,7 +98,7 @@ export default function SeedDatabasePage() {
 
                          {isDone && (
                             <p className="mt-4 text-sm text-green-600">
-                                Your database has been successfully populated. You can now manage these courses from the "Courses" tab.
+                                Your database has been successfully populated. You can now manage these courses from the "Courses" tab, and all public course pages should now load correctly.
                             </p>
                         )}
                     </CardContent>
