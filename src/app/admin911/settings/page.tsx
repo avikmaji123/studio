@@ -41,18 +41,15 @@ export default function AdminSettingsPage() {
       <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
         <nav
           className="grid gap-4 text-sm text-muted-foreground"
-          x-chunk="dashboard-04-chunk-0"
         >
-          <Link href="#" className="font-semibold text-primary">
+          <Link href="#general" className="font-semibold text-primary">
             General
           </Link>
-          <Link href="#">Payments</Link>
-          <Link href="#">Integrations</Link>
-          <Link href="#">Support</Link>
-          <Link href="#">Advanced</Link>
+          <Link href="#payments">Payments</Link>
+          <Link href="#socials">Socials</Link>
         </nav>
         <div className="grid gap-6">
-          <Card x-chunk="dashboard-04-chunk-1">
+          <Card id="general">
             <CardHeader>
               <CardTitle>Site Details</CardTitle>
               <CardDescription>
@@ -77,7 +74,7 @@ export default function AdminSettingsPage() {
             </CardFooter>
           </Card>
 
-          <Card>
+          <Card id="payments">
              <CardHeader>
               <CardTitle>Payment Settings</CardTitle>
               <CardDescription>
@@ -116,7 +113,7 @@ export default function AdminSettingsPage() {
             </CardFooter>
           </Card>
 
-          <Card x-chunk="dashboard-04-chunk-2">
+          <Card id="socials">
             <CardHeader>
               <CardTitle>Social Links</CardTitle>
               <CardDescription>
