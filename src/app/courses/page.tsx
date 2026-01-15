@@ -89,7 +89,7 @@ function FilterSidebar() {
           <AccordionContent>
             <div className="p-2">
                 <Slider
-                    defaultValue={[priceRange[1]]}
+                    value={[priceRange[1]]}
                     max={maxPrice}
                     step={50}
                     onValueChange={(value) => setPriceRange([0, value[0]])}
@@ -111,7 +111,14 @@ function FilterSidebar() {
 
 
 export default function CoursesPage() {
-  const { filteredCourses, setSortBy, searchTerm, setSearchTerm, isLoading } = useSearchAndFilter();
+  const { 
+    filteredCourses, 
+    setSortBy, 
+    searchTerm, 
+    setSearchTerm, 
+    isLoading,
+    enrolledCourseIds
+  } = useSearchAndFilter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   return (
@@ -146,8 +153,10 @@ export default function CoursesPage() {
                 </div>
             </div>
             <div className="flex justify-between items-center mb-6">
-                <div className="text-sm text-muted-foreground">{isLoading ? <Skeleton className="h-5 w-24" /> : `${filteredCourses.length} courses found`}</div>
-                <Select onValueChange={setSortBy}>
+                <div className="text-sm text-muted-foreground">
+                  {isLoading ? <Skeleton className="h-5 w-24" /> : `${filteredCourses.length} courses found`}
+                </div>
+                <Select onValueChange={(value) => setSortBy(value as SortOption)}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
@@ -167,7 +176,11 @@ export default function CoursesPage() {
                     ))
                 ) : filteredCourses.length > 0 ? (
                     filteredCourses.map(course => (
-                        <CourseCard key={course.id} course={course} />
+                        <CourseCard 
+                          key={course.id} 
+                          course={course} 
+                          isEnrolled={enrolledCourseIds.includes(course.id)} 
+                        />
                     ))
                 ) : (
                     <div className="col-span-full text-center py-16">

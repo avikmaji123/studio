@@ -5,20 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Course } from '@/lib/types';
-import { Eye, Users, BarChart } from 'lucide-react';
+import { Eye, Users, BarChart, CheckCircle, Download } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type CourseCardProps = {
   course: Course;
+  isEnrolled: boolean;
 };
 
-export function CourseCard({ course }: CourseCardProps) {
-  const isEnrolled = false; // Placeholder
-  const progress = 30; // Placeholder
-
+export function CourseCard({ course, isEnrolled }: CourseCardProps) {
+  
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
-      <Link href={`/courses/${course.slug}`} className="flex flex-col h-full">
+      <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="flex flex-col h-full">
         <div className="relative aspect-video w-full">
           {course.imageUrl ? (
                <Image
@@ -33,11 +32,11 @@ export function CourseCard({ course }: CourseCardProps) {
             {course.isBestseller && <Badge variant="destructive">Bestseller</Badge>}
           </div>
            {isEnrolled && (
-            <div className="absolute bottom-2 right-2 bg-background/80 rounded-full p-1">
-              {/* Progress Ring Placeholder */}
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{background: `conic-gradient(hsl(var(--primary)) ${progress * 3.6}deg, hsl(var(--muted)) 0deg)`}}>
-                {progress}%
-              </div>
+            <div className="absolute bottom-2 left-2">
+              <Badge variant="default" className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700">
+                <CheckCircle className="h-4 w-4" />
+                Purchased
+              </Badge>
             </div>
           )}
         </div>
@@ -59,14 +58,23 @@ export function CourseCard({ course }: CourseCardProps) {
         <CardContent className="flex-grow p-4 pt-0 pb-2">
           <CardDescription className="line-clamp-2 text-sm">{course.shortDescription || course.description}</CardDescription>
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center">
+        <CardFooter className="p-4 pt-0 flex justify-between items-center mt-auto">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
               <span>{course.enrollmentCount || 0}</span>
           </div>
-          <div className="text-lg font-bold text-primary">
-            {course.price}
-          </div>
+           {isEnrolled ? (
+              <Button variant="secondary" size="sm" asChild>
+                <Link href="/dashboard/downloads">
+                    <Download className="mr-2 h-4 w-4"/>
+                    View Downloads
+                </Link>
+            </Button>
+            ) : (
+             <div className="text-lg font-bold text-primary">
+                {course.price}
+            </div>
+            )}
         </CardFooter>
       </Link>
     </Card>

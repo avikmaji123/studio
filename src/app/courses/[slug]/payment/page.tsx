@@ -128,10 +128,10 @@ export default function CoursePaymentPage() {
                 });
 
                 toast({
-                    title: "Payment Verified!",
-                    description: "Your access to the course has been granted. Redirecting...",
+                    title: "Purchase successful!",
+                    description: "Your course is now available for download.",
                 });
-                router.push('/dashboard/courses');
+                router.push('/dashboard/downloads');
             } else {
                  await createLogEntry({
                     source: 'system',

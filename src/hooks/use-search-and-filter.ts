@@ -2,21 +2,29 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Course } from '@/lib/data';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import type { Course } from '@/lib/types';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 
 type SortOption = 'newest' | 'popular' | 'price-asc' | 'price-desc';
 
 export function useSearchAndFilter() {
   const firestore = useFirestore();
+  const { user } = useUser();
   
   // Fetch all published courses from Firestore
   const coursesQuery = useMemoFirebase(() => query(
     collection(firestore, 'courses'), 
     where('status', '==', 'published')
   ), [firestore]);
-  const { data: courses, isLoading } = useCollection<Course>(coursesQuery);
+  const { data: courses, isLoading: coursesLoading } = useCollection<Course>(coursesQuery);
+
+  // Fetch user's enrollments
+  const enrollmentsQuery = useMemoFirebase(
+    () => (user ? collection(firestore, 'users', user.uid, 'enrollments') : null),
+    [firestore, user]
+  );
+  const { data: enrollments, isLoading: enrollmentsLoading } = useCollection(enrollmentsQuery);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -24,7 +32,8 @@ export function useSearchAndFilter() {
   
   const maxPrice = useMemo(() => {
     if (!courses) return 10000;
-    return Math.max(...courses.map(c => parseInt(c.price.replace('₹', ''))));
+    const prices = courses.map(c => parseInt(c.price.replace('₹', ''))).filter(p => !isNaN(p));
+    return Math.max(...prices, 0);
   }, [courses]);
   
   const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPrice]);
@@ -32,11 +41,12 @@ export function useSearchAndFilter() {
 
   const categories = useMemo(() => {
     if (!courses) return [];
-    return Array.from(new Set(courses.map(c => c.category)));
+    const allCategories = courses.map(c => c.category).filter(Boolean); // Filter out undefined/null
+    return Array.from(new Set(allCategories));
   }, [courses]);
   
   // Update price range when maxPrice changes
-  useState(() => {
+  useMemo(() => {
     setPriceRange([0, maxPrice]);
   }, [maxPrice]);
 
@@ -94,6 +104,7 @@ export function useSearchAndFilter() {
 
         switch (sortBy) {
             case 'newest':
+                // Assuming ID is a timestamp or sequential, otherwise createdDate field would be better
                 return (b.id > a.id) ? 1 : -1; 
             case 'popular':
                 return (b.enrollmentCount || 0) - (a.enrollmentCount || 0);
@@ -108,6 +119,8 @@ export function useSearchAndFilter() {
 
     return filtered;
   }, [courses, searchTerm, selectedCategories, selectedLevels, priceRange, sortBy]);
+  
+  const isLoading = coursesLoading || enrollmentsLoading;
 
   return {
     isLoading,
@@ -124,6 +137,7 @@ export function useSearchAndFilter() {
     sortBy,
     setSortBy,
     filteredCourses,
+    enrolledCourseIds: enrollments?.map(e => e.courseId) || [],
     resetFilters
   };
 }
