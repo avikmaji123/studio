@@ -152,6 +152,23 @@ service cloud.firestore {
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
+    
+    // --------------------------------
+    // Collection Group Rules
+    // --------------------------------
+
+    /**
+     * @description Authorizes an admin to perform a collection group query on 'paymentTransactions'.
+     * This is required for the admin dashboard to aggregate sales data across all users.
+     * @path /{path=**}/paymentTransactions/{transactionId}
+     * @allow (get, list) An admin lists all payment transactions across the entire database.
+     * @deny (get, list) A regular user attempts the same query.
+     * @principle Secures cross-collection queries by restricting them to admin roles.
+     */
+    match /{path=**}/paymentTransactions/{transactionId} {
+      allow get, list: if isAdmin();
+    }
+
 
     // --------------------------------
     // Public & Admin Collections
@@ -218,5 +235,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
