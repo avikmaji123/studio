@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,12 +31,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { refineText, type RefineTextInput } from '@/ai/flows/refine-text';
 
 const courseCategories = Array.from(new Set(mockCourses.map(c => c.category)));
 const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
-
 
 export default function EditCoursePage() {
     const { courseId } = useParams();
@@ -72,6 +70,12 @@ export default function EditCoursePage() {
     const [visibility, setVisibility] = useState<'public' | 'hidden'>('public');
 
     const [isSaving, setIsSaving] = useState(false);
+
+    // AI State
+    const [aiSuggestion, setAiSuggestion] = useState('');
+    const [originalText, setOriginalText] = useState('');
+    const [isAiLoading, setIsAiLoading] = useState(false);
+    const [aiDialogField, setAiDialogField] = useState<keyof Course | null>(null);
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -190,6 +194,48 @@ export default function EditCoursePage() {
         setNewImageFile(null); // Clear file if URL is typed
     };
 
+    // AI Handlers
+    const handleAiRefine = async (field: keyof Course, fieldType: RefineTextInput['fieldType']) => {
+        let textToRefine = '';
+        switch (field) {
+            case 'title': textToRefine = title; break;
+            case 'shortDescription': textToRefine = shortDescription; break;
+            case 'description': textToRefine = description; break;
+            default: return;
+        }
+
+        setAiDialogField(field);
+        setOriginalText(textToRefine);
+        setIsAiLoading(true);
+
+        try {
+            const result = await refineText({ text: textToRefine, fieldType });
+            setAiSuggestion(result.refinedText);
+        } catch (error) {
+            console.error("AI refinement error:", error);
+            toast({ variant: 'destructive', title: 'AI Refinement Failed' });
+            setAiDialogField(null); // Close dialog on error
+        } finally {
+            setIsAiLoading(false);
+        }
+    };
+
+    const applyAiSuggestion = () => {
+        if (!aiDialogField) return;
+        switch (aiDialogField) {
+            case 'title': setTitle(aiSuggestion); break;
+            case 'shortDescription': setShortDescription(aiSuggestion); break;
+            case 'description': setDescription(aiSuggestion); break;
+        }
+        closeAiDialog();
+    };
+
+    const closeAiDialog = () => {
+        setAiDialogField(null);
+        setAiSuggestion('');
+        setOriginalText('');
+    };
+
 
     if (isCourseLoading) {
         return (
@@ -258,21 +304,21 @@ export default function EditCoursePage() {
                                 <Label htmlFor="title">Title</Label>
                                 <div className="flex gap-2">
                                 <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="flex-grow"/>
-                                <Button variant="outline" size="icon"><Sparkles className="h-4 w-4" /></Button>
+                                <Button variant="outline" size="icon" onClick={() => handleAiRefine('title', 'title')}><Sparkles className="h-4 w-4" /></Button>
                                 </div>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="short-description">Short Description (for cards)</Label>
                                  <div className="flex gap-2">
                                 <Textarea id="short-description" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} rows={2} className="flex-grow"/>
-                                <Button variant="outline" size="icon"><Sparkles className="h-4 w-4" /></Button>
+                                <Button variant="outline" size="icon" onClick={() => handleAiRefine('shortDescription', 'short-description')}><Sparkles className="h-4 w-4" /></Button>
                                 </div>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Full Course Description</Label>
                                 <div className="flex gap-2">
                                 <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="flex-grow"/>
-                                 <Button variant="outline" size="icon"><Sparkles className="h-4 w-4" /></Button>
+                                 <Button variant="outline" size="icon" onClick={() => handleAiRefine('description', 'description')}><Sparkles className="h-4 w-4" /></Button>
                                  </div>
                             </div>
                               <div className="grid grid-cols-2 gap-4">
@@ -445,8 +491,41 @@ export default function EditCoursePage() {
                     Save Product
                 </Button>
             </div>
+            
+            <AlertDialog open={!!aiDialogField} onOpenChange={closeAiDialog}>
+                <AlertDialogContent className="max-w-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Refine with AI</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Here is the AI's suggestion. You can apply it or cancel.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    {isAiLoading ? (
+                        <div className="flex items-center justify-center p-12">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto">
+                            <div>
+                                <Label className="text-muted-foreground">Before</Label>
+                                <div className="mt-2 rounded-md border p-3 bg-muted/50 h-full">
+                                    <p className="text-sm whitespace-pre-wrap">{originalText}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <Label className="text-green-600">AI Suggestion</Label>
+                                <div className="mt-2 rounded-md border p-3 border-green-500/50 bg-green-500/10 h-full">
+                                    <p className="text-sm text-green-900 dark:text-green-200 whitespace-pre-wrap">{aiSuggestion}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={closeAiDialog}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={applyAiSuggestion} disabled={isAiLoading}>Apply Suggestion</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     )
 }
-
-    
