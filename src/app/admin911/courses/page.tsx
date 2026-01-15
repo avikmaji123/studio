@@ -42,8 +42,20 @@ import {
     TabsTrigger,
   } from '@/components/ui/tabs'
   import Image from 'next/image'
+  import { useCollection, useFirestore, useMemoFirebase } from '@/firebase'
+  import { collection } from 'firebase/firestore'
+  import { PlaceHolderImages } from '@/lib/placeholder-images'
+  import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminCoursesPage() {
+    const firestore = useFirestore();
+    const coursesQuery = useMemoFirebase(() => collection(firestore, 'courses'), [firestore]);
+    const { data: courses, isLoading } = useCollection(coursesQuery);
+
+    const getImageForCourse = (imageId: string) => {
+        return PlaceHolderImages.find(p => p.id === imageId);
+    }
+    
     return (
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Tabs defaultValue="all">
@@ -113,10 +125,7 @@ export default function AdminCoursesPage() {
                           Price
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Total Sales
-                        </TableHead>
-                        <TableHead className="hidden md:table-cell">
-                          Created at
+                          Enrollments
                         </TableHead>
                         <TableHead>
                           <span className="sr-only">Actions</span>
@@ -124,13 +133,63 @@ export default function AdminCoursesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {/* Data will be fetched from Firestore */}
+                        {isLoading && Array.from({ length: 5 }).map((_, i) => (
+                             <TableRow key={i}>
+                                <TableCell><Skeleton className="h-16 w-16 rounded-md"/></TableCell>
+                                <TableCell><Skeleton className="h-5 w-48"/></TableCell>
+                                <TableCell><Skeleton className="h-5 w-20"/></TableCell>
+                                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-16"/></TableCell>
+                                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-12"/></TableCell>
+                                <TableCell><Skeleton className="h-8 w-8"/></TableCell>
+                            </TableRow>
+                        ))}
+                        {courses?.map(course => {
+                            const image = getImageForCourse(course.imageId);
+                            return (
+                                <TableRow key={course.id}>
+                                    <TableCell className="hidden sm:table-cell">
+                                        <Image
+                                        alt={course.title}
+                                        className="aspect-square rounded-md object-cover"
+                                        height="64"
+                                        src={image?.imageUrl || '/placeholder.svg'}
+                                        width="64"
+                                        />
+                                    </TableCell>
+                                    <TableCell className="font-medium">{course.title}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={course.status === 'published' ? 'default' : 'secondary'}>
+                                            {course.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">₹{parseInt(course.price.replace('₹', '')).toLocaleString('en-IN')}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{course.enrollmentCount}</TableCell>
+                                    <TableCell>
+                                        <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">Toggle menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem>View Analytics</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem className="text-destructive">Archive</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
                     </TableBody>
                   </Table>
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>0</strong> of <strong>0</strong>{' '}
+                    Showing <strong>{courses?.length || 0}</strong> of <strong>{courses?.length || 0}</strong>{' '}
                     products
                   </div>
                 </CardFooter>

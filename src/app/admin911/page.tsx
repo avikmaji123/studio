@@ -14,6 +14,8 @@ import {
   Download,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
+import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -43,8 +45,57 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { courses } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboard() {
+  const firestore = useFirestore();
+
+  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+  
+  // Note: collectionGroup queries require an index in Firestore. 
+  // This would need to be created in the Firebase console.
+  const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
+  const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
+  
+  const { totalSales, pendingVerifications, recentTransactions } = useMemo(() => {
+    if (!payments) {
+      return { totalSales: 0, pendingVerifications: 0, recentTransactions: [] };
+    }
+    
+    const approved = payments.filter(p => p.status === 'AI-Approved' || p.status === 'approved');
+    const total = approved.reduce((acc, p) => acc + p.amount, 0);
+    const pending = payments.filter(p => p.status === 'Pending').length;
+
+    const sorted = [...payments].sort((a, b) => b.transactionDate.toDate() - a.transactionDate.toDate());
+    
+    return { 
+      totalSales: total, 
+      pendingVerifications: pending,
+      recentTransactions: sorted.slice(0, 5)
+    };
+  }, [payments]);
+
+  const isLoading = usersLoading || paymentsLoading;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'AI-Approved':
+        return <Badge variant="default">AI-Approved</Badge>;
+      case 'Pending':
+        return <Badge variant="secondary">Pending</Badge>;
+      case 'Rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const findUserByTx = (userId: string) => users?.find(u => u.id === userId);
+
+
   return (
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <header className="flex items-center justify-between">
@@ -91,9 +142,9 @@ export default function AdminDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
+              {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">₹{totalSales.toLocaleString('en-IN')}</div>}
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                Lifetime sales
               </p>
             </CardContent>
           </Card>
@@ -105,9 +156,9 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+2350</div>
+              {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">+{users?.length || 0}</div> }
               <p className="text-xs text-muted-foreground">
-                +180.1% from last month
+                Total registered users
               </p>
             </CardContent>
           </Card>
@@ -117,7 +168,7 @@ export default function AdminDashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+10</div>
+              <div className="text-2xl font-bold">+{courses.length}</div>
               <p className="text-xs text-muted-foreground">
                 All courses published
               </p>
@@ -129,9 +180,9 @@ export default function AdminDashboard() {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+5</div>
+              {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">+{pendingVerifications}</div>}
               <p className="text-xs text-muted-foreground">
-                Manual review required
+                Manual review may be required
               </p>
             </CardContent>
           </Card>
@@ -140,9 +191,9 @@ export default function AdminDashboard() {
           <Card className="xl:col-span-2">
             <CardHeader className="flex flex-row items-center">
               <div className="grid gap-2">
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle>Recent Transactions</CardTitle>
                 <CardDescription>
-                  Recent user actions and purchases.
+                  Recent user purchases and their verification status.
                 </CardDescription>
               </div>
               <Button asChild size="sm" className="ml-auto gap-1">
@@ -157,12 +208,7 @@ export default function AdminDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead className="hidden xl:table-column">
-                      Action
-                    </TableHead>
-                    <TableHead className="hidden xl:table-column">
-                      Status
-                    </TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="hidden xl:table-column">
                       Date
                     </TableHead>
@@ -170,46 +216,35 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <div className="font-medium">Liam Johnson</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        liam@example.com
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      Purchase
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      <Badge className="text-xs" variant="outline">
-                        AI-Approved
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
-                      2023-06-23
-                    </TableCell>
-                    <TableCell className="text-right">$250.00</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <div className="font-medium">Olivia Smith</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        olivia@example.com
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      New User
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      <Badge className="text-xs" variant="secondary">
-                        Active
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
-                      2023-06-24
-                    </TableCell>
-                    <TableCell className="text-right">-</TableCell>
-                  </TableRow>
+                  {isLoading && Array.from({length: 5}).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-32"/></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20"/></TableCell>
+                      <TableCell className="hidden xl:table-column"><Skeleton className="h-5 w-24"/></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto"/></TableCell>
+                    </TableRow>
+                  ))}
+                  {recentTransactions.map(tx => {
+                    const user = findUserByTx(tx.userId);
+                    return (
+                      <TableRow key={tx.id}>
+                        <TableCell>
+                          <div className="font-medium">{user?.firstName} {user?.lastName}</div>
+                          <div className="hidden text-sm text-muted-foreground md:inline">
+                            {user?.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                           {getStatusBadge(tx.status)}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
+                          {tx.transactionDate.toDate().toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">₹{tx.amount.toLocaleString('en-IN')}</TableCell>
+                      </TableRow>
+                    )
+                  })}
+
                 </TableBody>
               </Table>
             </CardContent>

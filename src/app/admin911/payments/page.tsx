@@ -6,6 +6,7 @@ import {
   ListFilter,
   MoreHorizontal,
 } from 'lucide-react'
+import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -40,21 +41,47 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase'
+import { collection, collectionGroup } from 'firebase/firestore'
+import { Skeleton } from '@/components/ui/skeleton'
+import { courses } from '@/lib/data';
 
 export default function AdminPaymentsPage() {
+    const firestore = useFirestore();
+    const [activeTab, setActiveTab] = useState('all');
+
+    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+    const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+
+    const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
+    const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
+    
+    const filteredPayments = useMemo(() => {
+        if (!payments) return [];
+        if (activeTab === 'all') return payments;
+        if (activeTab === 'approved') return payments.filter(p => p.status === 'AI-Approved' || p.status === 'approved');
+        return payments.filter(p => p.status.toLowerCase() === activeTab);
+    }, [payments, activeTab]);
+
+    const isLoading = usersLoading || paymentsLoading;
 
     const getStatusBadge = (status: string) => {
         switch(status) {
             case 'AI-Approved': return <Badge variant="default">AI-Approved</Badge>;
+            case 'approved': return <Badge variant="default">Approved</Badge>;
             case 'Pending': return <Badge variant="secondary">Pending</Badge>;
             case 'Rejected': return <Badge variant="destructive">Rejected</Badge>;
             default: return <Badge variant="outline">{status}</Badge>;
         }
     }
+    
+    const getUserForPayment = (userId: string) => users?.find(u => u.id === userId);
+    const getCourseForPayment = (courseId: string) => courses.find(c => c.id === courseId);
+
 
     return (
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <Tabs defaultValue="all">
+            <Tabs defaultValue="all" onValueChange={setActiveTab}>
             <div className="flex items-center">
               <TabsList>
                 <TabsTrigger value="all">All</TabsTrigger>
@@ -89,7 +116,7 @@ export default function AdminPaymentsPage() {
                 </Button>
               </div>
             </div>
-            <TabsContent value="all">
+            <TabsContent value={activeTab}>
               <Card x-chunk="dashboard-06-chunk-0">
                 <CardHeader>
                   <CardTitle>Payment Transactions</CardTitle>
@@ -111,13 +138,56 @@ export default function AdminPaymentsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {/* Live data will be populated here */}
+                        {isLoading && Array.from({length: 5}).map((_, i) => (
+                             <TableRow key={i}>
+                                <TableCell><Skeleton className="h-5 w-24"/></TableCell>
+                                <TableCell><Skeleton className="h-5 w-32"/></TableCell>
+                                <TableCell><Skeleton className="h-5 w-20"/></TableCell>
+                                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-28"/></TableCell>
+                                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24"/></TableCell>
+                                <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto"/></TableCell>
+                                <TableCell><Skeleton className="h-8 w-8"/></TableCell>
+                             </TableRow>
+                        ))}
+                        {filteredPayments.map(payment => {
+                            const user = getUserForPayment(payment.userId);
+                            const course = getCourseForPayment(payment.courseId);
+                            return (
+                                <TableRow key={payment.id}>
+                                    <TableCell>
+                                        <div className="font-medium">{user?.firstName} {user?.lastName}</div>
+                                        <div className="text-sm text-muted-foreground">{user?.email}</div>
+                                    </TableCell>
+                                    <TableCell>{course?.title || 'Unknown Course'}</TableCell>
+                                    <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{payment.upiTransactionReference}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{payment.transactionDate.toDate().toLocaleDateString()}</TableCell>
+                                    <TableCell className="text-right">₹{payment.amount.toLocaleString('en-IN')}</TableCell>
+                                    <TableCell>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Toggle menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem>Approve</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive">Reject</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
                     </TableBody>
                   </Table>
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>0</strong> of <strong>0</strong> transactions
+                    Showing <strong>{filteredPayments.length}</strong> of <strong>{payments?.length || 0}</strong> transactions
                   </div>
                 </CardFooter>
               </Card>
