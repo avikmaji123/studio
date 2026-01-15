@@ -4,12 +4,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { useFirestore, useMemoFirebase } from '@/firebase';
+import { useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Loader2, Sparkles, Upload, X, Tag } from 'lucide-react';
 import type { Course } from '@/lib/data';
-import { courses as mockCourses } from '@/lib/data'; // For categories and levels
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -38,14 +37,23 @@ import { Progress } from '@/components/ui/progress';
 import { refineText, type RefineTextInput } from '@/ai/flows/refine-text';
 import { generateTags } from '@/ai/flows/generate-tags';
 
-const courseCategories = Array.from(new Set(mockCourses.map(c => c.category)));
-const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
+const courseCategoriesQuery = query(collection(firestore, 'courses'));
+
 
 export default function EditCoursePage() {
     const { courseId } = useParams();
     const router = useRouter();
     const firestore = useFirestore();
+    const storage = useStorage();
     const { toast } = useToast();
+    
+    const { data: allCourses } = useCollection(courseCategoriesQuery);
+    const courseCategories = useMemo(() => {
+        if (!allCourses) return [];
+        return Array.from(new Set(allCourses.map(c => c.category)));
+    }, [allCourses]);
+
+    const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
 
     const courseRef = useMemoFirebase(() => doc(firestore, 'courses', courseId as string), [firestore, courseId]);
     
@@ -196,7 +204,6 @@ export default function EditCoursePage() {
         };
         reader.readAsDataURL(file);
 
-        const storage = getStorage();
         const storageRef = ref(storage, `course-images/${uuidv4()}-${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
 
