@@ -3,13 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, query, collection } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { useFirestore, useMemoFirebase, useStorage } from '@/firebase';
+import { useFirestore, useMemoFirebase, useStorage, useCollection } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,8 +37,6 @@ import { Progress } from '@/components/ui/progress';
 import { refineText, type RefineTextInput } from '@/ai/flows/refine-text';
 import { generateTags } from '@/ai/flows/generate-tags';
 
-const courseCategoriesQuery = query(collection(firestore, 'courses'));
-
 
 export default function EditCoursePage() {
     const { courseId } = useParams();
@@ -47,6 +45,7 @@ export default function EditCoursePage() {
     const storage = useStorage();
     const { toast } = useToast();
     
+    const courseCategoriesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
     const { data: allCourses } = useCollection(courseCategoriesQuery);
     const courseCategories = useMemo(() => {
         if (!allCourses) return [];
