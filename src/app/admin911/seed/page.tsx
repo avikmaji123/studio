@@ -13,13 +13,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function SeedDatabasePage() {
     const firestore = useFirestore();
-    const { isAdmin } = useUser();
+    const { profile } = useUser();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [isDone, setIsDone] = useState(false);
 
     const handleSeed = async () => {
-        if (!firestore || !isAdmin) {
+        if (!firestore || profile?.role !== 'admin') {
             toast({
                 variant: 'destructive',
                 title: 'Unauthorized',
@@ -82,7 +82,7 @@ export default function SeedDatabasePage() {
                             </AlertDescription>
                         </Alert>
                         
-                        <Button onClick={handleSeed} disabled={isLoading || isDone || !isAdmin}>
+                        <Button onClick={handleSeed} disabled={isLoading || isDone || profile?.role !== 'admin'}>
                             {isLoading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
