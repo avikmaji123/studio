@@ -46,6 +46,7 @@ import {
   import { collection } from 'firebase/firestore'
   import { PlaceHolderImages } from '@/lib/placeholder-images'
   import { Skeleton } from '@/components/ui/skeleton'
+  import Link from 'next/link'
 
 export default function AdminCoursesPage() {
     const firestore = useFirestore();
@@ -145,6 +146,7 @@ export default function AdminCoursesPage() {
                         ))}
                         {courses?.map(course => {
                             const image = getImageForCourse(course.imageId);
+                            const price = course.price ? parseInt(course.price.replace('₹', ''), 10) : 0;
                             return (
                                 <TableRow key={course.id}>
                                     <TableCell className="hidden sm:table-cell">
@@ -162,7 +164,7 @@ export default function AdminCoursesPage() {
                                             {course.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="hidden md:table-cell">₹{parseInt(course.price.replace('₹', '')).toLocaleString('en-IN')}</TableCell>
+                                    <TableCell className="hidden md:table-cell">₹{price.toLocaleString('en-IN')}</TableCell>
                                     <TableCell className="hidden md:table-cell">{course.enrollmentCount}</TableCell>
                                     <TableCell>
                                         <DropdownMenu>
@@ -174,7 +176,9 @@ export default function AdminCoursesPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/admin911/courses/edit/${course.id}`}>Edit</Link>
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem>View Analytics</DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem className="text-destructive">Archive</DropdownMenuItem>
