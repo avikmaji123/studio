@@ -64,7 +64,7 @@ export function MobileNav() {
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="pr-0">
+      <SheetContent side="left" className="pr-0 bg-background">
         <SheetHeader>
           <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
             <BookOpen className="h-6 w-6 mr-2 text-primary" />
