@@ -9,6 +9,7 @@ export type Course = {
   price: string;
   category: string;
   imageId: string;
+  imageUrl?: string;
   lessons: { id: string; title: string; duration: string }[];
   level?: 'Beginner' | 'Intermediate' | 'Advanced';
   tags?: string[];
@@ -41,6 +42,7 @@ export const courses: Course[] = [
     price: '₹1999',
     category: 'Cybersecurity',
     imageId: 'course-cyber-1',
+    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWx3YXJlJTIwY29tbWFuZCUyMGNvbnRyb2x8ZW58MHx8fHwxNzcxNTYwNzIxfDA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Intro to Red Teaming & C2', duration: '45:00' },
       { id: 'l2', title: 'Building Your C2 Infrastructure', duration: '2:30:00' },
@@ -64,6 +66,7 @@ export const courses: Course[] = [
     price: '₹799',
     category: 'Cybersecurity',
     imageId: 'course-cyber-2',
+    imageUrl: 'https://images.unsplash.com/photo-1624953587687-e259b7b6202d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwc2VjdXJpdHl8ZW58MHx8fHwxNzcxNTYwNzgwfDA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Web Hacking Fundamentals', duration: '30:00' },
       { id: 'l2', title: 'Server-Side & Client-Side Attacks', duration: '1:45:00' },
@@ -86,6 +89,7 @@ export const courses: Course[] = [
     price: '₹699',
     category: 'Cybersecurity',
     imageId: 'course-cyber-3',
+    imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aWZpJTIwaGFja2luZ3xlbnwwfHx8fDE3NzE1NjA4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Wireless Networking Basics', duration: '25:00' },
       { id: 'l2', title: 'Cracking Wi-Fi Passwords', duration: '1:10:00' },
@@ -105,6 +109,7 @@ export const courses: Course[] = [
     price: '₹899',
     category: 'Cybersecurity',
     imageId: 'course-cyber-4',
+    imageUrl: 'https://images.unsplash.com/photo-1550751827-4138d04d42e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbmRyb2lkJTIwaGFja2luZ3xlbnwwfHx8fDE3NzE1NjA4NDd8MA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Android Security Architecture', duration: '40:00' },
       { id: 'l2', title: 'Reverse Engineering APKs', duration: '1:50:00' },
@@ -124,6 +129,7 @@ export const courses: Course[] = [
     price: '₹749',
     category: 'Cybersecurity',
     imageId: 'course-cyber-5',
+    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBlbmdpbmVlcmluZ3xlbnwwfHx8fDE3NzE1NjA4ODB8MA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Psychology of Influence', duration: '50:00' },
       { id: 'l2', title: 'OSINT & Reconnaissance', duration: '1:30:00' },
@@ -143,6 +149,7 @@ export const courses: Course[] = [
     price: '₹544',
     category: 'Cybersecurity',
     imageId: 'course-cyber-6',
+    imageUrl: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbnRpdmlydXMlMjBldmFzaW9ufGVufDB8fHx8MTc3MTU2MDkxMnww&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'How Antivirus Works', duration: '45:00' },
       { id: 'l2', title: 'Signature-Based Evasion', duration: '1:25:00' },
@@ -162,6 +169,7 @@ export const courses: Course[] = [
     price: '₹599',
     category: 'Cybersecurity',
     imageId: 'course-cyber-7',
+    imageUrl: 'https://images.unsplash.com/photo-1634224143536-62a41792b6a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYWxpJTIwbGludXglMjBoYWNraW5nfGVufDB8fHx8fDE3NzE1NjA5NDN8MA&ixlibrb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Setting up your Kali Lab', duration: '35:00' },
       { id: 'l2', title: 'Essential Linux Commands', duration: '1:00:00' },
@@ -182,6 +190,7 @@ export const courses: Course[] = [
     price: '₹199',
     category: 'Cybersecurity',
     imageId: 'course-cyber-8',
+    imageUrl: 'https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWclMjBodW50aW5nfGVufDB8fHx8fDE3NzE1NjA5NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Intro to Bug Bounty Programs', duration: '20:00' },
       { id: 'l2', title: 'Automated & Manual Recon', duration: '1:10:00' },
@@ -202,6 +211,7 @@ export const courses: Course[] = [
     price: '₹999',
     category: 'Cybersecurity',
     imageId: 'course-cyber-9',
+    imageUrl: 'https://images.unsplash.com/photo-1582996131826-b9d153a696a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXZlcnNlJTIwZW5naW5lZXJpbmclMjBjb2RlfGVufDB8fHx8MTc3MTU2MTAwNHww&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'Assembly Language Basics', duration: '1:00:00' },
       { id: 'l2', title: 'Debugging with x64dbg & IDA', duration: '2:15:00' },
@@ -221,6 +231,7 @@ export const courses: Course[] = [
     price: '₹499',
     category: 'Cybersecurity',
     imageId: 'course-cyber-10',
+    imageUrl: 'https://images.unsplash.com/photo-1547658719-da2b51169166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxoYWNrZXIlMjBiZWdpbm5lcnxlbnwwfHx8fDE3NzE1NjE5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080',
     lessons: [
       { id: 'l1', title: 'What is Ethical Hacking?', duration: '15:00' },
       { id: 'l2', title: 'Networking for Hackers', duration: '1:05:00' },

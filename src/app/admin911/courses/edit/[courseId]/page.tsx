@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -16,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Loader2, Sparkles, Upload, X, Tag } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Course } from '@/lib/data';
 import { courses as mockCourses } from '@/lib/data'; // For categories and levels
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +33,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Progress } from '@/components/ui/progress';
 import { refineText, type RefineTextInput } from '@/ai/flows/refine-text';
+import { generateTags } from '@/ai/flows/generate-tags';
 
 const courseCategories = Array.from(new Set(mockCourses.map(c => c.category)));
 const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
@@ -62,10 +65,9 @@ export default function EditCoursePage() {
     const [prerequisites, setPrerequisites] = useState('');
     
     // Image state
-    const [currentImageUrl, setCurrentImageUrl] = useState('');
-    const [newImageUrl, setNewImageUrl] = useState('');
-    const [newImageFile, setNewImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState('');
+    const [finalImageUrl, setFinalImageUrl] = useState('');
+
     const [isPurchaseEnabled, setIsPurchaseEnabled] = useState(true);
     const [visibility, setVisibility] = useState<'public' | 'hidden'>('public');
 
@@ -75,7 +77,12 @@ export default function EditCoursePage() {
     const [aiSuggestion, setAiSuggestion] = useState('');
     const [originalText, setOriginalText] = useState('');
     const [isAiLoading, setIsAiLoading] = useState(false);
+    const [isTagGenerationLoading, setIsTagGenerationLoading] = useState(false);
     const [aiDialogField, setAiDialogField] = useState<keyof Course | null>(null);
+
+    // Upload state
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -96,11 +103,8 @@ export default function EditCoursePage() {
                     setTags(courseData.tags || []);
                     setLearningOutcomes(courseData.learningOutcomes?.length ? courseData.learningOutcomes : ['']);
                     setPrerequisites(courseData.prerequisites || '');
-
-                    const courseImage = PlaceHolderImages.find(p => p.id === courseData.imageId);
-                    const imageUrl = courseImage?.imageUrl || '';
-                    setCurrentImageUrl(imageUrl);
-                    setImagePreview(imageUrl);
+                    setImagePreview(courseData.imageUrl || '');
+                    setFinalImageUrl(courseData.imageUrl || '');
 
                 } else {
                     toast({ variant: 'destructive', title: 'Course not found' });
@@ -119,8 +123,6 @@ export default function EditCoursePage() {
     const handleSaveChanges = async () => {
         setIsSaving(true);
         try {
-            // Note: Image upload/URL update logic would go here.
-            // For now, we'll just save the text fields.
             await updateDoc(courseRef, {
                 title,
                 description,
@@ -132,7 +134,7 @@ export default function EditCoursePage() {
                 tags,
                 learningOutcomes: learningOutcomes.filter(o => o.trim() !== ''),
                 prerequisites,
-                // imageId would be updated here after image is uploaded/chosen
+                imageUrl: finalImageUrl,
             });
             toast({
                 title: "Course Updated",
@@ -174,25 +176,48 @@ export default function EditCoursePage() {
         }
     };
 
-    // Image preview logic
-    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setNewImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-                setNewImageUrl(''); // Clear URL if file is selected
-            };
-            reader.readAsDataURL(file);
-        }
+    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const url = e.target.value;
+        setImagePreview(url);
+        setFinalImageUrl(url);
     };
 
-    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewImageUrl(e.target.value);
-        setImagePreview(e.target.value);
-        setNewImageFile(null); // Clear file if URL is typed
+    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        const storage = getStorage();
+        const storageRef = ref(storage, `course-images/${uuidv4()}-${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        setIsUploading(true);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+            },
+            (error) => {
+                console.error("Upload error:", error);
+                toast({ variant: "destructive", title: "Upload Failed", description: error.message });
+                setIsUploading(false);
+            },
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    setFinalImageUrl(downloadURL);
+                    toast({ title: "Upload Complete", description: "Image is ready to be saved." });
+                    setTimeout(() => setIsUploading(false), 1000); // Close dialog after a short delay
+                });
+            }
+        );
     };
+
 
     // AI Handlers
     const handleAiRefine = async (field: keyof Course, fieldType: RefineTextInput['fieldType']) => {
@@ -217,6 +242,22 @@ export default function EditCoursePage() {
             setAiDialogField(null); // Close dialog on error
         } finally {
             setIsAiLoading(false);
+        }
+    };
+
+     const handleGenerateTags = async () => {
+        setIsTagGenerationLoading(true);
+        try {
+            const result = await generateTags({ title, description });
+            const newTags = result.tags;
+            // Merge with existing tags, avoiding duplicates
+            setTags(prevTags => [...new Set([...prevTags, ...newTags])]);
+            toast({ title: "AI Tags Generated", description: "New tags have been added." });
+        } catch (error) {
+            console.error("AI tag generation error:", error);
+            toast({ variant: 'destructive', title: 'AI Tag Generation Failed' });
+        } finally {
+            setIsTagGenerationLoading(false);
         }
     };
 
@@ -347,6 +388,9 @@ export default function EditCoursePage() {
                                     <Input id="tags" placeholder="e.g., react, javascript" value={currentTag} onChange={(e) => setCurrentTag(e.target.value)} 
                                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} />
                                     <Button type="button" variant="outline" onClick={addTag}>Add Tag</Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={handleGenerateTags} disabled={isTagGenerationLoading}>
+                                        {isTagGenerationLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                    </Button>
                                 </div>
                                 <div className="flex flex-wrap gap-2 mt-2">
                                     {tags.map(tag => (
@@ -471,7 +515,7 @@ export default function EditCoursePage() {
 
                              <div className="grid gap-2">
                                 <Label htmlFor="image-url">Image URL</Label>
-                                <Input id="image-url" type="url" placeholder="https://..." value={newImageUrl} onChange={handleImageUrlChange} />
+                                <Input id="image-url" type="url" placeholder="https://..." value={finalImageUrl} onChange={handleImageUrlChange} />
                             </div>
 
                             <div className="grid gap-2">
@@ -492,6 +536,21 @@ export default function EditCoursePage() {
                 </Button>
             </div>
             
+            <AlertDialog open={isUploading}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Uploading Image</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Please wait while your image is being uploaded.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2">
+                        <Progress value={uploadProgress} />
+                        <p className="text-sm text-muted-foreground text-center">{Math.round(uploadProgress)}%</p>
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <AlertDialog open={!!aiDialogField} onOpenChange={closeAiDialog}>
                 <AlertDialogContent className="max-w-2xl">
                     <AlertDialogHeader>
