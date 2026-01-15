@@ -26,63 +26,63 @@
     },
     {
       "id": "course-cyber-1",
-      "description": "Digital matrix representing C2 development",
-      "imageUrl": "https://images.unsplash.com/photo-1592609931095-54a2168ae893?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWQlMjB0ZWFtfGVufDB8fHx8MTc3MDcwMzgxNHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "red team"
+      "description": "Abstract visualization of a command and control network.",
+      "imageUrl": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWx3YXJlJTIwY29tbWFuZCUyMGNvbnRyb2x8ZW58MHx8fHwxNzcxNTYwNzIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "command control"
     },
     {
       "id": "course-cyber-2",
-      "description": "Code on a screen with a security lock overlay",
-      "imageUrl": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYWNraW5nJTIwY29kZXxlbnwwfHx8fDE3NzA3MDM4ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "hacking code"
+      "description": "Code on a screen with a magnifying glass indicating a security audit.",
+      "imageUrl": "https://images.unsplash.com/photo-1624953587687-e259b7b6202d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwc2VjdXJpdHl8ZW58MHx8fHwxNzcxNTYwNzgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "website security"
     },
     {
       "id": "course-cyber-3",
-      "description": "Wireless signals and network indicators",
-      "imageUrl": "https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3aXJlbGVzcyUyMHNlY3VyaXR5fGVufDB8fHx8MTc3MDcwNDA4MHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "wireless security"
+      "description": "Visual representation of Wi-Fi signals and network packets being analyzed.",
+      "imageUrl": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aWZpJTIwaGFja2luZ3xlbnwwfHx8fDE3NzE1NjA4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wifi hacking"
     },
     {
       "id": "course-cyber-4",
-      "description": "Android logo with a hacking motif",
-      "imageUrl": "https://images.unsplash.com/photo-1614332287897-cdc485fa562d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbmRyb2lkJTIwc2VjdXJpdHl8ZW58MHx8fHwxNzcwNzAzOTQyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "android security"
+      "description": "An Android phone screen displaying code, representing mobile hacking.",
+      "imageUrl": "https://images.unsplash.com/photo-1550751827-4138d04d42e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbmRyb2lkJTIwaGFja2luZ3xlbnwwfHx8fDE3NzE1NjA4NDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "android hacking"
     },
     {
       "id": "course-cyber-5",
-      "description": "Abstract representation of human connection and manipulation",
-      "imageUrl": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBlbmdpbmVlcmluZ3xlbnwwfHx8fDE3NzA3MDQxNDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Two people talking over a laptop, depicting a social engineering scenario.",
+      "imageUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBlbmdpbmVlcmluZ3xlbnwwfHx8fDE3NzE1NjA4ODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "social engineering"
     },
     {
       "id": "course-cyber-6",
-      "description": "Digital shield deflecting viruses",
-      "imageUrl": "https://images.unsplash.com/photo-1562823824-a1b2839b2b52?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbnRpdmlydXN8ZW58MHx8fHwxNzcwNzA0MTg4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "antivirus shield"
+      "description": "Abstract binary code with a glitch effect, representing antivirus evasion.",
+      "imageUrl": "https://images.unsplash.com/photo-1504639725590-34d0984388bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbnRpdmlydXMlMjBldmFzaW9ufGVufDB8fHx8MTc3MTU2MDkxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "antivirus evasion"
     },
     {
       "id": "course-cyber-7",
-      "description": "The Kali Linux dragon logo on a dark background",
-      "imageUrl": "https://images.unsplash.com/photo-1633356122544-f2ba8a620542?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYWxpJTIwbGludXh8ZW58MHx8fHwxNzcwNzA0MjMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "A person using a laptop with the Kali Linux operating system.",
+      "imageUrl": "https://images.unsplash.com/photo-1634224143536-62a41792b6a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYWxpJTIwbGludXglMjBoYWNraW5nfGVufDB8fHx8fDE3NzE1NjA5NDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "kali linux"
     },
     {
       "id": "course-cyber-8",
-      "description": "Magnifying glass over code looking for bugs",
-      "imageUrl": "https://images.unsplash.com/photo-1573865526739-10659fec78a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWclMjBodW50aW5nfGVufDB8fHx8MTc3MDcwNDI3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "A computer screen showing code with bug icons, representing bug hunting.",
+      "imageUrl": "https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWclMjBodW50aW5nfGVufDB8fHx8fDE3NzE1NjA5NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bug hunting"
     },
     {
       "id": "course-cyber-9",
-      "description": "Binary code and disassembly view",
-      "imageUrl": "https://images.unsplash.com/photo-1579442562639-7a049103a453?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXZlcnNlJTIwZW5naW5lZXJpbmd8ZW58MHx8fHwxNzcwNzA0MzMyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Lines of assembly code in a disassembler, illustrating reverse engineering.",
+      "imageUrl": "https://images.unsplash.com/photo-1582996131826-b9d153a696a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXZlcnNlJTIwZW5naW5lZXJpbmclMjBjb2RlfGVufDB8fHx8MTc3MTU2MTAwNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "reverse engineering"
     },
     {
       "id": "course-cyber-10",
-      "description": "Hacker in a hoodie with binary code overlay",
-      "imageUrl": "https://images.unsplash.com/photo-1547958432-5a9e52c85a93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYWNrZXJ8ZW58MHx8fHwxNzcwNzA0MzY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "hacker zero"
+      "description": "A person in a hoodie at a computer, symbolizing a beginner hacker.",
+      "imageUrl": "https://images.unsplash.com/photo-1598520106831-6a4a6e388b1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYWNraW5nJTIwYmVnaW5uZXJ8ZW58MHx8fHwxNzcxNTYxMDM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hacker beginner"
     },
     {
       "id": "testimonial-1",
