@@ -52,10 +52,6 @@ export default function AdminCoursesPage() {
     const firestore = useFirestore();
     const coursesQuery = useMemoFirebase(() => collection(firestore, 'courses'), [firestore]);
     const { data: courses, isLoading } = useCollection(coursesQuery);
-
-    const getImageForCourse = (imageId: string) => {
-        return PlaceHolderImages.find(p => p.id === imageId);
-    }
     
     return (
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -145,7 +141,8 @@ export default function AdminCoursesPage() {
                             </TableRow>
                         ))}
                         {courses?.map(course => {
-                            const image = getImageForCourse(course.imageId);
+                            const image = PlaceHolderImages.find(p => p.id === course.imageId);
+                            const imageUrl = course.imageUrl || image?.imageUrl || '/placeholder.svg';
                             const price = course.price ? parseInt(course.price.replace('₹', ''), 10) : 0;
                             return (
                                 <TableRow key={course.id}>
@@ -154,7 +151,7 @@ export default function AdminCoursesPage() {
                                         alt={course.title}
                                         className="aspect-square rounded-md object-cover"
                                         height="64"
-                                        src={image?.imageUrl || '/placeholder.svg'}
+                                        src={imageUrl}
                                         width="64"
                                         />
                                     </TableCell>
