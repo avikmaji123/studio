@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,9 +16,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Upload, X, Tag } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Course } from '@/lib/data';
+import { courses as mockCourses } from '@/lib/data'; // For categories and levels
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+const courseCategories = Array.from(new Set(mockCourses.map(c => c.category)));
+const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
+
 
 export default function EditCoursePage() {
     const { courseId } = useParams();
@@ -27,31 +46,89 @@ export default function EditCoursePage() {
     const { toast } = useToast();
 
     const courseRef = useMemoFirebase(() => doc(firestore, 'courses', courseId as string), [firestore, courseId]);
-    const { data: course, isLoading: isCourseLoading } = useDoc<Course>(courseRef);
     
+    const [course, setCourse] = useState<Course | null>(null);
+    const [isCourseLoading, setIsCourseLoading] = useState(true);
+
+    // Form state
     const [title, setTitle] = useState('');
+    const [shortDescription, setShortDescription] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
     const [status, setStatus] = useState<'draft' | 'published'>('draft');
+    const [category, setCategory] = useState('');
+    const [level, setLevel] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [currentTag, setCurrentTag] = useState('');
+    const [learningOutcomes, setLearningOutcomes] = useState<string[]>(['']);
+    const [prerequisites, setPrerequisites] = useState('');
+    
+    // Image state
+    const [currentImageUrl, setCurrentImageUrl] = useState('');
+    const [newImageUrl, setNewImageUrl] = useState('');
+    const [newImageFile, setNewImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState('');
+    const [isPurchaseEnabled, setIsPurchaseEnabled] = useState(true);
+    const [visibility, setVisibility] = useState<'public' | 'hidden'>('public');
+
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (course) {
-            setTitle(course.title);
-            setDescription(course.description);
-            setPrice(course.price.replace('₹', ''));
-            setStatus(course.status as 'draft' | 'published' || 'draft');
-        }
-    }, [course]);
+        const fetchCourse = async () => {
+            if (!courseRef) return;
+            setIsCourseLoading(true);
+            try {
+                const docSnap = await getDoc(courseRef);
+                if (docSnap.exists()) {
+                    const courseData = docSnap.data() as Course;
+                    setCourse(courseData);
+                    setTitle(courseData.title);
+                    setDescription(courseData.description);
+                    setShortDescription(courseData.shortDescription || '');
+                    setPrice(courseData.price.replace('₹', ''));
+                    setStatus(courseData.status as 'draft' | 'published' || 'draft');
+                    setCategory(courseData.category);
+                    setLevel(courseData.level || 'Beginner');
+                    setTags(courseData.tags || []);
+                    setLearningOutcomes(courseData.learningOutcomes?.length ? courseData.learningOutcomes : ['']);
+                    setPrerequisites(courseData.prerequisites || '');
+
+                    const courseImage = PlaceHolderImages.find(p => p.id === courseData.imageId);
+                    const imageUrl = courseImage?.imageUrl || '';
+                    setCurrentImageUrl(imageUrl);
+                    setImagePreview(imageUrl);
+
+                } else {
+                    toast({ variant: 'destructive', title: 'Course not found' });
+                }
+            } catch (error) {
+                console.error("Error fetching course: ", error);
+                toast({ variant: 'destructive', title: 'Error loading course' });
+            } finally {
+                setIsCourseLoading(false);
+            }
+        };
+        fetchCourse();
+    }, [courseRef, toast]);
+    
 
     const handleSaveChanges = async () => {
         setIsSaving(true);
         try {
+            // Note: Image upload/URL update logic would go here.
+            // For now, we'll just save the text fields.
             await updateDoc(courseRef, {
                 title,
                 description,
+                shortDescription,
                 price: `₹${price}`,
                 status,
+                category,
+                level,
+                tags,
+                learningOutcomes: learningOutcomes.filter(o => o.trim() !== ''),
+                prerequisites,
+                // imageId would be updated here after image is uploaded/chosen
             });
             toast({
                 title: "Course Updated",
@@ -69,7 +146,50 @@ export default function EditCoursePage() {
         }
     };
     
-    const courseImage = course ? PlaceHolderImages.find(p => p.id === course.imageId) : null;
+    // Tag management
+    const addTag = () => {
+        if (currentTag && !tags.includes(currentTag)) {
+            setTags([...tags, currentTag]);
+            setCurrentTag('');
+        }
+    };
+    const removeTag = (tagToRemove: string) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
+
+    // Learning outcomes management
+    const handleOutcomeChange = (index: number, value: string) => {
+        const newOutcomes = [...learningOutcomes];
+        newOutcomes[index] = value;
+        setLearningOutcomes(newOutcomes);
+    };
+    const addOutcome = () => setLearningOutcomes([...learningOutcomes, '']);
+    const removeOutcome = (index: number) => {
+        if (learningOutcomes.length > 1) {
+            setLearningOutcomes(learningOutcomes.filter((_, i) => i !== index));
+        }
+    };
+
+    // Image preview logic
+    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setNewImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+                setNewImageUrl(''); // Clear URL if file is selected
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewImageUrl(e.target.value);
+        setImagePreview(e.target.value);
+        setNewImageFile(null); // Clear file if URL is typed
+    };
+
 
     if (isCourseLoading) {
         return (
@@ -131,60 +251,192 @@ export default function EditCoursePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Course Details</CardTitle>
-                            <CardDescription>Update the title, description, and price of your course.</CardDescription>
+                            <CardDescription>Update the core information for your course.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Title</Label>
-                                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                <div className="flex gap-2">
+                                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="flex-grow"/>
+                                <Button variant="outline" size="icon"><Sparkles className="h-4 w-4" /></Button>
+                                </div>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="description">Description</Label>
-                                <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={5} />
+                                <Label htmlFor="short-description">Short Description (for cards)</Label>
+                                 <div className="flex gap-2">
+                                <Textarea id="short-description" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} rows={2} className="flex-grow"/>
+                                <Button variant="outline" size="icon"><Sparkles className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Full Course Description</Label>
+                                <div className="flex gap-2">
+                                <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="flex-grow"/>
+                                 <Button variant="outline" size="icon"><Sparkles className="h-4 w-4" /></Button>
+                                 </div>
+                            </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="category">Category</Label>
+                                    <Select value={category} onValueChange={setCategory}>
+                                        <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+                                        <SelectContent>
+                                            {courseCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="level">Difficulty Level</Label>
+                                    <Select value={level} onValueChange={setLevel}>
+                                        <SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger>
+                                        <SelectContent>
+                                            {courseLevels.map(lvl => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                              <div className="grid gap-2">
-                                <Label htmlFor="price">Price (INR)</Label>
-                                <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+                                <Label htmlFor="tags">Tags / Keywords</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="tags" placeholder="e.g., react, javascript" value={currentTag} onChange={(e) => setCurrentTag(e.target.value)} 
+                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} />
+                                    <Button type="button" variant="outline" onClick={addTag}>Add Tag</Button>
+                                </div>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {tags.map(tag => (
+                                        <Badge key={tag} variant="secondary">
+                                            {tag} <button onClick={() => removeTag(tag)} className="ml-2 rounded-full hover:bg-background/50"><X className="h-3 w-3"/></button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Course Content</CardTitle>
+                            <CardDescription>Define what students will learn and what they need to know beforehand.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid gap-3">
+                                <Label>Learning Outcomes</Label>
+                                {learningOutcomes.map((outcome, index) => (
+                                     <div key={index} className="flex items-center gap-2">
+                                        <Input value={outcome} onChange={(e) => handleOutcomeChange(index, e.target.value)} placeholder={`Outcome #${index + 1}`}/>
+                                        <Button variant="ghost" size="icon" onClick={() => removeOutcome(index)} disabled={learningOutcomes.length === 1}><X className="h-4 w-4 text-muted-foreground"/></Button>
+                                     </div>
+                                ))}
+                                <Button variant="outline" size="sm" onClick={addOutcome} className="mt-2">Add Outcome</Button>
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="prerequisites">Prerequisites</Label>
+                                <Textarea id="prerequisites" value={prerequisites} onChange={(e) => setPrerequisites(e.target.value)} rows={3} placeholder="e.g., Basic knowledge of HTML & CSS"/>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Delivery Settings</CardTitle>
+                            <CardDescription>Manage downloadable assets for this course.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="grid gap-2">
+                                <Label htmlFor="download-link">Download ZIP Link</Label>
+                                <Input id="download-link" placeholder="https://..." />
+                             </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="download-password">Download Password (Optional)</Label>
+                                <Input id="download-password" type="password" />
+                             </div>
+                             <div className="flex items-center space-x-2">
+                                <Switch id="downloads-enabled"/>
+                                <Label htmlFor="downloads-enabled">Enable downloads for purchased users</Label>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
                 <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Status & Visibility</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div className="grid gap-2">
+                                <Label>Course Status</Label>
+                                <Select value={status} onValueChange={(value) => setStatus(value as 'draft' | 'published')}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="published">Published</SelectItem>
+                                        <SelectItem value="unpublished">Unpublished</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                 <Label>Visibility</Label>
+                                 <RadioGroup defaultValue={visibility} onValueChange={(v) => setVisibility(v as 'public' | 'hidden')}>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="public" id="v-public" />
+                                        <Label htmlFor="v-public">Public</Label>
+                                    </div>
+                                     <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="hidden" id="v-hidden" />
+                                        <Label htmlFor="v-hidden">Hidden</Label>
+                                    </div>
+                                 </RadioGroup>
+                            </div>
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Course Status</CardTitle>
+                            <CardTitle>Pricing</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <Select value={status} onValueChange={(value) => setStatus(value as 'draft' | 'published')}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="draft">Draft</SelectItem>
-                                    <SelectItem value="published">Published</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <CardContent className="grid gap-6">
+                             <div className="grid gap-2">
+                                <Label htmlFor="price">Price (INR)</Label>
+                                <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Switch id="purchase-enabled" checked={isPurchaseEnabled} onCheckedChange={setIsPurchaseEnabled}/>
+                                <Label htmlFor="purchase-enabled">Purchase Enabled</Label>
+                            </div>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Course Image</CardTitle>
+                            <CardDescription>The thumbnail displayed on the site.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {courseImage && (
-                                <Image 
-                                    src={courseImage.imageUrl}
-                                    alt={course.title}
-                                    width={300}
-                                    height={169}
-                                    className="rounded-md object-cover"
-                                />
-                            )}
+                        <CardContent className="grid gap-4">
+                            <div className="relative aspect-video w-full">
+                                {imagePreview ? (
+                                    <Image 
+                                        src={imagePreview}
+                                        alt="Course preview"
+                                        fill
+                                        className="rounded-md object-cover"
+                                    />
+                                ) : <Skeleton className="h-full w-full rounded-md" />}
+                            </div>
+
+                             <div className="grid gap-2">
+                                <Label htmlFor="image-url">Image URL</Label>
+                                <Input id="image-url" type="url" placeholder="https://..." value={newImageUrl} onChange={handleImageUrlChange} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="image-file">Or Upload Image</Label>
+                                <Input id="image-file" type="file" accept="image/*" onChange={handleImageFileChange} />
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
             </div>
-             <div className="flex items-center justify-center gap-2 md:hidden">
+             <div className="flex items-center justify-center gap-2 md:hidden mt-6">
                 <Button variant="outline" size="sm">
                     Discard
                 </Button>
@@ -196,3 +448,5 @@ export default function EditCoursePage() {
         </main>
     )
 }
+
+    

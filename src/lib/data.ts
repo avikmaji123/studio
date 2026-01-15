@@ -1,18 +1,24 @@
 
+
 export type Course = {
   id: string;
   slug: string;
   title: string;
   description: string;
+  shortDescription?: string;
   price: string;
   category: string;
   imageId: string;
   lessons: { id: string; title: string; duration: string }[];
   level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  tags?: string[];
+  learningOutcomes?: string[];
+  prerequisites?: string;
   isNew?: boolean;
   isBestseller?: boolean;
   hasPreview?: boolean;
   enrollmentCount?: number;
+  status?: 'draft' | 'published' | 'unpublished';
 };
 
 export type Testimonial = {
@@ -29,6 +35,7 @@ export const courses: Course[] = [
     id: 'cyber-1',
     slug: 'enterprise-attacker-emulation-c2-dev',
     title: 'Enterprise Attacker Emulation & C2 Development',
+    shortDescription: 'Build custom C2 frameworks and emulate real-world threat actors.',
     description:
       'Master advanced offensive techniques by building custom command-and-control frameworks and emulating real-world threat actors in enterprise environments.',
     price: '₹1999',
@@ -42,11 +49,16 @@ export const courses: Course[] = [
     level: 'Advanced',
     isBestseller: true,
     enrollmentCount: 11523,
+    status: 'published',
+    tags: ['red teaming', 'c2', 'malware development'],
+    learningOutcomes: ['Develop a functional C2 server from scratch', 'Create advanced payloads that evade detection', 'Simulate a full-scale enterprise breach'],
+    prerequisites: 'Strong understanding of networking, Windows internals, and a programming language like C++ or Go.'
   },
   {
     id: 'cyber-2',
     slug: 'website-hacking-full-stack-security',
     title: 'Website Hacking (Full Stack Security)',
+    shortDescription: 'A comprehensive guide to finding and exploiting web vulnerabilities.',
     description:
       'A comprehensive guide to finding and exploiting vulnerabilities in modern web applications, from front-end to back-end.',
     price: '₹799',
@@ -59,11 +71,16 @@ export const courses: Course[] = [
     ],
     level: 'Intermediate',
     enrollmentCount: 28451,
+     status: 'published',
+    tags: ['web security', 'pentesting', 'owasp'],
+    learningOutcomes: ['Identify and exploit the OWASP Top 10 vulnerabilities', 'Secure APIs against common attacks', 'Perform comprehensive security audits of web applications'],
+    prerequisites: 'Basic knowledge of web technologies (HTML, JavaScript, HTTP).'
   },
   {
     id: 'cyber-3',
     slug: 'wifi-hacking-wireless-security',
     title: 'Wi-Fi Hacking & Wireless Security',
+    shortDescription: 'Learn to audit and secure wireless networks.',
     description:
       'Learn to audit and secure wireless networks. Master techniques for cracking WPA2, sniffing packets, and deploying rogue access points.',
     price: '₹699',
@@ -76,11 +93,13 @@ export const courses: Course[] = [
     ],
     level: 'Beginner',
     enrollmentCount: 19872,
+     status: 'published',
   },
   {
     id: 'cyber-4',
     slug: 'android-hacking-apk-rat-fud',
     title: 'Android Hacking (APK • RAT • FUD)',
+    shortDescription: 'Reverse engineer Android apps and create undetectable RATs.',
     description:
       'Dive into mobile security by reverse engineering Android apps, creating undetectable remote access trojans (RATs), and bypassing security measures.',
     price: '₹899',
@@ -93,11 +112,13 @@ export const courses: Course[] = [
     ],
     level: 'Advanced',
     enrollmentCount: 8421,
+     status: 'published',
   },
   {
     id: 'cyber-5',
     slug: 'advanced-social-engineering',
     title: 'Advanced Social Engineering',
+    shortDescription: 'Execute sophisticated phishing, vishing, and impersonation attacks.',
     description:
       'Explore the psychological principles behind social engineering and learn to execute sophisticated phishing, vishing, and impersonation attacks.',
     price: '₹749',
@@ -110,11 +131,13 @@ export const courses: Course[] = [
     ],
     level: 'Intermediate',
     enrollmentCount: 13488,
+     status: 'published',
   },
   {
     id: 'cyber-6',
     slug: 'antivirus-evasion-research-track',
     title: 'Antivirus Evasion (Research Track)',
+    shortDescription: 'Bypass AV detection through advanced polymorphism and metamorphism.',
     description:
       'A deep dive into how antivirus software works and the advanced techniques used by malware authors to bypass detection through polymorphism and metamorphism.',
     price: '₹544',
@@ -127,11 +150,13 @@ export const courses: Course[] = [
     ],
     level: 'Advanced',
     enrollmentCount: 7521,
+    status: 'draft',
   },
   {
     id: 'cyber-7',
     slug: 'kali-linux-pentesting-basics',
     title: 'Kali Linux & Pentesting Basics',
+    shortDescription: 'Your first step into ethical hacking with Kali Linux.',
     description:
       'Your first step into ethical hacking. Learn to use Kali Linux and its powerful tools for network scanning, vulnerability assessment, and exploitation.',
     price: '₹599',
@@ -145,11 +170,13 @@ export const courses: Course[] = [
     level: 'Beginner',
     isNew: true,
     enrollmentCount: 35102,
+     status: 'published',
   },
   {
     id: 'cyber-8',
     slug: 'bug-hunting-a-z-live-practicals',
     title: 'Bug Hunting A–Z (Live Practicals)',
+    shortDescription: 'Learn bug bounty hunting with practical, hands-on labs.',
     description:
       'Learn the art and science of bug bounty hunting. A practical, hands-on course covering recon, vulnerability identification, and report writing.',
     price: '₹199',
@@ -163,11 +190,13 @@ export const courses: Course[] = [
     level: 'Beginner',
     isBestseller: true,
     enrollmentCount: 52198,
+     status: 'published',
   },
   {
     id: 'cyber-9',
     slug: 'reverse-engineering-windows-android',
     title: 'Reverse Engineering (Windows & Android)',
+    shortDescription: 'Analyze malicious software on Windows and Android.',
     description:
       'Unpack and analyze malicious software and legitimate applications on both Windows and Android platforms to understand their inner workings.',
     price: '₹999',
@@ -180,11 +209,13 @@ export const courses: Course[] = [
     ],
     level: 'Advanced',
     enrollmentCount: 6843,
+     status: 'published',
   },
   {
     id: 'cyber-10',
     slug: 'start-hacking-from-zero-2-0',
     title: 'Start Hacking From Zero 2.0',
+    shortDescription: 'The ultimate beginner\'s course to start your ethical hacking journey.',
     description:
       'The ultimate beginner\'s course to start your ethical hacking journey, covering everything from basic concepts to your first hands-on hacks.',
     price: '₹499',
@@ -198,6 +229,7 @@ export const courses: Course[] = [
     level: 'Beginner',
     hasPreview: true,
     enrollmentCount: 41337,
+     status: 'published',
   },
 ];
 
@@ -239,3 +271,5 @@ export const testimonials: Testimonial[] = [
     rating: 5,
   },
 ];
+
+    
