@@ -189,7 +189,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   // If the user is a confirmed admin, show the admin layout.
-  if (isAdmin) {
+  // We also check !isLoading to be sure before rendering.
+  if (!isLoading && isAdmin) {
      return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
         <AdminSidebar />
@@ -200,13 +201,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
   
-  // If it's the login page, render it directly.
+  // If it's the login page, render it directly without the main admin layout.
   if (isLoginPage) {
       return <>{children}</>;
   }
 
-  // If none of the above, it means the user is not an admin and not on the login page,
-  // and we are waiting for the redirect to happen. Render a loading state.
+  // If none of the above, it means we are waiting for the redirect to happen or still loading.
+  // Render a full-page loading state.
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background dark">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
