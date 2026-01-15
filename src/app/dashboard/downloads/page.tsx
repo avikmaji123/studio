@@ -79,16 +79,9 @@ export default function DashboardDownloadsPage() {
                         <CardTitle className="line-clamp-2">{course.title}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex-grow">
-                        <div className="text-sm text-muted-foreground space-y-2">
-                             <div className="flex items-center gap-2">
-                                <Lock className="h-4 w-4" />
-                                <span>Password: 122911</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Eye className="h-4 w-4" />
-                                <span>View instructions before use</span>
-                            </div>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            Your course assets are ready for download.
+                        </p>
                     </CardContent>
                     <CardFooter>
                          <Button className="w-full">
