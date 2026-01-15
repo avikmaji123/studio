@@ -7,22 +7,24 @@ import { Clock, BarChart, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Link from 'next/link';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Course } from '@/lib/data';
-import { doc } from 'firebase/firestore';
+import { collection, query, where, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMemo } from 'react';
 
 export default function CoursePage() {
   const { slug } = useParams();
   const firestore = useFirestore();
   
-  // Firestore doesn't support querying by a non-ID field like `slug` directly in rules for single-doc gets.
-  // The simplest approach for now is to use the slug as the document ID. Since our data is already structured that way, this works.
-  // In a real-world scenario with arbitrary doc IDs, you'd fetch the collection and filter client-side or use a server-side lookup.
-  const courseRef = useMemoFirebase(() => doc(firestore, 'courses', slug as string), [firestore, slug]);
-  const { data: course, isLoading } = useDoc<Course>(courseRef);
+  const courseQuery = useMemoFirebase(
+    () => query(collection(firestore, 'courses'), where('slug', '==', slug), limit(1)),
+    [firestore, slug]
+  );
+  
+  const { data: courses, isLoading } = useCollection<Course>(courseQuery);
+  const course = useMemo(() => (courses && courses.length > 0 ? courses[0] : null), [courses]);
 
   if (isLoading) {
     return (
