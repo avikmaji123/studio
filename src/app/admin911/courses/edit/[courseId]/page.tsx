@@ -3,11 +3,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, updateDoc, getDoc, query, collection } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
 import Image from 'next/image';
+import { collection, query } from 'firebase/firestore';
 
 import { useFirestore, useMemoFirebase, useStorage, useCollection } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,8 @@ export default function EditCoursePage() {
     const { data: allCourses } = useCollection(courseCategoriesQuery);
     const courseCategories = useMemo(() => {
         if (!allCourses) return [];
-        return Array.from(new Set(allCourses.map(c => c.category)));
+        const categories = allCourses.map(c => c.category).filter(Boolean);
+        return Array.from(new Set(categories));
     }, [allCourses]);
 
     const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
@@ -75,6 +77,8 @@ export default function EditCoursePage() {
     const [currentTag, setCurrentTag] = useState('');
     const [learningOutcomes, setLearningOutcomes] = useState<string[]>(['']);
     const [prerequisites, setPrerequisites] = useState('');
+    const [downloadUrl, setDownloadUrl] = useState('');
+    const [downloadPassword, setDownloadPassword] = useState('');
     
     // Image state
     const [imagePreview, setImagePreview] = useState('');
@@ -90,7 +94,7 @@ export default function EditCoursePage() {
     const [originalText, setOriginalText] = useState('');
     const [isAiLoading, setIsAiLoading] = useState(false);
     const [isTagGenerationLoading, setIsTagGenerationLoading] = useState(false);
-    const [aiDialogField, setAiDialogField] = useState<keyof Omit<Course, 'id'|'slug'|'price'|'lessons'|'imageId'|'isNew'|'isBestseller'|'hasPreview'|'enrollmentCount'|'status'|'category'|'level'|'tags'|'learningOutcomes'|'prerequisites'|'imageUrl'> | null>(null);
+    const [aiDialogField, setAiDialogField] = useState<keyof Omit<Course, 'id'|'slug'|'price'|'lessons'|'imageId'|'isNew'|'isBestseller'|'hasPreview'|'enrollmentCount'|'status'|'category'|'level'|'tags'|'learningOutcomes'|'prerequisites'|'imageUrl'|'downloadUrl'|'downloadPassword'> | null>(null);
 
     // Upload state
     const [isUploading, setIsUploading] = useState(false);
@@ -118,6 +122,8 @@ export default function EditCoursePage() {
                     setPrerequisites(courseData.prerequisites || '');
                     setImagePreview(courseData.imageUrl || '');
                     setFinalImageUrl(courseData.imageUrl || '');
+                    setDownloadUrl(courseData.downloadUrl || '');
+                    setDownloadPassword(courseData.downloadPassword || '');
 
                 } else {
                     toast({ variant: 'destructive', title: 'Course not found' });
@@ -148,6 +154,8 @@ export default function EditCoursePage() {
                 learningOutcomes: learningOutcomes.filter(o => o.trim() !== ''),
                 prerequisites,
                 imageUrl: finalImageUrl,
+                downloadUrl,
+                downloadPassword,
                 // Slug is not updated to prevent breaking URLs
             });
 
@@ -254,7 +262,7 @@ export default function EditCoursePage() {
 
 
     // AI Handlers
-    const handleAiRefine = async (field: keyof Omit<Course, 'id'|'slug'|'price'|'lessons'|'imageId'|'isNew'|'isBestseller'|'hasPreview'|'enrollmentCount'|'status'|'category'|'level'|'tags'|'learningOutcomes'|'prerequisites'|'imageUrl'>, fieldType: RefineTextInput['fieldType']) => {
+    const handleAiRefine = async (field: keyof Omit<Course, 'id'|'slug'|'price'|'lessons'|'imageId'|'isNew'|'isBestseller'|'hasPreview'|'enrollmentCount'|'status'|'category'|'level'|'tags'|'learningOutcomes'|'prerequisites'|'imageUrl'|'downloadUrl'|'downloadPassword'>, fieldType: RefineTextInput['fieldType']) => {
         let textToRefine = '';
         switch (field) {
             case 'title': textToRefine = title; break;
@@ -471,17 +479,13 @@ export default function EditCoursePage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                              <div className="grid gap-2">
-                                <Label htmlFor="download-link">Download ZIP Link</Label>
-                                <Input id="download-link" placeholder="https://..." />
+                                <Label htmlFor="download-url">Download ZIP Link</Label>
+                                <Input id="download-url" placeholder="https://..." value={downloadUrl} onChange={(e) => setDownloadUrl(e.target.value)} />
                              </div>
                               <div className="grid gap-2">
                                 <Label htmlFor="download-password">Download Password (Optional)</Label>
-                                <Input id="download-password" type="password" />
+                                <Input id="download-password" value={downloadPassword} onChange={(e) => setDownloadPassword(e.target.value)} />
                              </div>
-                             <div className="flex items-center space-x-2">
-                                <Switch id="downloads-enabled"/>
-                                <Label htmlFor="downloads-enabled">Enable downloads for purchased users</Label>
-                            </div>
                         </CardContent>
                     </Card>
                 </div>

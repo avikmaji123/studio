@@ -18,6 +18,8 @@ export type Course = {
   hasPreview?: boolean;
   enrollmentCount?: number;
   status?: 'draft' | 'published' | 'unpublished';
+  downloadUrl?: string;
+  downloadPassword?: string;
 };
 
 export type LogEntry = {

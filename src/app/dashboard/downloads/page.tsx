@@ -10,7 +10,7 @@ import Link from 'next/link';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { FileWarning, Loader2, Download, Eye, Lock } from "lucide-react";
+import { FileWarning, Loader2, Download, Eye, Lock, Key } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Course } from '@/lib/types';
 
@@ -78,15 +78,22 @@ export default function DashboardDownloadsPage() {
                     <CardHeader>
                         <CardTitle className="line-clamp-2">{course.title}</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-grow">
+                    <CardContent className="flex-grow space-y-4">
                         <p className="text-sm text-muted-foreground">
                             Your course assets are ready for download.
                         </p>
+                         <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-4">
+                            <Key className="h-4 w-4"/>
+                            <span className="font-medium text-foreground">Password:</span>
+                            <span className="font-mono text-xs">{course.downloadPassword || 'Not provided'}</span>
+                         </div>
                     </CardContent>
                     <CardFooter>
-                         <Button className="w-full">
-                            <Download className="mr-2 h-4 w-4" />
-                            Download Assets
+                         <Button className="w-full" asChild disabled={!course.downloadUrl}>
+                            <a href={course.downloadUrl} target="_blank" rel="noopener noreferrer">
+                                <Download className="mr-2 h-4 w-4" />
+                                Download Assets
+                            </a>
                         </Button>
                     </CardFooter>
                  </Card>
