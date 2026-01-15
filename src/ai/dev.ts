@@ -1,3 +1,4 @@
+
 'use server';
 import { config } from 'dotenv';
 config();
@@ -5,3 +6,4 @@ config();
 import '@/ai/flows/auto-handle-engine.ts';
 import '@/ai/flows/refine-text.ts';
 import '@/ai/flows/generate-tags.ts';
+import '@/ai/flows/analyze-logs.ts';

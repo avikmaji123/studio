@@ -47,10 +47,12 @@ import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 function AdminSidebar() {
     const auth = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const { toast } = useToast();
 
     const handleLogout = async () => {
@@ -72,6 +74,18 @@ function AdminSidebar() {
         });
         }
     };
+
+    const navItems = [
+        { href: '/admin911', icon: <Home className="h-4 w-4" />, label: 'Dashboard' },
+        { href: '/admin911/courses', icon: <Book className="h-4 w-4" />, label: 'Courses' },
+        { href: '/admin911/payments', icon: <CreditCard className="h-4 w-4" />, label: 'Payments' },
+        { href: '/admin911/users', icon: <Users className="h-4 w-4" />, label: 'Users' },
+        { href: '/admin911/downloads', icon: <Download className="h-4 w-4" />, label: 'Downloads' },
+        { href: '/admin911/settings', icon: <Settings className="h-4 w-4" />, label: 'Site Settings' },
+        { href: '/admin911/logs', icon: <FileText className="h-4 w-4" />, label: 'Logs' },
+        { href: '/admin911/seed', icon: <DatabaseZap className="h-4 w-4" />, label: 'Seed Database' },
+    ];
+
   return (
     <div className="hidden border-r bg-muted/40 md:block">
       <div className="flex h-full max-h-screen flex-col gap-2">
@@ -87,62 +101,23 @@ function AdminSidebar() {
         </div>
         <div className="flex-1">
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-            <Link
-              href="/admin911"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <Home className="h-4 w-4" />
-              Dashboard
-            </Link>
-            <Link
-              href="/admin911/courses"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <Book className="h-4 w-4" />
-              Courses
-            </Link>
-            <Link
-              href="/admin911/payments"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <CreditCard className="h-4 w-4" />
-              Payments
-            </Link>
-            <Link
-              href="/admin911/users"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <Users className="h-4 w-4" />
-              Users
-            </Link>
-             <Link
-              href="/admin911/downloads"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <Download className="h-4 w-4" />
-              Downloads
-            </Link>
-            <Link
-              href="/admin911/settings"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <Settings className="h-4 w-4" />
-              Site Settings
-            </Link>
-             <Link
-              href="/admin911/logs"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-              <FileText className="h-4 w-4" />
-              Logs
-            </Link>
-             <Link
-              href="/admin911/seed"
-              className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
-            >
-              <DatabaseZap className="h-4 w-4" />
-              Seed Database
-            </Link>
+            {navItems.map((item) => {
+                const isActive = (item.href === '/admin911' && pathname === item.href) || 
+                                 (item.href !== '/admin911' && pathname.startsWith(item.href));
+                return (
+                     <Link
+                        key={item.label}
+                        href={item.href}
+                        className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                            isActive && "bg-muted text-primary"
+                        )}
+                    >
+                        {item.icon}
+                        {item.label}
+                    </Link>
+                )
+            })}
           </nav>
         </div>
         <div className="mt-auto p-4">
