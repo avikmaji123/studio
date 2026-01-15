@@ -1,10 +1,10 @@
 'use server';
 
 /**
- * @fileOverview This file defines the autoHandleEngine flow, which uses AI to verify UPI payments.
- * It analyzes a user-submitted screenshot and UTR to confirm payment details against the course price.
+ * @fileOverview This file defines the autoHandleEngine flow, which uses AI to analyze a payment screenshot
+ * for risk and extract key transaction details.
  *
- * It performs a primary check on the screenshot content and a fallback check on the UTR format.
+ * It does NOT verify the payment but provides data for hard validation checks.
  */
 
 import {ai} from '@/ai/genkit';
@@ -12,7 +12,6 @@ import {z} from 'genkit';
 
 const AutoHandleEngineInputSchema = z.object({
   coursePrice: z.string().describe("The expected price of the course (e.g., '₹499')."),
-  utr: z.string().describe('The UTR (Unique Transaction Reference) of the payment.'),
   screenshotDataUri: z
     .string()
     .describe(
@@ -22,8 +21,11 @@ const AutoHandleEngineInputSchema = z.object({
 export type AutoHandleEngineInput = z.infer<typeof AutoHandleEngineInputSchema>;
 
 const AutoHandleEngineOutputSchema = z.object({
-  verified: z.boolean().describe('Whether the payment was successfully verified.'),
-  reasoning: z.string().describe('The AI’s reasoning behind the verification outcome.'),
+  riskScore: z.enum(['low', 'medium', 'high']).describe("The AI's assessed risk level for this transaction."),
+  reasoning: z.string().describe('The AI’s reasoning behind the assigned risk score.'),
+  amountDetected: z.string().optional().describe('The payment amount detected in the screenshot, if any.'),
+  utrDetected: z.string().optional().describe('The UTR detected in the screenshot, if any.'),
+  receiverUpiIdDetected: z.string().optional().describe('The UPI ID of the receiver detected in the screenshot, if any.'),
 });
 export type AutoHandleEngineOutput = z.infer<typeof AutoHandleEngineOutputSchema>;
 
@@ -37,29 +39,24 @@ const autoHandleEnginePrompt = ai.definePrompt({
   name: 'autoHandleEnginePrompt',
   input: {schema: AutoHandleEngineInputSchema},
   output: {schema: AutoHandleEngineOutputSchema},
-  prompt: `You are a highly accurate AI payment verification assistant. Your task is to verify a UPI payment for a course that costs exactly {{{coursePrice}}}.
+  prompt: `You are a highly accurate AI fraud detection analyst for a course platform. Your task is to analyze a payment screenshot and assess its risk. You MUST NOT approve the payment. Your only job is to extract information and identify risk factors.
 
-You will be given the user-submitted UTR and a payment screenshot. Follow these steps strictly:
+The expected course price is exactly {{{coursePrice}}}.
 
-**1. PRIMARY CHECK (Screenshot Analysis):**
-   - Analyze the payment screenshot: {{media url=screenshotDataUri}}
-   - Extract the paid amount, date/time, and UTR from the image.
-   - **Crucial:** Does the paid amount in the screenshot EXACTLY match {{{coursePrice}}}?
-   - Is the timestamp recent and plausible?
-   - Does the screenshot look authentic (not cropped, edited, or fake)?
-   - If all conditions are met, the payment is verified.
+**Analysis Steps:**
 
-**2. FALLBACK CHECK (UTR Validation - only if screenshot analysis fails):**
-   - If the screenshot is unclear or fails analysis, examine the user-submitted UTR: {{{utr}}}
-   - Does the UTR follow a valid UPI format (typically 12 alphanumeric characters)?
-   - If the UTR format is valid and the screenshot wasn't obviously fraudulent, you can consider the payment verified with lower confidence.
+1.  **Analyze the payment screenshot:** {{media url=screenshotDataUri}}
+2.  **Extract Data:**
+    *   Carefully extract the exact payment amount.
+    *   Extract the UTR (Unique Transaction Reference).
+    *   Extract the receiver's UPI ID.
+3.  **Assess Risk:** Based on your analysis, determine a risk score ('low', 'medium', 'high').
+    *   **High Risk:** Assign 'high' if you see ANY signs of tampering, editing, cropping, or if the screenshot looks like a generic image from the internet. Also consider it high risk if critical information (amount, UTR) is missing.
+    *   **Medium Risk:** Assign 'medium' if the screenshot seems legitimate but some details are blurry or slightly ambiguous.
+    *   **Low Risk:** Assign 'low' only if the screenshot appears completely authentic, is a full-screen capture, and all key details are perfectly clear.
+4.  **Provide Reasoning:** Briefly explain your risk assessment. For example: "High risk due to signs of image cropping and unusual font on the UTR." or "Low risk, all details are clear and screenshot appears authentic."
 
-**3. FINAL DECISION:**
-   - If the Primary Check passes, set 'verified' to true. The reasoning should state that the screenshot details matched.
-   - If the Primary Check fails but the Fallback Check passes, set 'verified' to true. The reasoning should state that verification is based on the submitted UTR as the screenshot was unclear.
-   - If both checks fail, set 'verified' to false. Explain clearly why verification failed (e.g., "Amount in screenshot does not match course price," "Screenshot appears to be fake," or "Invalid UTR format").
-
-Your output MUST be a JSON object with two fields: 'verified' (boolean) and 'reasoning' (string).`,
+Your output MUST be a JSON object with the extracted fields and the risk assessment. DO NOT make a verification decision.`,
 });
 
 const autoHandleEngineFlow = ai.defineFlow(
@@ -70,10 +67,10 @@ const autoHandleEngineFlow = ai.defineFlow(
   },
   async input => {
     // Ensure all inputs are present
-    if (!input.coursePrice || !input.utr || !input.screenshotDataUri) {
-      return {
-        verified: false,
-        reasoning: "Missing required information. Please provide Course Price, UTR, and a Screenshot."
+    if (!input.coursePrice || !input.screenshotDataUri) {
+       return {
+        riskScore: 'high',
+        reasoning: "Missing required information for analysis (course price or screenshot).",
       };
     }
     

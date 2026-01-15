@@ -4,8 +4,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, setDoc, Timestamp, query, where, collection, getDocs, limit } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, setDoc, Timestamp, query, where, collection, getDocs, limit, collectionGroup } from 'firebase/firestore';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createLogEntry } from '@/lib/actions';
 import type { Course } from '@/lib/types';
+import { v4 as uuidv4 } from 'uuid';
+
+// Hardcoded site configuration for payment verification
+const SITE_CONFIG = {
+    RECEIVER_UPI_ID: 'avik911@fam'
+};
 
 export default function CoursePaymentPage() {
     const router = useRouter();
@@ -72,6 +78,15 @@ export default function CoursePaymentPage() {
         }
     };
 
+    const isUtrUsed = async (utr: string): Promise<boolean> => {
+        if (!firestore) return true; // Fail safe
+        const paymentsRef = collectionGroup(firestore, 'paymentTransactions');
+        const q = query(paymentsRef, where('upiTransactionReference', '==', utr));
+        const snapshot = await getDocs(q);
+        return !snapshot.empty;
+    };
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -102,15 +117,63 @@ export default function CoursePaymentPage() {
             metadata: { userId: user.uid, courseId: course.id }
         });
 
+        // 1. Check if UTR has been used before
+        if (await isUtrUsed(utr)) {
+            toast({ variant: "destructive", title: "Verification Failed", description: "This Transaction ID has already been used." });
+            await createLogEntry({ source: 'system', severity: 'warning', message: 'Duplicate UTR submission attempt.', metadata: { userId: user.uid, courseId: course.id, error: `UTR: ${utr}` }});
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            const result = await autoHandleEngine({ 
+            // 2. Get AI analysis
+            const aiResult = await autoHandleEngine({ 
                 coursePrice: course.price,
-                utr,
                 screenshotDataUri: screenshotPreview,
             });
+
+            const transactionId = uuidv4();
+            const paymentRef = doc(firestore, 'users', user.uid, 'paymentTransactions', transactionId);
+
+            // 3. Perform Hard Validation Checks
+            let finalStatus: 'AI-Approved' | 'Pending' | 'Rejected' = 'Pending';
+            let failureReason = '';
+
+            const expectedAmount = parseFloat(course.price.replace('₹', ''));
+            const detectedAmount = aiResult.amountDetected ? parseFloat(aiResult.amountDetected.replace('₹', '')) : 0;
             
-            if (result.verified) {
-                // Grant course access in Firestore
+            if (aiResult.riskScore === 'high') {
+                finalStatus = 'Rejected';
+                failureReason = `High-risk screenshot: ${aiResult.reasoning}`;
+            } else if (aiResult.receiverUpiIdDetected && aiResult.receiverUpiIdDetected.toLowerCase() !== SITE_CONFIG.RECEIVER_UPI_ID.toLowerCase()) {
+                finalStatus = 'Rejected';
+                failureReason = `Payment sent to incorrect UPI ID. Detected: ${aiResult.receiverUpiIdDetected}`;
+            } else if (detectedAmount < expectedAmount) {
+                finalStatus = 'Rejected';
+                failureReason = `Amount mismatch. Expected ₹${expectedAmount}, but detected ₹${detectedAmount}.`;
+            } else if (aiResult.riskScore === 'medium') {
+                finalStatus = 'Pending'; // Needs manual review
+            } else {
+                finalStatus = 'AI-Approved';
+            }
+
+
+            // 4. Log the transaction attempt to Firestore
+            await setDoc(paymentRef, {
+                id: transactionId,
+                userId: user.uid,
+                courseId: course.id,
+                amount: expectedAmount,
+                pointsAwarded: expectedAmount, // Or your points logic
+                upiTransactionReference: utr,
+                screenshotUrl: '', // Uploading screenshot to storage can be added here
+                status: finalStatus,
+                transactionDate: Timestamp.now(),
+                adminNotes: `AI Analysis: [${aiResult.riskScore}] ${aiResult.reasoning}. Detected Amount: ${aiResult.amountDetected || 'N/A'}. Detected UTR: ${aiResult.utrDetected || 'N/A'}. Detected Receiver: ${aiResult.receiverUpiIdDetected || 'N/A'}.`,
+            });
+            
+            // 5. Grant access ONLY if approved
+            if (finalStatus === 'AI-Approved') {
                 const enrollmentRef = doc(firestore, 'users', user.uid, 'enrollments', course.id);
                 await setDoc(enrollmentRef, {
                     id: course.id,
@@ -120,54 +183,28 @@ export default function CoursePaymentPage() {
                     completionPercentage: 0,
                 });
                 
-                await createLogEntry({
-                    source: 'system',
-                    severity: 'info',
-                    message: 'AI payment verification successful.',
-                    metadata: { userId: user.uid, courseId: course.id }
-                });
+                await createLogEntry({ source: 'system', severity: 'info', message: 'AI payment verification successful.', metadata: { userId: user.uid, courseId: course.id }});
 
-                toast({
-                    title: "Purchase successful!",
-                    description: "Your course is now available for download.",
-                });
+                toast({ title: "Purchase successful!", description: "Your course is now available for download." });
                 router.push('/dashboard/downloads');
             } else {
-                 await createLogEntry({
-                    source: 'system',
-                    severity: 'warning',
-                    message: 'AI payment verification failed.',
-                    metadata: { userId: user.uid, courseId: course.id, error: result.reasoning }
-                });
+                 await createLogEntry({ source: 'system', severity: 'warning', message: `Payment verification failed hard checks. Status: ${finalStatus}`, metadata: { userId: user.uid, courseId: course.id, error: failureReason || aiResult.reasoning }});
+                 
                  toast({
                     variant: "destructive",
-                    title: "Verification Failed",
-                    description: result.reasoning || "Could not verify payment. Please check your details and try again.",
+                    title: "Verification Pending or Failed",
+                    description: failureReason || "AI analysis requires manual review. We will notify you once it's complete.",
                     duration: 9000,
                 });
+                router.push('/dashboard');
             }
 
         } catch (error: any) {
             console.error("Payment submission error:", error);
-            let errorMessage = "An unknown error occurred with the AI verification service. Please try again later.";
-            if (error?.message && error.message.includes('503 Service Unavailable')) {
-                errorMessage = "The verification service is currently busy. Please wait a moment and try again.";
-            } else if (error?.message) {
-                errorMessage = error.message;
-            }
-
-            await createLogEntry({
-                source: 'system',
-                severity: 'critical',
-                message: 'AI payment verification service error.',
-                metadata: { userId: user.uid, courseId: course.id, error: errorMessage }
-            });
+            const errorMessage = error?.message || "An unknown error occurred with the AI verification service.";
+            await createLogEntry({ source: 'system', severity: 'critical', message: 'AI payment verification service error.', metadata: { userId: user.uid, courseId: course.id, error: errorMessage }});
             
-            toast({
-                variant: "destructive",
-                title: "Verification Service Error",
-                description: errorMessage,
-            });
+            toast({ variant: "destructive", title: "Verification Service Error", description: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -225,7 +262,7 @@ export default function CoursePaymentPage() {
                             )}
                              <div className="text-center">
                                 <p className="font-bold text-lg">CourseVerse</p>
-                                <p className="text-muted-foreground">UPI ID: avik911@fam</p>
+                                <p className="text-muted-foreground">UPI ID: {SITE_CONFIG.RECEIVER_UPI_ID}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -237,7 +274,7 @@ export default function CoursePaymentPage() {
                         <CardHeader>
                             <CardTitle>2. Confirm Your Payment</CardTitle>
                             <CardDescription>
-                                After paying, enter your transaction details and upload a screenshot to verify.
+                                After paying, enter your transaction details and upload a screenshot to get access.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -279,7 +316,7 @@ export default function CoursePaymentPage() {
                                 </div>
                                 <Button type="submit" className="w-full" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {isLoading ? 'Verifying Payment...' : 'Verify My Payment & Get Access'}
+                                    {isLoading ? 'Verifying Payment...' : 'Verify & Get Access'}
                                 </Button>
                             </form>
                         </CardContent>

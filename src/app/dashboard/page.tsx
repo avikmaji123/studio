@@ -83,6 +83,11 @@ export default function DashboardOverviewPage() {
     return allCourses.filter(c => enrolledCourseIds.includes(c.id)).slice(0, 3);
   }, [enrollments, allCourses]);
 
+  const enrolledCourseIds = useMemo(() => {
+    if (!enrollments) return [];
+    return enrollments.map(e => e.courseId);
+  }, [enrollments]);
+
   const isLoading = isUserLoading || isEnrollmentsLoading || isCertificatesLoading || areCoursesLoading;
   
   return (
@@ -148,7 +153,7 @@ export default function DashboardOverviewPage() {
               </CardDescription>
             </div>
             <Button asChild size="sm" className="ml-auto gap-1">
-              <Link href="/courses">
+              <Link href="/dashboard/courses">
                 View All
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
@@ -165,7 +170,11 @@ export default function DashboardOverviewPage() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {purchasedCourses.length > 0 ? (
                         purchasedCourses.map(course => (
-                            <CourseCard key={course.id} course={course} />
+                            <CourseCard 
+                              key={course.id} 
+                              course={course} 
+                              isEnrolled={enrolledCourseIds.includes(course.id)} 
+                            />
                         ))
                     ) : (
                         <div className="col-span-full text-center py-8">
