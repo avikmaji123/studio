@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
 import { Loader2, BookOpen } from "lucide-react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export default function AdminLoginPage() {
   const auth = useAuth();
@@ -32,6 +32,32 @@ export default function AdminLoginPage() {
     }
   }, [user, isUserLoading, isAdmin, router]);
 
+  const createAdminUser = async () => {
+    if (!auth || !firestore) return null;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+        await setDoc(userDocRef, {
+            id: userCredential.user.uid,
+            firstName: 'Admin',
+            lastName: 'User',
+            email: email,
+            role: 'admin',
+            themePreference: 'dark',
+            walletBalance: 0,
+            affiliateCode: '',
+            suspended: false,
+        });
+        return userCredential;
+    } catch (creationError: any) {
+        toast({
+            variant: "destructive",
+            title: "Admin Creation Failed",
+            description: creationError.message || "Could not create the initial admin user.",
+        });
+        return null;
+    }
+  };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +76,6 @@ export default function AdminLoginPage() {
         });
         // The useEffect will handle redirection
       } else {
-        // If the user exists but is not an admin, sign them out.
         await auth.signOut();
         toast({
           variant: "destructive",
@@ -63,15 +88,24 @@ export default function AdminLoginPage() {
        let description = "An unexpected error occurred. Please try again.";
 
         switch (error.code) {
+          case 'auth/user-not-found':
+             // User doesn't exist, so let's create them.
+             toast({
+                title: "First-Time Admin Setup",
+                description: "Creating your admin account. Please wait...",
+             });
+             const newUser = await createAdminUser();
+             if (newUser) {
+                 toast({
+                    title: "Admin Account Created!",
+                    description: "Login successful. Redirecting...",
+                 });
+             }
+            break;
           case 'auth/invalid-credential':
-          case 'auth/invalid-email':
           case 'auth/wrong-password':
             title = "Invalid Credentials";
             description = "The email or password you entered is incorrect.";
-            break;
-          case 'auth/user-not-found':
-             title = "Admin Not Found";
-             description = "This admin account does not exist. Please contact support.";
             break;
           default:
             console.error("Admin Sign-In Error:", error);
@@ -79,15 +113,15 @@ export default function AdminLoginPage() {
             break;
         }
 
-        toast({ variant: "destructive", title, description });
+        if (error.code !== 'auth/user-not-found') {
+            toast({ variant: "destructive", title, description });
+        }
     } finally {
         setIsSubmitting(false);
     }
   };
 
-  // Do not show a loading spinner on the login page itself.
-  // The layout will handle the redirect if the user is already an admin.
-  if (!isUserLoading && user && isAdmin) {
+  if (isUserLoading || (!isUserLoading && user && isAdmin)) {
     return (
       <div className="flex h-screen w-full justify-center items-center bg-background dark">
           <Loader2 className="h-16 w-16 animate-spin text-primary" />
