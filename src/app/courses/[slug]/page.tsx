@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -15,11 +14,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
 
 export default function CoursePage() {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params.slug as string; // Ensure slug is a string
   const firestore = useFirestore();
   
   const courseQuery = useMemoFirebase(
-    () => query(collection(firestore, 'courses'), where('slug', '==', slug), limit(1)),
+    () => {
+      if (!firestore || !slug) return null;
+      return query(collection(firestore, 'courses'), where('slug', '==', slug), limit(1))
+    },
     [firestore, slug]
   );
   
@@ -43,8 +46,13 @@ export default function CoursePage() {
     )
   }
 
-  if (!course) {
+  if (!isLoading && !course) {
     notFound();
+  }
+
+  // This check is necessary because of the async nature of the hooks
+  if (!course) {
+    return null; // Or a loading skeleton
   }
 
   return (
