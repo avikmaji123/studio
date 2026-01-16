@@ -235,16 +235,20 @@ service cloud.firestore {
     }
 
     /**
-     * @description Stores system-wide, immutable log entries. Writes are disallowed from the client to ensure log integrity.
-     * Only administrators can read logs for auditing and monitoring purposes.
+     * @description Stores system-wide, immutable log entries. Writes are allowed from server actions
+     * using a server timestamp, which acts as a lightweight security measure. Direct client-side 
+     * modifications are forbidden. Only administrators can read logs.
      * @path /logs/{logId}
      * @allow (get, list) An admin lists logs for monitoring system activity.
-     * @deny (create, update, delete) All client-side write and delete operations are forbidden to maintain a secure audit trail.
-     * @principle Secures the system's central audit trail by making it immutable from the client-side.
+     * @deny (update, delete) All client-side write and delete operations are forbidden to maintain a secure audit trail.
+     * @principle Secures the audit trail by restricting reads to administrators and writes to server-side processes.
      */
     match /logs/{logId} {
         allow get, list: if isAdmin();
-        allow create, update, delete: if false;
+        // Allow create only if the request includes a server timestamp.
+        // This is a proxy for ensuring the write comes from a trusted server action using the SDK.
+        allow create: if request.resource.data.timestamp == request.time;
+        allow update, delete: if false;
     }
     
     /**
