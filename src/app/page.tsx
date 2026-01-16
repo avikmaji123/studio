@@ -6,16 +6,15 @@ import Link from 'next/link';
 import {
   ArrowRight,
   BookOpen,
-  Award,
-  Star,
   Library,
   ShieldCheck,
   TrendingUp,
   Download,
   LayoutGrid,
   Lock,
+  Star,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { collection, query, where, limit } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -26,9 +25,10 @@ import { testimonials } from '@/lib/testimonials';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import type { Course } from '@/lib/types';
 
 
-const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 const testimonialImages = {
   'testimonial-1': PlaceHolderImages.find(p => p.id === 'testimonial-1'),
   'testimonial-2': PlaceHolderImages.find(p => p.id === 'testimonial-2'),
@@ -38,80 +38,118 @@ const testimonialImages = {
 
 function HeroSection() {
   const { user } = useUser();
+  const firestore = useFirestore();
+
+  const featuredCourseQuery = useMemoFirebase(() => query(
+    collection(firestore, 'courses'), 
+    where('status', '==', 'published'),
+    limit(1)
+  ), [firestore]);
+  const { data: featuredCourses, isLoading } = useCollection<Course>(featuredCourseQuery);
+  const course = featuredCourses?.[0];
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [rotation, setRotation] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+
+    const maxRotate = 8;
+    setRotation({
+      x: yPct * -maxRotate,
+      y: xPct * maxRotate,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setRotation({ x: 0, y: 0 });
+  };
+  
   return (
-    <section className="relative w-full overflow-hidden bg-background pt-16 md:pt-24 lg:pt-32">
+    <section className="relative w-full overflow-hidden bg-background pt-16 md:pt-24 lg:pt-32 pb-12">
       <div
         aria-hidden="true"
-        className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-40 dark:opacity-20"
+        className="absolute inset-0 z-0 opacity-50 dark:opacity-60"
       >
-        <div className="h-56 bg-gradient-to-br from-primary to-purple-400 blur-[106px] dark:from-blue-700"></div>
-        <div className="h-32 bg-gradient-to-r from-cyan-400 to-sky-300 blur-[106px] dark:to-indigo-600"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent"></div>
+        <div className="absolute bottom-0 left-[-20%] right-[-20%] top-[20%] rounded-full bg-gradient-to-br from-primary/5 via-secondary/5 to-secondary/10 blur-3xl"></div>
+        <div className="absolute right-[20%] top-[5%] h-32 w-32 rounded-full bg-primary/10 blur-3xl"></div>
       </div>
       <div className="container relative mx-auto px-4 md:px-6">
-        <div className="grid gap-8 md:grid-cols-2 md:gap-16">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center space-y-6">
             <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Unlock Your Potential with CourseVerse
+              Level Up Your Skills with CourseVerse
             </h1>
             <p className="max-w-[600px] text-lg text-muted-foreground">
-              A course distribution and access management platform. My role is
-              limited to platform administration, content distribution, and
-              access control.
+              A premium learning management platform for course creation,
+              distribution, and access.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button asChild size="lg">
-                <Link href="/courses">
-                  Explore Courses <ArrowRight className="ml-2" />
-                </Link>
-              </Button>
               {user ? (
-                 <Button asChild variant="secondary" size="lg">
-                    <Link href="/dashboard">Go to Dashboard</Link>
+                 <Button asChild size="lg">
+                    <Link href="/dashboard">Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" /></Link>
                 </Button>
               ) : (
-                <Button asChild variant="secondary" size="lg">
-                    <Link href="/login">Login / Sign Up</Link>
+                <Button asChild size="lg">
+                  <Link href="/courses">
+                    Explore Courses <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               )}
             </div>
           </div>
-          <div className="relative flex items-center justify-center">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                data-ai-hint={heroImage.imageHint}
-                width={600}
-                height={400}
-                className="rounded-xl object-cover shadow-2xl"
-              />
-            )}
-            <div className="absolute -bottom-8 -right-8 z-10 hidden lg:block">
-              <div className="rounded-lg bg-card p-4 shadow-lg">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-2">
-                    {Object.values(testimonialImages).map(
-                      (img, i) =>
-                        img && (
-                          <Avatar key={i}>
-                            <AvatarImage
-                              src={img.imageUrl}
-                              alt={img.description}
-                            />
-                            <AvatarFallback>U{i + 1}</AvatarFallback>
-                          </Avatar>
-                        )
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-bold">+10k</p>
-                    <p className="text-sm text-muted-foreground">
-                      Happy Students
-                    </p>
-                  </div>
+          <div 
+            className="relative flex items-center justify-center [perspective:1000px]"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
+            {isLoading ? (
+                <Skeleton className="h-[450px] w-full max-w-sm rounded-3xl" />
+            ) : course ? (
+              <div 
+                ref={cardRef}
+                className="group relative h-[450px] w-full max-w-sm rounded-3xl transition-all duration-300 ease-out [transform-style:preserve-3d] animate-float md:animate-none"
+                style={{
+                  transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+                }}
+              >
+                {/* 3D Base Layer */}
+                <div className="absolute inset-x-4 top-8 h-full rounded-3xl bg-black/40 blur-xl transition-all duration-300 group-hover:inset-x-2 group-hover:top-6"></div>
+
+                {/* Card Itself */}
+                <div className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-black/20 text-white shadow-2xl shadow-primary/20 backdrop-blur-lg [transform-style:preserve-3d] [transform:translateZ(20px)]">
+                    <Image
+                        src={course.imageUrl || ''}
+                        alt={course.title}
+                        fill
+                        className="absolute inset-0 -z-10 object-cover opacity-20 transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 -z-20 bg-gradient-to-b from-primary/20 via-black/80 to-black"></div>
+
+                    <div className="flex-grow p-6">
+                        <h3 className="font-headline text-2xl font-bold tracking-tight">{course.title}</h3>
+                        <p className="mt-2 max-w-[90%] text-sm text-white/70">{course.shortDescription}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between p-6 pt-0">
+                      <Button asChild variant="outline" className="bg-white/10 text-white backdrop-blur-md hover:bg-white/20">
+                          <Link href={`/courses/${course.slug}`}>View Course</Link>
+                      </Button>
+                      <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-md">
+                          {course.price}
+                      </span>
+                    </div>
                 </div>
               </div>
-            </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -192,12 +230,21 @@ function FeaturesSection() {
 
 function FeaturedCoursesSection() {
   const firestore = useFirestore();
+  const { user } = useUser();
   const coursesQuery = useMemoFirebase(() => query(
     collection(firestore, 'courses'), 
     where('status', '==', 'published'),
     limit(6)
   ), [firestore]);
-  const { data: featuredCourses, isLoading } = useCollection(coursesQuery);
+  const { data: featuredCourses, isLoading } = useCollection<Course>(coursesQuery);
+
+  const enrollmentsQuery = useMemoFirebase(
+    () => (user ? collection(firestore, 'users', user.uid, 'enrollments') : null),
+    [firestore, user]
+  );
+  const { data: enrollments, isLoading: enrollmentsLoading } = useCollection(enrollmentsQuery);
+
+  const enrolledCourseIds = useMemo(() => enrollments?.map(e => e.id) || [], [enrollments]);
 
   return (
     <section id="courses" className="bg-muted/50 py-16 sm:py-24">
@@ -211,13 +258,13 @@ function FeaturedCoursesSection() {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-           {isLoading ? (
-             Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-[350px] w-full" />
+           {(isLoading || enrollmentsLoading) ? (
+             Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-[420px] w-full" />
              ))
            ) : (
             featuredCourses?.map(course => (
-              <CourseCard key={course.id} course={course} />
+              <CourseCard key={course.id} course={course} isEnrolled={enrolledCourseIds.includes(course.id)} />
             ))
            )}
         </div>
