@@ -68,22 +68,24 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
           <CardDescription className="line-clamp-2 text-sm">{course.shortDescription || course.description}</CardDescription>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center mt-auto">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>{course.enrollmentCount || 0}</span>
-          </div>
-           {isEnrolled ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/dashboard/downloads">
-                    <Download className="mr-2 h-4 w-4"/>
-                    View Downloads
-                </Link>
+          {isEnrolled ? (
+            <Button size="sm" asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              <Link href="/dashboard/downloads">
+                  <Download className="mr-2 h-4 w-4"/>
+                  View Downloads
+              </Link>
             </Button>
-            ) : (
-             <div className="text-lg font-bold text-primary">
-                {course.price}
-            </div>
-            )}
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  <span>{course.enrollmentCount || 0}</span>
+              </div>
+              <div className="text-lg font-bold text-primary">
+                  {course.price}
+              </div>
+            </>
+          )}
         </CardFooter>
     </Card>
   );
