@@ -35,11 +35,19 @@ export default function Footer() {
           <div className="space-y-3 col-span-2 sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
               <BookOpen className="h-7 w-7 text-primary" />
-              <span className="text-lg font-bold">{isLoading ? <Skeleton className="h-6 w-32" /> : settings.siteName}</span>
+              {isLoading ? (
+                <Skeleton className="h-6 w-32" />
+              ) : (
+                <span className="text-lg font-bold">{settings.siteName}</span>
+              )}
             </Link>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              {isLoading ? <Skeleton className="h-4 w-48" /> : settings.tagline}
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-4 w-48" />
+            ) : (
+              <p className="text-sm text-muted-foreground max-w-xs">
+                {settings.tagline}
+              </p>
+            )}
           </div>
           <div>
             <h3 className="text-sm font-semibold mb-3">Quick Links</h3>
@@ -94,9 +102,13 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-          <p>
-            {isLoading ? <Skeleton className="h-4 w-64 mx-auto" /> : settings.footerText}
-          </p>
+          {isLoading ? (
+            <Skeleton className="h-4 w-64 mx-auto" />
+          ) : (
+            <p>
+              {settings.footerText}
+            </p>
+          )}
         </div>
       </div>
     </footer>
