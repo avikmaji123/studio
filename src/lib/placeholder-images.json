@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero-image",
-      "description": "A person learning online on a laptop",
-      "imageUrl": "https://images.unsplash.com/photo-1516397281156-ca07cf9746fc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvbmxpbmUlMjBsZWFybmluZ3xlbnwwfHx8fDE3NjgyMTM2Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "online learning"
+      "description": "A portrait of the site administrator",
+      "imageUrl": "https://i.ibb.co/yBnYxT0/Picsart-26-01-16-23-23-42-239.jpg",
+      "imageHint": "administrator portrait"
     },
     {
       "id": "creator-avik",
@@ -57,7 +57,7 @@
     {
       "id": "course-cyber-6",
       "description": "Abstract binary code with a glitch effect, representing antivirus evasion.",
-      "imageUrl": "https://images.unsplash.com/photo-1504639725590-34d0984388bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbnRpdmlydXMlMjBldmFzaW9ufGVufDB8fHx8MTc3MTU2MDkxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1504639725590-34d0984388bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbnRpdmlydXMlMjBldmFzaW9ufGVufDB8fHx8MTc3MTU2MDkxMnww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "antivirus evasion"
     },
     {
@@ -75,19 +75,19 @@
     {
       "id": "course-cyber-9",
       "description": "Lines of assembly code in a disassembler, illustrating reverse engineering.",
-      "imageUrl": "https://images.unsplash.com/photo-1582996131826-b9d153a696a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXZlcnNlJTIwZW5naW5lZXJpbmclMjBjb2RlfGVufDB8fHx8MTc3MTU2MTAwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1582996131826-b9d153a696a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXZlcnNlJTIwZW5naW5lZXJpbmclMjBjb2RlfGVufDB8fHx8MTc3MTU2MTAwNHww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "reverse engineering"
     },
     {
       "id": "course-cyber-10",
       "description": "A person in a hoodie at a computer, symbolizing a beginner hacker.",
-      "imageUrl": "https://images.unsplash.com/photo-1547658719-da2b51169166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxoYWNrZXIlMjBiZWdpbm5lcnxlbnwwfHx8fDE3NzE1NjE5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1547658719-da2b51169166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxoYWNrZXIlMjBiZWdpbm5lcnxlbnwwfHx8fDE3NzE1NjE5OTd8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "hacker beginner"
     },
     {
       "id": "testimonial-1",
       "description": "Portrait of a smiling person",
-      "imageUrl": "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2ODI0MjQwMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2ODI0MjQwMXww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "person smiling"
     },
     {
