@@ -26,14 +26,20 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
                   className="object-cover"
               />
           ) : <Skeleton className="h-full w-full" />}
-          <div className="absolute top-2 right-2 flex gap-1">
-            {course.isNew && <Badge>New</Badge>}
-            {course.isBestseller && <Badge variant="destructive">Bestseller</Badge>}
-          </div>
+          
+          {/* Un-enrolled badges */}
+          {!isEnrolled && (
+            <div className="absolute top-2 right-2 flex gap-1">
+              {course.isNew && <Badge>New</Badge>}
+              {course.isBestseller && <Badge variant="destructive">Bestseller</Badge>}
+            </div>
+          )}
+
+          {/* Enrolled overlay and badge */}
            {isEnrolled && (
-            <div className="absolute bottom-2 left-2">
-              <Badge variant="default" className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700">
-                <CheckCircle className="h-4 w-4" />
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <Badge variant="default" className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-base px-4 py-2 border-none shadow-lg">
+                <CheckCircle className="h-5 w-5" />
                 Purchased
               </Badge>
             </div>
@@ -67,7 +73,7 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
               <span>{course.enrollmentCount || 0}</span>
           </div>
            {isEnrolled ? (
-              <Button variant="secondary" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild>
                 <Link href="/dashboard/downloads">
                     <Download className="mr-2 h-4 w-4"/>
                     View Downloads
