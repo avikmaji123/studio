@@ -3,7 +3,7 @@
     {
       "id": "hero-image",
       "description": "A portrait of the site administrator",
-      "imageUrl": "https://i.ibb.co/yBnYxT0/Picsart-26-01-16-23-23-42-239.jpg",
+      "imageUrl": "https://i.ibb.co/zVz0KMvW/Picsart-26-01-16-23-23-42-239.jpg",
       "imageHint": "administrator portrait"
     },
     {
@@ -69,7 +69,7 @@
     {
       "id": "course-cyber-8",
       "description": "A computer screen showing code with bug icons, representing bug hunting.",
-      "imageUrl": "https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWclMjBodW50aW5nfGVufDB8fHx8fDE3NzE1NjA5NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWclMjBodW50aW5nfGVufDB8fHx8fDE3NzE1NjA5NzJ8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "bug hunting"
     },
     {
@@ -93,13 +93,13 @@
     {
       "id": "testimonial-2",
       "description": "Professional headshot of a person",
-      "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjgyMzk0NDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjgyMzk0NDl8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "testimonial-3",
       "description": "A person looking happy and professional",
-      "imageUrl": "https://images.unsplash.com/photo-1523287281576-5b596107a6ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY4MjQwNzI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1523287281576-5b596107a6ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY4MjQwNzI1fDA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "person professional"
     },
     {
