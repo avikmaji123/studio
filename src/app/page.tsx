@@ -12,6 +12,7 @@ import {
   LayoutGrid,
   Lock,
   Star,
+  CheckCircle,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { collection, query, where, limit } from 'firebase/firestore';
@@ -241,7 +242,7 @@ function FeaturedCoursesSection() {
             Handpicked courses to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-[350px] w-full" />
