@@ -27,7 +27,6 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
               />
           ) : <Skeleton className="h-full w-full" />}
           
-          {/* Un-enrolled badges */}
           {!isEnrolled && (
             <div className="absolute top-2 right-2 flex gap-1">
               {course.isNew && <Badge>New</Badge>}
@@ -35,7 +34,6 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
             </div>
           )}
 
-          {/* Enrolled overlay and badge */}
            {isEnrolled && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
               <Badge variant="default" className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-base px-4 py-2 border-none shadow-lg">
@@ -69,7 +67,7 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center mt-auto">
           {isEnrolled ? (
-            <Button size="sm" asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button size="sm" asChild className="w-full hover:bg-accent hover:text-accent-foreground">
               <Link href="/dashboard/downloads">
                   <Download className="mr-2 h-4 w-4"/>
                   View Downloads
