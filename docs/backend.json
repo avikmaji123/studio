@@ -502,6 +502,42 @@
         }
       },
       "required": ["id", "timestamp", "severity", "source", "message"]
+    },
+    "SiteSettings": {
+      "title": "Site Settings",
+      "type": "object",
+      "description": "Global configuration for the website. This is intended to be a singleton document.",
+      "properties": {
+        "siteName": { "type": "string", "description": "The public name of the website." },
+        "tagline": { "type": "string", "description": "The tagline or slogan for the website." },
+        "description": { "type": "string", "description": "A short description of the site for SEO purposes." },
+        "footerText": { "type": "string", "description": "The text displayed in the website footer." },
+        "logoUrl": { "type": "string", "format": "uri", "description": "URL for the site's primary logo." },
+        "faviconUrl": { "type": "string", "format": "uri", "description": "URL for the site's favicon." },
+        "maintenanceMode": { "type": "boolean", "default": false, "description": "If true, the public-facing site is disabled." },
+        "enableGoogleLogin": { "type": "boolean", "default": true, "description": "If true, users can log in with Google." },
+        "enableEmailLogin": { "type": "boolean", "default": true, "description": "If true, users can log in with email/password." },
+        "disablePurchases": { "type": "boolean", "default": false, "description": "If true, all course purchases are disabled." },
+        "upiId": { "type": "string", "description": "The UPI ID for receiving payments." },
+        "receiverName": { "type": "string", "description": "The name of the UPI account holder." },
+        "currencySymbol": { "type": "string", "default": "₹", "description": "The currency symbol to display (e.g., ₹, $)." },
+        "paymentInstructions": { "type": "string", "description": "Text displayed to users on the payment page." },
+        "qrCodeUrl": { "type": "string", "format": "uri", "description": "URL for the payment QR code image." },
+        "socialLinks": {
+            "type": "array",
+            "description": "A list of social media links for the site footer.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "url": { "type": "string" },
+                    "visible": { "type": "boolean" }
+                },
+                "required": ["id", "name", "url", "visible"]
+            }
+        }
+      }
     }
   },
   "auth": {
@@ -708,8 +744,22 @@
             }
           ]
         }
+      },
+      {
+        "path": "/settings/{settingsId}",
+        "definition": {
+          "entityName": "SiteSettings",
+          "schema": { "$ref": "#/backend/entities/SiteSettings" },
+          "description": "Stores global configuration for the website. This is a singleton collection, typically with only one document, where the ID is 'global'.",
+           "params": [
+            {
+              "name": "settingsId",
+              "description": "The unique identifier for the settings document (e.g., 'global')."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the CourseVerse application, adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity. User data is stored under `/users/{userId}`. Courses are stored in a top-level `/courses` collection. Enrollments, Certificates, PaymentTransactions, and AffiliateCommissions are organized as subcollections under the respective user document (`/users/{userId}/enrollments/{enrollmentId}`, `/users/{userId}/certificates/{certificateId}`, `/users/{userId}/paymentTransactions/{transactionId}`, `/users/{userId}/affiliateCommissions/{affiliateCommissionId}`). ApiKeys are also stored as a subcollection under `/users/{userId}/apiKeys/{apiKeyId}` enabling admin-level management of keys. ApiLogs and AdminActionLogs are segregated into top-level collections for admin-only access. A new top-level `/logs` collection is added to store immutable system audit trails, accessible only by admins for reading, with writes handled by trusted backend logic.\\n\\nThis structure achieves Authorization Independence by avoiding hierarchical `get()` calls. For example, while Enrollments are stored under `/users/{userId}`, access control is based on `request.auth.uid === userId`. Similarly, courses are top-level with no dependency on user data for access.\\n\\nThis design supports the QAPs by segregating data based on access needs and employing path-based ownership where appropriate. Listing courses is secure because it does not require any user context. Listing a user's enrollments is restricted to the user themselves via the path-based structure and security rules."
+    "reasoning": "The Firestore data structure is designed to support the CourseVerse application, adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity. User data is stored under `/users/{userId}`. Courses are stored in a top-level `/courses` collection. Enrollments, Certificates, PaymentTransactions, and AffiliateCommissions are organized as subcollections under the respective user document. ApiKeys are also stored as a subcollection under `/users/{userId}/apiKeys/{apiKeyId}` enabling admin-level management of keys. ApiLogs and AdminActionLogs are segregated into top-level collections for admin-only access. A `/logs` collection is added to store immutable system audit trails. A new singleton collection, `/settings`, is added to store global site configuration in a single document, typically `/settings/global`, allowing for dynamic control over site behavior."
   }
 }

@@ -37,3 +37,30 @@ export type LogEntry = {
     error?: string;
   };
 };
+
+export type SocialLink = {
+    id: 'github' | 'telegram' | 'instagram';
+    name: string;
+    url: string;
+    visible: boolean;
+};
+
+export interface SiteSettings {
+  id: 'global';
+  siteName: string;
+  tagline: string;
+  description: string;
+  footerText: string;
+  logoUrl: string;
+  faviconUrl: string;
+  maintenanceMode: boolean;
+  enableGoogleLogin: boolean;
+  enableEmailLogin: boolean;
+  disablePurchases: boolean;
+  upiId: string;
+  receiverName: string;
+  currencySymbol: string;
+  paymentInstructions: string;
+  qrCodeUrl: string;
+  socialLinks: SocialLink[];
+}
