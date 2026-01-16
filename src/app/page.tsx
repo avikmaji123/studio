@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -13,7 +12,6 @@ import {
   LayoutGrid,
   Lock,
   Star,
-  CheckCircle,
 } from 'lucide-react';
 import { useMemo, useState, useRef, useEffect, cloneElement } from 'react';
 import { collection, query, where, limit } from 'firebase/firestore';
@@ -30,128 +28,47 @@ import { cn } from '@/lib/utils';
 import type { Course } from '@/lib/types';
 
 
-const testimonialImages = {
-  'testimonial-1': PlaceHolderImages.find(p => p.id === 'testimonial-1'),
-  'testimonial-2': PlaceHolderImages.find(p => p.id === 'testimonial-2'),
-  'testimonial-3': PlaceHolderImages.find(p => p.id === 'testimonial-3'),
-  'testimonial-4': PlaceHolderImages.find(p => p.id === 'testimonial-4'),
-};
-
 function HeroSection() {
   const { user } = useUser();
-  const firestore = useFirestore();
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 
-  const featuredCourseQuery = useMemoFirebase(() => query(
-    collection(firestore, 'courses'), 
-    where('slug', '==', 'website-hacking-full-stack-security'),
-    limit(1)
-  ), [firestore]);
-  const { data: featuredCourses, isLoading } = useCollection<Course>(featuredCourseQuery);
-  const course = featuredCourses?.[0];
-
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-
-    const maxRotate = 6; // Reduced for a more subtle effect
-    setRotation({
-      x: yPct * -maxRotate,
-      y: xPct * maxRotate,
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setRotation({ x: 0, y: 0 });
-  };
-  
   return (
-    <section className="relative w-full overflow-hidden bg-background pt-16 md:pt-24 lg:pt-32 pb-12">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-0"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_70%_30%,hsl(var(--primary)/0.1),transparent_40%)]"></div>
-         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_30%_70%,hsl(var(--primary)/0.05),transparent_40%)]"></div>
-      </div>
-      <div className="container relative mx-auto px-4 md:px-6">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col justify-center space-y-6 animate-float-in">
-            <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Level Up Your Skills with CourseVerse
-            </h1>
-            <p className="max-w-[600px] text-lg text-muted-foreground">
-              A premium learning management platform for course creation,
-              distribution, and access.
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row">
+    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+          {heroImage && (
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              data-ai-hint={heroImage.imageHint}
+              width={600}
+              height={400}
+              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
+            />
+          )}
+          <div className="flex flex-col justify-center space-y-4">
+            <div className="space-y-2">
+              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                Unlock Your Potential with CourseVerse
+              </h1>
+              <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                A course distribution and access management platform.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 min-[400px]:flex-row">
               {user ? (
-                 <Button asChild size="lg">
-                    <Link href="/dashboard">Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                <Button asChild>
+                  <Link href="/dashboard">Go to Dashboard</Link>
                 </Button>
               ) : (
-                <Button asChild size="lg">
-                  <Link href="/courses">
-                    Explore Courses
-                  </Link>
+                <Button asChild>
+                  <Link href="/signup">Sign Up</Link>
                 </Button>
               )}
+               <Button asChild variant="secondary">
+                <Link href="/courses">Explore Courses</Link>
+              </Button>
             </div>
-          </div>
-          <div 
-            className="relative flex items-center justify-center [perspective:1000px] animate-float-in"
-            style={{'--delay': '200ms'} as React.CSSProperties}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            {isLoading ? (
-                <Skeleton className="h-[450px] w-full max-w-sm rounded-3xl" />
-            ) : course ? (
-              <div 
-                ref={cardRef}
-                className="group relative h-[450px] w-full max-w-sm transition-all duration-300 ease-out [transform-style:preserve-3d] md:animate-float"
-                style={{
-                  transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-                }}
-              >
-                {/* 3D Base Platform */}
-                <div className="absolute inset-x-0 bottom-10 h-2/5 w-full rounded-3xl bg-black/30 [transform:rotateX(80deg)_translateY(4rem)] blur-2xl transition-all duration-300 group-hover:bg-black/40"></div>
-
-                {/* Card Itself */}
-                <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-primary/20 bg-background/60 text-foreground shadow-2xl shadow-primary/20 backdrop-blur-lg [transform:translateZ(40px)] [transform-style:preserve-3d]">
-                    <Image
-                        src={PlaceHolderImages.find(p => p.id === 'course-cyber-10')?.imageUrl || ''}
-                        alt={course.title}
-                        fill
-                        className="absolute inset-0 -z-10 object-cover opacity-20 transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 -z-20 bg-gradient-to-b from-primary/10 via-background/80 to-background dark:from-primary/20 dark:via-black/80 dark:to-black"></div>
-
-                    <div className="flex-grow p-6">
-                        <h3 className="font-headline text-2xl font-bold tracking-tight">{course.title}</h3>
-                        <p className="mt-2 max-w-[90%] text-sm text-muted-foreground">{course.shortDescription}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between p-6 pt-0 [transform:translateZ(20px)]">
-                      <Button asChild variant="secondary" className="backdrop-blur-md">
-                          <Link href={`/courses/${course.slug}`}>View Course</Link>
-                      </Button>
-                      <span className="rounded-full bg-background/50 px-4 py-2 text-sm font-semibold backdrop-blur-md flex items-center gap-2">
-                          {course.price} <CheckCircle className="h-4 w-4 text-green-500"/>
-                      </span>
-                    </div>
-                </div>
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
@@ -160,46 +77,43 @@ function HeroSection() {
 }
 
 function FeaturesSection() {
-  const features = [
+    const features = [
     {
-      icon: <ShieldCheck className="h-8 w-8" />,
-      title: 'Secure Access',
+      icon: <BookOpen className="h-8 w-8" />,
+      title: 'Curated Content',
       description:
-        'Your learning environment is protected with secure account management and access controls.',
+        'Access a library of high-quality courses from licensed third-party creators.',
     },
     {
-      icon: <Download className="h-8 w-8" />,
-      title: 'Offline-Friendly Access',
-      description: 'Download course materials to learn on the go, anytime, anywhere.',
+      icon: <Library className="h-8 w-8" />,
+      title: 'Centralized Learning',
+      description: 'Manage all your courses and learning progress in one place.',
     },
-     {
+    {
       icon: <TrendingUp className="h-8 w-8" />,
-      title: 'Track Your Progress',
-      description: 'Stay motivated with our intuitive progress tracking system for every course.',
+      title: 'Skill-Focused',
+      description:
+        'Courses are selected to provide practical, real-world skills.',
     },
   ];
 
   return (
-    <section id="features" className="py-16 sm:py-24 bg-background">
+    <section id="features" className="py-12 md:py-24 lg:py-32 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-            A Better Way to Learn
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+            Why Choose CourseVerse?
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Top tools and high-quality licensed content you need to succeed,
-            without the noise.
+          <p className="mt-2 text-muted-foreground md:text-xl/relaxed">
+            A better way to learn and grow.
           </p>
         </div>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Card
-              key={index}
-              className="text-center transition-transform hover:scale-105 hover:shadow-lg dark:bg-card/50"
-            >
+            <Card key={index} className="text-center">
               <CardHeader>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  {cloneElement(feature.icon, { style: { color: '#FF6B6B' } })}
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  {feature.icon}
                 </div>
                 <CardTitle>{feature.title}</CardTitle>
               </CardHeader>
@@ -220,12 +134,11 @@ function FeaturedCoursesSection() {
   
   const coursesQuery = useMemoFirebase(() => query(
     collection(firestore, 'courses'),
-    where('isBestseller', '==', true),
-    limit(1)
+    where('status', '==', 'published'),
+    limit(3)
   ), [firestore]);
   
-  const { data: featuredCourses, isLoading } = useCollection<Course>(coursesQuery);
-  const course = featuredCourses?.[0];
+  const { data: courses, isLoading } = useCollection<Course>(coursesQuery);
 
   const enrollmentsQuery = useMemoFirebase(
     () => (user ? collection(firestore, 'users', user.uid, 'enrollments') : null),
@@ -233,81 +146,39 @@ function FeaturedCoursesSection() {
   );
   const { data: enrollments, isLoading: enrollmentsLoading } = useCollection(enrollmentsQuery);
 
-  const isEnrolled = useMemo(() => {
-    if (!enrollments || !course) return false;
-    return enrollments.some(e => e.id === course.id);
-  }, [enrollments, course]);
+  const enrolledCourseIds = useMemo(() => {
+    if (!enrollments) return [];
+    return enrollments.map(e => e.id);
+  }, [enrollments]);
 
-  if (isLoading || enrollmentsLoading) {
-    return (
-      <section id="courses" className="bg-background py-16 sm:py-24">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-12 text-center">
-            <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-              Featured Course
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              Our top-rated course to kickstart your learning adventure.
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <Skeleton className="h-[500px] w-full max-w-md" />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!course) return null;
 
   return (
-    <section id="courses" className="bg-background py-16 sm:py-24">
+    <section id="courses" className="py-12 md:py-24 lg:py-32">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-            Featured Course
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+            Featured Courses
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Our top-rated course to kickstart your learning adventure.
+          <p className="mt-2 text-muted-foreground md:text-xl/relaxed">
+            Our most popular courses to get you started.
           </p>
         </div>
-        
-        <div className="flex justify-center [perspective:1200px]">
-          <div className="group relative w-full max-w-md transition-all duration-300 [transform-style:preserve-3d] hover:[transform:rotateY(3deg)_translateZ(10px)]">
-             <div className="absolute inset-0 bg-black/30 rounded-3xl [transform:rotateY(-15deg)_translateZ(-20px)_translateX(-20px)] blur-2xl transition-all duration-300 group-hover:[transform:rotateY(-10deg)_translateZ(-20px)_translateX(0px)]"></div>
-            <div className="relative w-full rounded-2xl bg-white text-slate-800 shadow-2xl transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)]">
-              {course.isBestseller && (
-                <div className="absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-primary to-accent">
-                  Bestseller
-                </div>
-              )}
-              <div className="relative h-56 w-full">
-                <Image
-                  src={course.imageUrl || ''}
-                  alt={course.title}
-                  fill
-                  className="object-cover rounded-t-2xl"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold">{course.title}</h3>
-                <p className="mt-2 text-sm text-slate-600 line-clamp-2">{course.shortDescription}</p>
-                <div className="mt-4 flex items-baseline justify-between">
-                  <div className="text-3xl font-bold text-slate-900">{course.price}</div>
-                   <Button asChild className="font-semibold text-white bg-gradient-to-r from-primary to-accent shadow-lg hover:shadow-xl transition-shadow">
-                      <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`}>
-                        {isEnrolled ? 'View Downloads' : 'Purchase Course'}
-                      </Link>
-                    </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+           {isLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-[350px] w-full" />
+                ))
+            ) : (
+                courses?.map(course => (
+                    <CourseCard key={course.id} course={course} isEnrolled={enrolledCourseIds.includes(course.id)} />
+                ))
+            )}
         </div>
-
         <div className="mt-12 text-center">
-          <Button asChild variant="outline">
-            <Link href="/courses">View All Courses</Link>
+          <Button asChild>
+            <Link href="/courses">
+              View All Courses <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </div>
@@ -317,51 +188,33 @@ function FeaturedCoursesSection() {
 
 
 function TestimonialsSection() {
-  return (
-    <section id="testimonials" className="py-16 sm:py-24">
+   return (
+    <section id="testimonials" className="py-12 md:py-24 lg:py-32 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="mb-12 text-center max-w-3xl mx-auto">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
             What Our Students Say
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Real stories from users who transformed their careers with courses
-            from CourseVerse.
+          <p className="mt-2 text-muted-foreground md:text-xl/relaxed">
+            Real stories from people who have transformed their careers.
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map(testimonial => (
-            <Card
-              key={testimonial.id}
-              className="flex flex-col transition-transform transform hover:-translate-y-1 hover:shadow-xl"
-            >
-              <CardContent className="flex-grow p-6 space-y-4">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${
-                        i < testimonial.rating
-                          ? 'text-yellow-400 fill-yellow-400'
-                          : 'text-muted-foreground/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <blockquote className="text-base text-foreground/90 italic">
+            <Card key={testimonial.id}>
+              <CardContent className="p-6">
+                <blockquote className="text-lg font-semibold leading-snug">
                   "{testimonial.quote}"
                 </blockquote>
               </CardContent>
               <CardHeader className="pt-0 p-6 flex flex-row items-center gap-4">
-                {testimonialImages[
-                  testimonial.imageId as keyof typeof testimonialImages
-                ] && (
+                {PlaceHolderImages.find(p => p.id === testimonial.imageId) && (
                   <Avatar>
                     <AvatarImage
                       src={
-                        testimonialImages[
-                          testimonial.imageId as keyof typeof testimonialImages
-                        ]?.imageUrl
+                        PlaceHolderImages.find(
+                          p => p.id === testimonial.imageId
+                        )?.imageUrl
                       }
                       alt={testimonial.name}
                     />
