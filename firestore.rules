@@ -246,5 +246,18 @@ service cloud.firestore {
         allow get, list: if isAdmin();
         allow create, update, delete: if false;
     }
+    
+    /**
+     * @description Stores global configuration for the website. This is a singleton document.
+     * Publicly readable for all users to configure the site UI. Only admins can modify the settings.
+     * @path /settings/{settingsId}
+     * @allow (get, list) Any user, authenticated or not, can read the site configuration.
+     * @deny (create) A non-admin user tries to create a settings document.
+     * @principle Provides public read access for configuration while restricting writes to admins.
+     */
+    match /settings/{settingsId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
   }
 }
