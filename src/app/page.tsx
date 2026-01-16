@@ -15,7 +15,7 @@ import {
   Star,
   CheckCircle,
 } from 'lucide-react';
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useEffect, cloneElement } from 'react';
 import { collection, query, where, limit } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -162,18 +162,18 @@ function HeroSection() {
 function FeaturesSection() {
   const features = [
     {
-      icon: <ShieldCheck className="h-8 w-8 text-primary" />,
+      icon: <ShieldCheck className="h-8 w-8" />,
       title: 'Secure Access',
       description:
         'Your learning environment is protected with secure account management and access controls.',
     },
     {
-      icon: <Download className="h-8 w-8 text-primary" />,
+      icon: <Download className="h-8 w-8" />,
       title: 'Offline-Friendly Access',
       description: 'Download course materials to learn on the go, anytime, anywhere.',
     },
      {
-      icon: <TrendingUp className="h-8 w-8 text-primary" />,
+      icon: <TrendingUp className="h-8 w-8" />,
       title: 'Track Your Progress',
       description: 'Stay motivated with our intuitive progress tracking system for every course.',
     },
@@ -199,7 +199,7 @@ function FeaturesSection() {
             >
               <CardHeader>
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  {feature.icon}
+                  {cloneElement(feature.icon, { style: { color: '#FF6B6B' } })}
                 </div>
                 <CardTitle>{feature.title}</CardTitle>
               </CardHeader>
@@ -217,12 +217,15 @@ function FeaturesSection() {
 function FeaturedCoursesSection() {
   const firestore = useFirestore();
   const { user } = useUser();
+  
   const coursesQuery = useMemoFirebase(() => query(
-    collection(firestore, 'courses'), 
-    where('status', '==', 'published'),
-    limit(6)
+    collection(firestore, 'courses'),
+    where('isBestseller', '==', true),
+    limit(1)
   ), [firestore]);
+  
   const { data: featuredCourses, isLoading } = useCollection<Course>(coursesQuery);
+  const course = featuredCourses?.[0];
 
   const enrollmentsQuery = useMemoFirebase(
     () => (user ? collection(firestore, 'users', user.uid, 'enrollments') : null),
@@ -230,30 +233,78 @@ function FeaturedCoursesSection() {
   );
   const { data: enrollments, isLoading: enrollmentsLoading } = useCollection(enrollmentsQuery);
 
-  const enrolledCourseIds = useMemo(() => enrollments?.map(e => e.id) || [], [enrollments]);
+  const isEnrolled = useMemo(() => {
+    if (!enrollments || !course) return false;
+    return enrollments.some(e => e.id === course.id);
+  }, [enrollments, course]);
+
+  if (isLoading || enrollmentsLoading) {
+    return (
+      <section id="courses" className="bg-background py-16 sm:py-24">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="mb-12 text-center">
+            <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+              Featured Course
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Our top-rated course to kickstart your learning adventure.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <Skeleton className="h-[500px] w-full max-w-md" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!course) return null;
 
   return (
-    <section id="courses" className="bg-muted/50 py-16 sm:py-24">
+    <section id="courses" className="bg-background py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-            Featured Courses
+            Featured Course
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Handpicked courses to kickstart your learning adventure.
+            Our top-rated course to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-           {(isLoading || enrollmentsLoading) ? (
-             Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-[420px] w-full" />
-             ))
-           ) : (
-            featuredCourses?.map(course => (
-              <CourseCard key={course.id} course={course} isEnrolled={enrolledCourseIds.includes(course.id)} />
-            ))
-           )}
+        
+        <div className="flex justify-center [perspective:1200px]">
+          <div className="group relative w-full max-w-md transition-all duration-300 [transform-style:preserve-3d] hover:[transform:rotateY(3deg)_translateZ(10px)]">
+             <div className="absolute inset-0 bg-black/30 rounded-3xl [transform:rotateY(-15deg)_translateZ(-20px)_translateX(-20px)] blur-2xl transition-all duration-300 group-hover:[transform:rotateY(-10deg)_translateZ(-20px)_translateX(0px)]"></div>
+            <div className="relative w-full rounded-2xl bg-white text-slate-800 shadow-2xl transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)]">
+              {course.isBestseller && (
+                <div className="absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-primary to-accent">
+                  Bestseller
+                </div>
+              )}
+              <div className="relative h-56 w-full">
+                <Image
+                  src={course.imageUrl || ''}
+                  alt={course.title}
+                  fill
+                  className="object-cover rounded-t-2xl"
+                />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold">{course.title}</h3>
+                <p className="mt-2 text-sm text-slate-600 line-clamp-2">{course.shortDescription}</p>
+                <div className="mt-4 flex items-baseline justify-between">
+                  <div className="text-3xl font-bold text-slate-900">{course.price}</div>
+                   <Button asChild className="font-semibold text-white bg-gradient-to-r from-primary to-accent shadow-lg hover:shadow-xl transition-shadow">
+                      <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`}>
+                        {isEnrolled ? 'View Downloads' : 'Purchase Course'}
+                      </Link>
+                    </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
         <div className="mt-12 text-center">
           <Button asChild variant="outline">
             <Link href="/courses">View All Courses</Link>
@@ -263,6 +314,7 @@ function FeaturedCoursesSection() {
     </section>
   );
 }
+
 
 function TestimonialsSection() {
   return (
