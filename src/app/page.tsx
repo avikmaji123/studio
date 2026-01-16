@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   Lock,
   Star,
+  CheckCircle,
 } from 'lucide-react';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { collection, query, where, limit } from 'firebase/firestore';
