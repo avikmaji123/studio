@@ -86,14 +86,16 @@ function HeroSection() {
           </div>
           <div className="relative flex items-center justify-center">
             {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                data-ai-hint={heroImage.imageHint}
-                width={600}
-                height={400}
-                className="rounded-xl object-cover shadow-2xl"
-              />
+              <div className="relative hero-vignette overflow-hidden rounded-xl shadow-2xl">
+                <Image
+                  src={heroImage.imageUrl}
+                  alt={heroImage.description}
+                  data-ai-hint={heroImage.imageHint}
+                  width={600}
+                  height={400}
+                  className="object-cover"
+                />
+              </div>
             )}
             <div className="absolute -bottom-8 -right-8 z-10 hidden lg:block">
               <div className="rounded-lg bg-card p-4 shadow-lg">
