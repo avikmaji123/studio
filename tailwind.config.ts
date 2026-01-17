@@ -18,7 +18,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
+        body: ['"Source Sans 3"', 'sans-serif'],
         headline: ['Macondo', 'cursive'],
         code: ['monospace'],
       },
