@@ -6,7 +6,7 @@ export default function NewsPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl">News & Updates</h1>
+        <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl animated-headline">News & Updates</h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
           Stay informed with the latest trends in technology, design, and marketing.
         </p>

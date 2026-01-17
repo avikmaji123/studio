@@ -7,7 +7,7 @@ export default function ContactPage() {
   return (
     <div className="container mx-auto px-4 py-16 sm:py-24">
       <div className="max-w-3xl mx-auto text-center">
-        <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl">Contact Us</h1>
+        <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl animated-headline">Contact Us</h1>
         <p className="mt-4 text-lg text-muted-foreground">
           Have a question or feedback? We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible.
         </p>

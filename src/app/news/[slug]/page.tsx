@@ -45,7 +45,7 @@ export default function NewsArticlePage({ params }: NewsArticlePageProps) {
                 <span>&bull;</span>
                 <span>Source: {article.sourceName}</span>
             </div>
-            <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4 animated-headline">
                 {article.title}
             </h1>
         </header>

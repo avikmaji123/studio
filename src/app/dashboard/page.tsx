@@ -96,7 +96,7 @@ export default function DashboardOverviewPage() {
         {isUserLoading ? (
             <Skeleton className="h-10 w-1/2" />
         ) : (
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight animated-headline">
                 Welcome back, {profile?.firstName || 'Student'}!
             </h1>
         )}

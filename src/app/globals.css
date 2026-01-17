@@ -79,6 +79,26 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body antialiased;
+  }
+}
+
+@layer utilities {
+  .animated-headline {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+    animation: headline-gradient 5s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  @keyframes headline-gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 }

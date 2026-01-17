@@ -23,7 +23,7 @@ export default function AboutPage() {
       {/* Section 1: Hero / Intro */}
       <section className="py-20 md:py-32 text-center bg-muted/30">
         <div className="container mx-auto px-4">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tight">
+          <h1 className="font-headline text-4xl md:text-6xl font-bold tracking-tight animated-headline">
             About Course Verse
           </h1>
           <p className="mt-4 md:mt-6 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground">
@@ -36,7 +36,7 @@ export default function AboutPage() {
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
             <div className="prose dark:prose-invert max-w-none text-muted-foreground space-y-4 text-lg">
-                <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">What is Course Verse?</h2>
+                <h2 className="font-headline text-3xl md:text-4xl font-bold animated-headline">What is Course Verse?</h2>
                 <p>
                 Course Verse is a course distribution and access management platform. It was born from a simple idea: online education should be about long-term value, not just a transaction. It’s a place for practical learning and structured growth, designed to solve the problem of low-quality, mass-produced online courses.
                 </p>
@@ -72,7 +72,7 @@ export default function AboutPage() {
               )}
             </div>
             <div className="prose dark:prose-invert max-w-none text-muted-foreground space-y-4 text-lg">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">About the Platform Administrator</h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold animated-headline">About the Platform Administrator</h2>
                <p>
                 I'm Avik, a full-stack developer with a passion for technology and building great user experiences. I created Course Verse as a high-quality distribution platform for licensed educational content.
               </p>
@@ -90,7 +90,7 @@ export default function AboutPage() {
        {/* Section 4: Vision & Mission */}
       <section className="py-16 md:py-24 text-center">
         <div className="container mx-auto px-4 max-w-4xl">
-           <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">Our Vision & Mission</h2>
+           <h2 className="font-headline text-3xl md:text-4xl font-bold animated-headline">Our Vision & Mission</h2>
             <p className="mt-4 text-lg text-muted-foreground">
                 Our mission is to build a trusted, community-driven content delivery platform where users can achieve their goals through clear, practical, and high-quality licensed courses. We are committed to continuous improvement, ensuring Course Verse evolves with the needs of our users.
             </p>
@@ -101,7 +101,7 @@ export default function AboutPage() {
        <section className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
-                <h2 className="font-headline text-3xl md:text-4xl font-bold text-foreground">Why Trust Course Verse?</h2>
+                <h2 className="font-headline text-3xl md:text-4xl font-bold animated-headline">Why Trust Course Verse?</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
                     We believe in transparency and quality. Here’s our commitment to you.
                 </p>
@@ -120,7 +120,7 @@ export default function AboutPage() {
       {/* Section 6: Call to Action */}
       <section className="py-20 md:py-32 text-center">
         <div className="container mx-auto px-4">
-          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight animated-headline">
             Join the Course Verse Journey
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">

@@ -1,7 +1,7 @@
 export default function TermsOfServicePage() {
   return (
     <div className="container mx-auto px-4 py-16 sm:py-24 max-w-4xl">
-      <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl mb-8">Terms of Service</h1>
+      <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl mb-8 animated-headline">Terms of Service</h1>
       <div className="prose dark:prose-invert max-w-none text-muted-foreground space-y-6">
         <p>Last updated: {new Date().toLocaleDateString()}</p>
         <h2 className="text-2xl font-bold text-foreground">1. Agreement to Terms</h2>

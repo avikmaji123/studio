@@ -57,7 +57,7 @@ function HeroSection() {
       </div>
       <div className="container relative mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-6 text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl">
+          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl animated-headline">
             Unlock Your Potential with CourseVerse
           </h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
@@ -131,7 +131,7 @@ function FeaturesSection() {
     <section id="features" className="py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
             A Better Way to Learn
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
@@ -194,7 +194,7 @@ function FeaturedCoursesSection() {
     <section id="courses" className="bg-muted/50 py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
             Featured Courses
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
@@ -229,7 +229,7 @@ function TestimonialsSection() {
     <section id="testimonials" className="py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center max-w-3xl mx-auto">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
             What Our Students Say
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
