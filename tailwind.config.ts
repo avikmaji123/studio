@@ -19,7 +19,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['"Source Sans 3"', 'sans-serif'],
-        headline: ['Macondo', 'cursive'],
+        headline: ['Lexend', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
