@@ -86,19 +86,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
-@layer utilities {
-  .hero-vignette {
-    transition: box-shadow 0.5s ease-in-out;
-    /* The vignette is created with a large, inset box-shadow that uses the current background color. */
-    /* This makes it blend perfectly and adapt to theme changes. */
-    
-    /* Light theme: a very subtle vignette for a clean look. */
-    box-shadow: inset 0px 0px 90px 40px hsl(var(--background));
-  }
-
-  .dark .hero-vignette {
-    /* Dark theme: a stronger vignette to blend into the dark background. */
-    box-shadow: inset 0px 0px 120px 50px hsl(var(--background));
-  }
-}

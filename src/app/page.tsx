@@ -37,7 +37,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Course } from '@/lib/types';
 
-const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 const testimonialImages = {
   'testimonial-1': PlaceHolderImages.find(p => p.id === 'testimonial-1'),
   'testimonial-2': PlaceHolderImages.find(p => p.id === 'testimonial-2'),
@@ -57,72 +56,30 @@ function HeroSection() {
         <div className="h-32 bg-gradient-to-r from-cyan-400 to-sky-300 blur-[106px] dark:to-indigo-600"></div>
       </div>
       <div className="container relative mx-auto px-4 md:px-6">
-        <div className="grid gap-8 md:grid-cols-2 md:gap-16">
-          <div className="flex flex-col justify-center space-y-6">
-            <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Unlock Your Potential with CourseVerse
-            </h1>
-            <p className="max-w-[600px] text-lg text-muted-foreground">
-              A course distribution and access management platform. My role is
-              limited to platform administration, content distribution, and
-              access control.
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              {user ? (
-                <Button asChild size="lg">
-                  <Link href="/dashboard">Go to Dashboard</Link>
-                </Button>
-              ) : (
-                <Button asChild size="lg">
-                  <Link href="/login">
-                    Sign In to Enroll <ArrowRight className="ml-2" />
-                  </Link>
-                </Button>
-              )}
-              <Button asChild variant="secondary" size="lg">
-                <Link href="/courses">Explore All</Link>
+        <div className="flex flex-col items-center justify-center space-y-6 text-center">
+          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl">
+            Unlock Your Potential with CourseVerse
+          </h1>
+          <p className="max-w-2xl text-lg text-muted-foreground">
+            A course distribution and access management platform. My role is
+            limited to platform administration, content distribution, and
+            access control.
+          </p>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            {user ? (
+              <Button asChild size="lg">
+                <Link href="/dashboard">Go to Dashboard</Link>
               </Button>
-            </div>
-          </div>
-          <div className="relative flex items-center justify-center">
-            {heroImage && (
-              <div className="relative hero-vignette overflow-hidden rounded-xl shadow-2xl">
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  data-ai-hint={heroImage.imageHint}
-                  width={600}
-                  height={400}
-                  className="object-cover"
-                />
-              </div>
+            ) : (
+              <Button asChild size="lg">
+                <Link href="/login">
+                  Sign In to Enroll <ArrowRight className="ml-2" />
+                </Link>
+              </Button>
             )}
-            <div className="absolute -bottom-8 -right-8 z-10 hidden lg:block">
-              <div className="rounded-lg bg-card p-4 shadow-lg">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-2">
-                    {Object.values(testimonialImages).map(
-                      (img, i) =>
-                        img && (
-                          <Avatar key={i}>
-                            <AvatarImage
-                              src={img.imageUrl}
-                              alt={img.description}
-                            />
-                            <AvatarFallback>U{i + 1}</AvatarFallback>
-                          </Avatar>
-                        )
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-bold">+10k</p>
-                    <p className="text-sm text-muted-foreground">
-                      Happy Students
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Button asChild variant="secondary" size="lg">
+              <Link href="/courses">Explore All</Link>
+            </Button>
           </div>
         </div>
       </div>
