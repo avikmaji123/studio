@@ -304,27 +304,48 @@ function FaqSection() {
   const faqData = [
     {
       question: 'What is CourseVerse and how does it work?',
-      answer: 'CourseVerse is a distribution platform for high-quality, licensed educational content. As the administrator, I manage the platform and ensure access to courses created by trusted third-party experts. It is not a marketplace for instructors to upload their own content.',
+      answer:
+        'CourseVerse is a distribution platform for high-quality, licensed educational content. As the administrator, I manage the platform and ensure access to courses created by trusted third-party experts. It is not a marketplace for instructors to upload their own content.',
     },
     {
       question: 'Are CourseVerse courses officially licensed?',
-      answer: 'Yes. Every course available on CourseVerse is officially licensed from its original creator. We believe in ethical content distribution and compensating creators for their work.',
+      answer:
+        'Yes. Every course available on CourseVerse is officially licensed from its original creator. We believe in ethical content distribution and compensating creators for their work.',
+    },
+     {
+      question: 'Do I get lifetime access after purchase?',
+      answer:
+        'Yes, once a course is purchased, you have lifetime access to its downloadable materials through your dashboard. You can download them as many times as you like.',
     },
     {
       question: 'How does the payment and verification process work?',
-      answer: 'You pay the specified amount via UPI. After payment, you submit the transaction ID (UTR) and a screenshot on the payment page. Our automated system, enhanced with AI, verifies the payment. For valid payments, course access is granted instantly.',
+      answer:
+        'You pay the specified amount via UPI. After payment, you submit the transaction ID (UTR) and a screenshot on the payment page. Our automated system, enhanced with AI, verifies the payment. For valid payments, course access is granted instantly.',
     },
     {
       question: 'What happens after I buy a course?',
-      answer: 'Once your payment is verified, the course is immediately added to your account. You will have access to download all the course materials, including videos and project files, directly from your dashboard.',
+      answer:
+        'Once your payment is verified, the course is immediately added to your account. You will have access to download all the course materials, including videos and project files, directly from your dashboard.',
     },
     {
       question: 'Where can I download my purchased courses?',
-      answer: 'All your purchased courses and their downloadable assets are available in the "My Downloads" section of your personal dashboard. You must be logged in to access this page.',
+      answer:
+        'All your purchased courses and their downloadable assets are available in the "My Downloads" section of your personal dashboard. You must be logged in to access this page.',
+    },
+    {
+      question: 'Are certificates provided?',
+      answer:
+        'Yes, upon successful completion of a course, you will be issued a verifiable certificate which you can find in your dashboard.',
     },
     {
       question: 'What should I do if I face a payment issue?',
-      answer: 'If your payment is successful but verification fails, or if you encounter any other issues, please contact us through the contact page. We will manually review your transaction and resolve the issue as quickly as possible.',
+      answer:
+        'If your payment is successful but verification fails, or if you encounter any other issues, please contact us through the contact page. We will manually review your transaction and resolve the issue as quickly as possible.',
+    },
+     {
+      question: 'Is login required to access downloads?',
+      answer:
+        'Yes, you must be logged into your CourseVerse account to access the "My Downloads" page and download your purchased course materials. This ensures secure access to your content.',
     },
   ];
 
@@ -336,7 +357,7 @@ function FaqSection() {
             Frequently Asked Questions
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Find answers to common questions about our platform and courses.
+            Clear answers, powered by smart assistance.
           </p>
         </div>
         <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto">
