@@ -3,17 +3,14 @@
  * This ruleset enforces a strict, user-centric security model. Data is primarily segregated into user-owned documents and publicly readable, admin-managed collections. The default posture is to deny access unless explicitly granted, ensuring that users can only interact with their own information.
  *
  * # Data Structure
- * The data is organized hierarchically. Core user data and related private subcollections (like enrollments, certificates, and payment transactions) are nested under `/users/{userId}`. This path-based structure simplifies ownership rules. Publicly-accessible data, such as the course catalog, is stored in top-level collections like `/courses` and `/lessons`. Administrative and system logs are also segregated into their own top-level collections (`/adminActionLogs`, `/apiLogs`, `/logs`) to isolate them from user and application data.
+ * The data is organized hierarchically. Core user data and related private subcollections (like enrollments, certificates, and payment transactions) are nested under `/users/{userId}`. This path-based structure simplifies ownership rules. Publicly-accessible data, such as the course catalog, is stored in top-level collections like `/courses` and `/lessons`. Administrative and system logs are also segregated into their own top-level collections (`/adminActionLogs`, `/apiLogs`, `/logs`) to isolate them from user and application data. A new top-level `/certificates` collection holds public verification data.
  *
  * # Key Security Decisions
  * - User Isolation: A user can only access documents within their own `/users/{userId}` data tree. Listing or reading other users' profiles is strictly forbidden, except for admins.
- * - Admin Privileges: A role-based access control (RBAC) system is implemented for administrative tasks. Users with `role == 'admin'` in their user profile can manage global collections like `/courses` and `/lessons`, and list users. This check requires a `get()` call to the user's profile, which is an acceptable performance trade-off for privileged operations.
- * - Public vs. Private: Data is structurally segregated. Public content (courses) is in a top-level collection with public read access. Private, user-specific data (enrollments) is in user subcollections, protected by ownership rules.
- * - Backend-Only Collections: Collections like `/apiLogs`, `/adminActionLogs`, and the new `/logs` collection are considered backend-managed. Client-side writes are completely disabled to prevent tampering, and reads are restricted to administrators. This ensures the integrity of the audit trail.
- * - Flexible Schemas: In this prototyping phase, rules focus on *who* can access *what* (authorization), not on the specific shape of the data. No rules enforce data types or the presence of non-critical fields, allowing for rapid front-end development.
- *
- * # Denormalization for Authorization
- * The primary security mechanism is path-based ownership (e.g., `/users/{userId}`), where the user's UID is part of the document path. For global permissions, a `role` field is denormalized onto each `User` document, allowing the `isAdmin()` function to efficiently check for administrative privileges without complex queries.
+ * - Admin Privileges: A role-based access control (RBAC) system is implemented for administrative tasks. Users with `role == 'admin'` in their user profile can manage global collections.
+ * - Public vs. Private: Data is structurally segregated. Public content (courses, certificate verification records) is in top-level collections with specific access rules. Private, user-specific data (enrollments, private certificate records) is in user subcollections, protected by ownership rules.
+ * - Backend-Only Collections: Collections like `/apiLogs`, `/adminActionLogs`, and `/logs` are considered backend-managed. Client-side writes are completely disabled to prevent tampering, and reads are restricted to administrators. This ensures the integrity of the audit trail.
+ * - Certificate Security: A public, top-level `/certificates/{certificateCode}` collection allows anyone to `get` a certificate record if they know the unique, non-guessable code. `list` and `write` are forbidden for clients to protect privacy and prevent forgery.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -23,41 +20,22 @@ service cloud.firestore {
     // Helper Functions
     // --------------------------------
 
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing document ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Checks if a document exists AND the authenticated user is the owner.
-     * Crucial for secure update and delete operations.
-     */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
-    /**
-     * Checks if the authenticated user has the 'admin' role in their user profile.
-     * This performs a document read and should be used for privileged actions.
-     */
     function isAdmin() {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    /**
-     * Checks if a document exists AND the authenticated user is an admin.
-     * Used for secure admin updates and deletes.
-     */
     function isExistingAdmin() {
         return isAdmin() && resource != null;
     }
@@ -66,15 +44,6 @@ service cloud.firestore {
     // User Collections
     // --------------------------------
 
-    /**
-     * @description Manages user profile data. A user can create their own profile,
-     *   and can only read or write their own data thereafter. Admins can list all users.
-     * @path /users/{userId}
-     * @allow (get) User 'A' reads their own profile.
-     * @allow (list) An Admin lists all users for the management panel.
-     * @deny (get) User 'A' tries to read the profile of User 'B'.
-     * @principle Restricts access to a user's own data tree, with an exception for admins.
-     */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
@@ -83,13 +52,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Manages a user's course enrollments. Only the user can access their own enrollment records.
-     * @path /users/{userId}/enrollments/{enrollmentId}
-     * @allow (create) A user enrolls in a course, creating a new record in their subcollection.
-     * @deny (list) User 'A' tries to list the enrollments of User 'B'.
-     * @principle Enforces document ownership and relational integrity via path.
-     */
     match /users/{userId}/enrollments/{enrollmentId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
@@ -98,11 +60,9 @@ service cloud.firestore {
     }
 
     /**
-     * @description Manages certificates awarded to a user. Only the user can access their own certificates.
+     * @description Manages a user's private references to their certificates. This is for populating the user's dashboard.
+     *   Public verification is handled by the top-level `/certificates` collection.
      * @path /users/{userId}/certificates/{certificateId}
-     * @allow (get) A user retrieves one of their own certificates.
-     * @deny (create) An admin tries to create a certificate directly in a user's subcollection.
-     * @principle Enforces document ownership and relational integrity via path.
      */
     match /users/{userId}/certificates/{certificateId} {
       allow get, list: if isOwner(userId) || isAdmin();
@@ -111,13 +71,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Manages a user's payment history. Only the user can access their own transaction records.
-     * @path /users/{userId}/paymentTransactions/{transactionId}
-     * @allow (list) A user lists their own payment history.
-     * @deny (delete) A user tries to delete a completed transaction record.
-     * @principle Enforces document ownership and relational integrity via path.
-     */
     match /users/{userId}/paymentTransactions/{transactionId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
@@ -125,13 +78,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Manages commissions earned by an affiliate user. Only the user can access their own records.
-     * @path /users/{userId}/affiliateCommissions/{affiliateCommissionId}
-     * @allow (get) An affiliate user views the details of a specific commission they earned.
-     * @deny (update) User 'A' tries to modify a commission record belonging to User 'B'.
-     * @principle Enforces document ownership and relational integrity via path.
-     */
     match /users/{userId}/affiliateCommissions/{affiliateCommissionId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.affiliateId == userId;
@@ -139,13 +85,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Manages API keys for a user. Only the user can access their own API keys.
-     * @path /users/{userId}/apiKeys/{apiKeyId}
-     * @allow (create) A user generates a new API key for themselves.
-     * @deny (get) User 'A' attempts to read an API key belonging to User 'B'.
-     * @principle Enforces document ownership and relational integrity via path.
-     */
     match /users/{userId}/apiKeys/{apiKeyId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
@@ -157,111 +96,60 @@ service cloud.firestore {
     // Collection Group Rules
     // --------------------------------
 
-    /**
-     * @description Authorizes an admin to perform a collection group query on 'paymentTransactions'.
-     * This is required for the admin dashboard to aggregate sales data across all users.
-     * @path /{path=**}/paymentTransactions/{transactionId}
-     * @allow (get, list) An admin lists all payment transactions across the entire database.
-     * @deny (get, list) A regular user attempts the same query.
-     * @principle Secures cross-collection queries by restricting them to admin roles.
-     */
     match /{path=**}/paymentTransactions/{transactionId} {
       allow get, list: if isAdmin();
     }
-
 
     // --------------------------------
     // Public & Admin Collections
     // --------------------------------
 
-    /**
-     * @description Manages the global course catalog. Anyone can read course data,
-     *   but only administrators can create, update, or delete courses.
-     * @path /courses/{courseId}
-     * @allow (get, list) An anonymous, unauthenticated user browses the course catalog.
-     * @deny (create) A regular, non-admin user tries to create a new course.
-     * @principle Provides public read access while restricting writes to privileged admin roles.
-     */
     match /courses/{courseId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Manages individual lessons. For prototyping, lessons are publicly readable,
-     *   assuming they will be linked from public courses. Only admins can modify them.
-     * @path /lessons/{lessonId}
-     * @allow (get) Any signed-in user reads a lesson's content.
-     * @deny (update) A non-admin user tries to change the title of a lesson.
-     * @principle Provides public read access while restricting writes to privileged admin roles.
-     */
     match /lessons/{lessonId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Stores logs for API requests. These logs should only be created by a trusted backend server.
-     *   Client-side writes are forbidden to prevent log tampering. Reads are restricted to admins.
-     * @path /apiLogs/{apiLogId}
-     * @allow (list) An admin lists recent API logs for debugging.
-     * @deny (create, update, delete) Any client-side user attempts to write or delete a log entry.
-     * @principle Secures audit trails by making them immutable from the client and read-only for admins.
+     * @description Publicly-verifiable certificate records. The document ID is the unique code.
+     *   This collection is read-only for the public to allow verification.
+     *   Writes should only be performed by a trusted backend process or admin.
+     * @path /certificates/{certificateCode}
+     * @allow (get) Any user (authenticated or not) can fetch a specific certificate if they know its code.
+     * @deny (list) Listing all certificates is forbidden to protect privacy.
+     * @deny (create, update, delete) Clients cannot write to this collection unless they are an admin.
      */
+    match /certificates/{certificateCode} {
+        allow get: if true;
+        allow list: if false;
+        allow create, update, delete: if isAdmin();
+    }
+
     match /apiLogs/{apiLogId} {
       allow get, list: if isAdmin();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Stores a record of actions performed by administrators. These logs are for auditing
-     *   and must not be writable from the client. Only other admins can read them.
-     * @path /adminActionLogs/{adminActionLogId}
-     * @allow (get) An admin views a log entry to audit another admin's action.
-     * @deny (create, update, delete) Any client-side user attempts to create or modify an admin log.
-     * @principle Secures audit trails by making them immutable from the client and read-only for admins.
-     */
     match /adminActionLogs/{adminActionLogId} {
       allow get, list: if isAdmin();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
-    /**
-     * @description Stores system-wide, immutable log entries. Writes are allowed from server actions
-     * using a server timestamp, which acts as a lightweight security measure. Direct client-side 
-     * modifications are forbidden. Only administrators can read logs.
-     * @path /logs/{logId}
-     * @allow (get, list) An admin lists logs for monitoring system activity.
-     * @deny (update, delete) All client-side write and delete operations are forbidden to maintain a secure audit trail.
-     * @principle Secures the audit trail by restricting reads to administrators and writes to server-side processes.
-     */
     match /logs/{logId} {
         allow get, list: if isAdmin();
-        // Allow create only if the request includes a server timestamp.
-        // This is a proxy for ensuring the write comes from a trusted server action using the SDK.
         allow create: if request.resource.data.timestamp == request.time;
         allow update, delete: if false;
     }
     
-    /**
-     * @description Stores global configuration for the website. This is a singleton document.
-     * Publicly readable for all users to configure the site UI. Only admins can modify the settings.
-     * @path /settings/{settingsId}
-     * @allow (get, list) Any user, authenticated or not, can read the site configuration.
-     * @deny (create) A non-admin user tries to create a settings document.
-     * @principle Provides public read access for configuration while restricting writes to admins.
-     */
     match /settings/{settingsId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
   }
 }
+
+    

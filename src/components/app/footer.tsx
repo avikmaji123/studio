@@ -24,6 +24,7 @@ export default function Footer() {
   const legalLinks = [
     { label: 'Terms of Service', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Verify Certificate', href: '/verify-certificate' },
   ];
   
   const visibleSocialLinks = settings.socialLinks.filter(link => link.visible);
@@ -114,3 +115,5 @@ export default function Footer() {
     </footer>
   );
 }
+
+    
