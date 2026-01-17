@@ -19,7 +19,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Playfair Display', 'serif'],
+        headline: ['Macondo', 'cursive'],
         code: ['monospace'],
       },
       colors: {
