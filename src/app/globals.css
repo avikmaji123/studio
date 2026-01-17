@@ -88,13 +88,8 @@ body {
 }
 
 @layer utilities {
-  .hero-vignette::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit; /* Match parent's rounded corners */
+  .hero-vignette {
     transition: box-shadow 0.5s ease-in-out;
-    
     /* The vignette is created with a large, inset box-shadow that uses the current background color. */
     /* This makes it blend perfectly and adapt to theme changes. */
     
@@ -102,7 +97,7 @@ body {
     box-shadow: inset 0px 0px 90px 40px hsl(var(--background));
   }
 
-  .dark .hero-vignette::after {
+  .dark .hero-vignette {
     /* Dark theme: a stronger vignette to blend into the dark background. */
     box-shadow: inset 0px 0px 120px 50px hsl(var(--background));
   }
