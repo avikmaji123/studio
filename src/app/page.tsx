@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -24,6 +25,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CourseCard } from '@/components/app/course-card';
 import { testimonials } from '@/lib/testimonials';
@@ -293,6 +300,63 @@ function TestimonialsSection() {
   );
 }
 
+function FaqSection() {
+  const faqData = [
+    {
+      question: 'What is CourseVerse and how does it work?',
+      answer: 'CourseVerse is a distribution platform for high-quality, licensed educational content. As the administrator, I manage the platform and ensure access to courses created by trusted third-party experts. It is not a marketplace for instructors to upload their own content.',
+    },
+    {
+      question: 'Are CourseVerse courses officially licensed?',
+      answer: 'Yes. Every course available on CourseVerse is officially licensed from its original creator. We believe in ethical content distribution and compensating creators for their work.',
+    },
+    {
+      question: 'How does the payment and verification process work?',
+      answer: 'You pay the specified amount via UPI. After payment, you submit the transaction ID (UTR) and a screenshot on the payment page. Our automated system, enhanced with AI, verifies the payment. For valid payments, course access is granted instantly.',
+    },
+    {
+      question: 'What happens after I buy a course?',
+      answer: 'Once your payment is verified, the course is immediately added to your account. You will have access to download all the course materials, including videos and project files, directly from your dashboard.',
+    },
+    {
+      question: 'Where can I download my purchased courses?',
+      answer: 'All your purchased courses and their downloadable assets are available in the "My Downloads" section of your personal dashboard. You must be logged in to access this page.',
+    },
+    {
+      question: 'What should I do if I face a payment issue?',
+      answer: 'If your payment is successful but verification fails, or if you encounter any other issues, please contact us through the contact page. We will manually review your transaction and resolve the issue as quickly as possible.',
+    },
+  ];
+
+  return (
+    <section id="faq" className="py-16 sm:py-24 bg-muted/50">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="mb-12 text-center max-w-3xl mx-auto">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+            Frequently Asked Questions
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Find answers to common questions about our platform and courses.
+          </p>
+        </div>
+        <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto">
+          {faqData.map((faq, index) => (
+            <AccordionItem key={index} value={`item-${index}`}>
+              <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="text-base text-muted-foreground">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </section>
+  );
+}
+
+
 export default function Home() {
   return (
     <>
@@ -300,6 +364,7 @@ export default function Home() {
       <FeaturesSection />
       <FeaturedCoursesSection />
       <TestimonialsSection />
+      <FaqSection />
     </>
   );
 }
