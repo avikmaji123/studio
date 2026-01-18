@@ -10,57 +10,68 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
+// New Portrait Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     return (
-        <div className="relative w-full max-w-[1123px] aspect-[1.414] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden">
-            {/* Watermark & BG Pattern */}
+        <div className="relative w-full h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden font-body">
+            {/* Watermark */}
             <div className="absolute inset-0 z-0">
-                 <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-60 rotate-[-15deg]" />
+                 <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] text-white/5 opacity-50 rotate-[-15deg]" />
             </div>
 
-            <div className="relative z-10 flex flex-col items-center flex-grow text-center">
-                {/* Header */}
-                <header className="w-full mb-10">
-                    <div className="flex justify-center items-center gap-3">
-                        <BookOpen className="h-8 w-8 text-cyan-400" />
-                        <h1 className="text-2xl font-bold tracking-wider">CourseVerse</h1>
-                    </div>
-                </header>
+            <div className="relative z-10 flex flex-col items-center text-center h-full">
+                {/* 1. Logo */}
+                <div className="flex justify-center items-center gap-3 mb-4">
+                    <BookOpen className="h-8 w-8 text-cyan-400" />
+                    <h1 className="text-2xl font-bold tracking-wider font-headline">CourseVerse</h1>
+                </div>
 
-                {/* Main Content */}
-                <main className="flex-grow flex flex-col justify-center items-center w-full">
-                    <p className="font-headline text-5xl tracking-tight text-gray-300 mb-6">Certificate of Completion</p>
-                    <p className="text-lg text-gray-400 mb-4">This certifies that</p>
-                    <p className="font-headline text-6xl font-bold tracking-wider text-white mb-4">{certificate.studentName}</p>
-                    <p className="text-lg text-gray-400 mb-4">has successfully completed the</p>
-                    <p className="font-headline text-3xl font-semibold text-cyan-400 mb-2">{certificate.courseName}</p>
-                    <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mb-8">{certificate.courseLevel || ''}</p>
+                {/* 2. Title */}
+                <p className="font-headline text-5xl tracking-tight text-gray-200 mt-6 mb-4">Certificate of Completion</p>
+                
+                {/* 3. Subtitle */}
+                <p className="text-lg text-gray-400 mb-6">This certifies that</p>
+                
+                {/* 4. Recipient Name */}
+                <p className="font-headline text-6xl font-bold tracking-wider text-white mb-6">{certificate.studentName}</p>
+                
+                {/* 5. Body text */}
+                <p className="text-lg text-gray-400 mb-2">has successfully completed the</p>
+                
+                {/* 6. Course Name */}
+                <p className="font-headline text-3xl font-semibold text-cyan-400 mb-1">{certificate.courseName}</p>
+                
+                {/* 7. Course Level */}
+                {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mb-8">{certificate.courseLevel}</p>}
+                
+                {/* Spacer takes up available space */}
+                <div className="flex-grow" />
 
-                    <p className="max-w-xl text-gray-300 mb-12">
-                        Congratulations on successfully completing the course. This achievement demonstrates your commitment to professional development.
-                    </p>
-                </main>
-                 
-                {/* Details & Signature */}
-                <footer className="w-full mt-auto">
-                    <div className="flex justify-between items-end">
-                        <div className="text-left text-sm">
-                            <div className="mb-3">
-                                <p className="font-bold text-gray-400">Issue Date</p>
-                                <p className="text-gray-200">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-400">Certificate ID</p>
-                                <p className="font-mono text-xs text-gray-300">{certificate.certificateCode}</p>
-                            </div>
-                        </div>
-                        <div className="text-center">
-                            <p className="font-signature text-5xl text-gray-100">Avik Maji</p>
-                            <hr className="my-1 border-gray-600 w-48 mx-auto"/>
-                            <p className="text-sm text-gray-400">Founder, CourseVerse</p>
-                        </div>
+                {/* 8. Congratulatory line */}
+                <p className="max-w-2xl text-gray-300 mb-8 text-sm">
+                    Congratulations on successfully completing the course. This achievement demonstrates your commitment to professional development.
+                </p>
+
+                {/* 9 & 10. Certificate Code & Issue Date */}
+                <div className="w-full flex justify-between text-left text-xs mb-10 font-mono">
+                    <div>
+                        <p className="font-sans font-bold text-gray-400">CERTIFICATE ID</p>
+                        <p className="text-gray-300">{certificate.certificateCode}</p>
                     </div>
-                </footer>
+                     <div>
+                        <p className="font-sans font-bold text-gray-400 text-right">ISSUE DATE</p>
+                        <p className="text-gray-200 text-right">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                    </div>
+                </div>
+
+                {/* 11. Signature */}
+                <div className="w-full flex justify-end">
+                    <div className="text-center">
+                        <p className="font-signature text-5xl text-gray-100">Avik Maji</p>
+                        <hr className="my-1 border-gray-600 w-48 mx-auto"/>
+                        <p className="text-sm text-gray-400">Founder, CourseVerse</p>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -68,7 +79,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 function InvalidCertificate({ title, message }: { title: string, message: string }) {
     return (
-        <div className="w-full max-w-[1123px] aspect-[1.414] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
+        <div className="w-full h-full bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
             <AlertTriangle className="h-24 w-24 text-destructive mb-8" />
             <h1 className="font-headline text-5xl font-bold text-destructive">{title}</h1>
             <p className="text-xl text-muted-foreground mt-4 max-w-2xl">{message}</p>
@@ -115,16 +126,14 @@ export default function CertificatePage() {
         window.print();
     };
 
-    if (status === 'loading') {
-      return (
-        <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-      );
-    }
-    
     const renderContent = () => {
       switch (status) {
+        case 'loading':
+            return (
+                <div className="w-full h-full bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
+                    <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                </div>
+            );
         case 'valid':
           return certificate && <CertificateDisplay certificate={certificate} />;
         case 'revoked':
@@ -147,7 +156,8 @@ export default function CertificatePage() {
                     Download PDF
                 </Button>
             </div>
-            <div id="certificate-container">
+            {/* The A4 container for both preview and printing */}
+            <div id="certificate-container" className="w-full max-w-[800px] aspect-[210/297] mx-auto shadow-2xl">
                 {renderContent()}
             </div>
         </div>
