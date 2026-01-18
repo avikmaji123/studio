@@ -24,7 +24,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
             
             async function generateCertificateQR(certificateCode: string) {
                 try {
-                    if (!certificateCode) throw new Error("Missing certificate code");
+                    if (!certificateCode) throw new Error("Certificate code missing");
 
                     const slot = document.getElementById("certificate-qr-slot");
                     if (!slot) throw new Error("QR slot not found");
@@ -92,7 +92,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 
     return (
-        <div className="certificate-root relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
             {/* Watermark */}
             <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-75" />
 
