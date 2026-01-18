@@ -106,7 +106,7 @@
 @media print {
   @page {
     size: A4 landscape;
-    margin: 0;
+    margin: 0 !important;
   }
 
   html, body {
@@ -114,54 +114,48 @@
     height: 100%;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden;
+    background: none !important;
   }
 
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background: white; /* Ensure background is white for printing */
-  }
-
-  .no-print, .no-print * {
-    display: none !important;
   }
   
-  /* Hide everything on the page by default */
+  /* Hide all elements by default */
   body * {
     visibility: hidden;
   }
   
-  /* Then, only reveal the certificate container and its contents */
+  /* Then, only show the certificate container and its children */
   #certificate-container, #certificate-container * {
     visibility: visible;
   }
 
   /* Make the certificate container fill the entire printed page, with no scrolling or overflow */
   #certificate-container {
-    position: absolute;
+    position: fixed; /* Use fixed to position relative to the page */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    margin: 0;
-    padding: 0;
-    transform: scale(1);
-    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border: none !important;
-    overflow: hidden;
-    page-break-before: avoid;
-    page-break-after: avoid;
-    page-break-inside: avoid;
+    box-shadow: none !important;
+    
+    /* Ensure no page breaks happen */
+    page-break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
   }
 
-  /* Ensure the certificate component inside also fills the container */
+  /* The direct child must also fill the container exactly */
   #certificate-container > div {
     width: 100% !important;
     height: 100% !important;
     max-width: none !important;
     box-shadow: none !important;
-    border: none !important;
     border-radius: 0 !important;
     aspect-ratio: auto !important;
     display: flex;
