@@ -10,77 +10,72 @@ import { BookOpen, Download, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // Make QRCode constructor available from the CDN script
 declare var QRCode: any;
 
-// New Landscape Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     
     useEffect(() => {
         async function generateCertificateQR(certificateCode: string) {
-            try {
-                if (!certificateCode) throw new Error("Certificate code missing");
+          try {
+            if (!certificateCode) throw new Error("Certificate code missing");
 
-                const slot = document.getElementById("certificate-qr-slot");
-                if (!slot) throw new Error("QR slot not found");
+            const slot = document.getElementById("certificate-qr-slot");
+            if (!slot) throw new Error("QR slot not found");
 
-                slot.innerHTML = "";
+            slot.innerHTML = "";
 
-                const verifyUrl =
-                window.location.origin +
-                "/verify-certificate?code=" +
-                encodeURIComponent(certificateCode);
+            const verifyUrl =
+              window.location.origin +
+              "/verify-certificate?code=" +
+              encodeURIComponent(certificateCode);
 
-                // Generate QR
-                const qr = new QRCode(slot, {
-                    text: verifyUrl,
-                    width: 134,
-                    height: 134,
-                    colorDark: "#ffffff",   // light silver (scan-safe)
-                    colorLight: "#0b1220", // solid dark background
-                    correctLevel: QRCode.CorrectLevel.H
-                });
+            // Generate QR
+            const qr = new QRCode(slot, {
+              text: verifyUrl,
+              width: 134,
+              height: 134,
+              colorDark: "#e5e7eb",   // light silver (scan-safe)
+              colorLight: "#0b1220", // solid dark background
+              correctLevel: QRCode.CorrectLevel.H
+            });
 
-                // Wait for canvas render
-                await new Promise(r => setTimeout(r, 200));
+            // Wait for canvas render
+            await new Promise(r => setTimeout(r, 200));
 
-                const canvas = slot.querySelector("canvas");
-                if (!canvas) {
-                    throw new Error("QR canvas failed to render");
-                }
+            const canvas = slot.querySelector("canvas");
+            if (!canvas) throw new Error("QR canvas failed to render");
 
-                const ctx = canvas.getContext("2d");
-                if (!ctx) {
-                    throw new Error("Could not get canvas context");
-                }
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Could not get canvas context");
 
-                // Load logo synchronously
-                const logo = new Image();
-                logo.src = "https://i.ibb.co/Y76Ct8pP/Screenshot-20260118-231138.jpg";
-                logo.crossOrigin = "anonymous";
+            // Load logo and draw it into the canvas
+            const logo = new Image();
+            logo.src = "https://i.ibb.co/Y76Ct8pP/Screenshot-20260118-231138.jpg";
+            logo.crossOrigin = "anonymous";
+            
+            logo.onload = () => {
+                // Draw logo INTO canvas
+                const logoSize = 32;
+                const x = (canvas.width - logoSize) / 2;
+                const y = (canvas.height - logoSize) / 2;
 
-                logo.onload = () => {
-                    // Draw logo INTO canvas
-                    const logoSize = 32;
-                    const x = (canvas.width - logoSize) / 2;
-                    const y = (canvas.height - logoSize) / 2;
+                // Solid backing behind logo (critical for scan)
+                ctx.fillStyle = "#0b1220";
+                ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
 
-                    // Solid backing behind logo (critical for scan)
-                    ctx.fillStyle = "#0b1220";
-                    ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
+                ctx.drawImage(logo, x, y, logoSize, logoSize);
+            };
+            
+            logo.onerror = () => {
+                console.warn("QR logo could not be loaded. Generating QR without logo.");
+            };
 
-                    ctx.drawImage(logo, x, y, logoSize, logoSize);
-                };
-
-                logo.onerror = () => {
-                    console.warn("QR logo not found. Generating QR code without logo.");
-                };
-
-            } catch (err: any) {
-                console.error("QR generation error:", err?.message || err);
-            }
+          } catch (err: any) {
+              console.error("QR generation error:", err?.message || err);
+          }
         }
 
         if (typeof window !== 'undefined' && typeof QRCode !== 'undefined') {
@@ -113,9 +108,10 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                  {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mt-1">{certificate.courseLevel}</p>}
             </div>
 
-            {/* QR Code Wrapper */}
-            <div id="certificate-qr-slot"></div>
-
+            {/* QR Code container for preview mode */}
+            <div className="md:hidden lg:hidden print:hidden">
+              <div id="certificate-qr-slot-preview"></div>
+            </div>
 
             {/* Footer */}
             <div className="flex justify-between items-end z-10">
@@ -125,6 +121,8 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     <p className="font-sans font-bold text-gray-400 mt-2">CERTIFICATE ID</p>
                     <p className="text-gray-300">{certificate.certificateCode}</p>
                 </div>
+                 {/* QR Code container for print mode */}
+                 <div id="certificate-qr-slot"></div>
                 <div className="certificate-signature">
                   <span className="signature-name">Avik Maji</span>
                   <hr className="w-full my-1 border-gray-600"/>
@@ -157,6 +155,33 @@ export default function CertificatePage() {
     const [status, setStatus] = useState<'loading' | 'valid' | 'revoked' | 'invalid'>('loading');
     const [certificate, setCertificate] = useState<Certificate | null>(null);
 
+     const handlePrint = () => {
+        document.body.classList.remove('preview-mode');
+        document.body.classList.add('print-mode');
+        setTimeout(() => {
+            window.print();
+        }, 300); // Wait for styles to apply
+    };
+
+    useEffect(() => {
+        // Set default mode
+        document.body.classList.add('preview-mode');
+
+        // Cleanup after print
+        const afterPrint = () => {
+            document.body.classList.remove('print-mode');
+            document.body.classList.add('preview-mode');
+        };
+
+        window.addEventListener('afterprint', afterPrint);
+
+        return () => {
+            window.removeEventListener('afterprint', afterPrint);
+            document.body.classList.remove('preview-mode', 'print-mode');
+        };
+    }, []);
+
+
     useEffect(() => {
       if (!firestore || !code) return;
       
@@ -180,22 +205,6 @@ export default function CertificatePage() {
       getCertificate();
     }, [firestore, code]);
 
-    useEffect(() => {
-        const afterPrint = () => {
-            document.body.classList.remove("print-mode");
-        };
-
-        window.addEventListener('afterprint', afterPrint);
-
-        return () => {
-            window.removeEventListener('afterprint', afterPrint);
-        };
-    }, []);
-
-    const handlePrint = () => {
-        document.body.classList.add("print-mode");
-        setTimeout(() => window.print(), 300);
-    };
 
     const renderContent = () => {
       switch (status) {
@@ -222,13 +231,13 @@ export default function CertificatePage() {
                     <Link href="/">Back to Home</Link>
                 </Button>
                 <h2 className="text-lg font-semibold">Certificate Preview</h2>
-                 <Button onClick={handlePrint}>
+                 <Button onClick={handlePrint} disabled={status !== 'valid'}>
                     <Download className="mr-2 h-4 w-4"/>
                     Download PDF
                 </Button>
             </div>
             
-            <div id="print-wrapper">
+             <div className="certificate-print-wrapper">
                 <div className="certificate-root">
                     {renderContent()}
                 </div>
@@ -236,3 +245,5 @@ export default function CertificatePage() {
         </div>
     );
 }
+
+    
