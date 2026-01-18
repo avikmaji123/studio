@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     return (
-        <div className="relative w-full max-w-[1123px] aspect-[1.414] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden print:w-[29.7cm] print:h-[21cm]">
+        <div className="relative w-full max-w-[1123px] aspect-[1.414] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden">
             {/* Watermark & BG Pattern */}
             <div className="absolute inset-0 z-0">
                  <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-60 rotate-[-15deg]" />
@@ -68,7 +68,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 function InvalidCertificate({ title, message }: { title: string, message: string }) {
     return (
-        <div className="w-full max-w-[1123px] aspect-[1.414] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl print:w-[29.7cm] print:h-[21cm]">
+        <div className="w-full max-w-[1123px] aspect-[1.414] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
             <AlertTriangle className="h-24 w-24 text-destructive mb-8" />
             <h1 className="font-headline text-5xl font-bold text-destructive">{title}</h1>
             <p className="text-xl text-muted-foreground mt-4 max-w-2xl">{message}</p>
@@ -147,7 +147,9 @@ export default function CertificatePage() {
                     Download PDF
                 </Button>
             </div>
-            {renderContent()}
+            <div id="certificate-container">
+                {renderContent()}
+            </div>
         </div>
     );
 }
