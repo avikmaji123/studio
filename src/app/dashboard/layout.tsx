@@ -92,35 +92,45 @@ function DashboardSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/" tooltip="Homepage">
-              <Home />
-              <span>Home</span>
+            <SidebarMenuButton asChild tooltip="Homepage">
+              <Link href="/">
+                <Home />
+                <span>Home</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu className="mt-4">
           <SidebarMenuItem>
-            <SidebarMenuButton href="/dashboard" tooltip="Dashboard">
-              <LayoutDashboard />
-              <span>Dashboard</span>
+            <SidebarMenuButton asChild tooltip="Dashboard">
+              <Link href="/dashboard">
+                <LayoutDashboard />
+                <span>Dashboard</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/dashboard/courses" tooltip="My Courses">
-              <BookCopy />
-              <span>My Courses</span>
+            <SidebarMenuButton asChild tooltip="My Courses">
+               <Link href="/dashboard/courses">
+                <BookCopy />
+                <span>My Courses</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/dashboard/downloads" tooltip="Downloads">
-              <Download />
-              <span>Downloads</span>
+            <SidebarMenuButton asChild tooltip="Downloads">
+              <Link href="/dashboard/downloads">
+                <Download />
+                <span>Downloads</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/news" tooltip="News">
-              <Newspaper />
-              <span>News</span>
+            <SidebarMenuButton asChild tooltip="News">
+              <Link href="/news">
+                <Newspaper />
+                <span>News</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -138,15 +148,19 @@ function DashboardSidebar() {
       <SidebarFooter className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/dashboard/profile" tooltip="Profile">
-              <User />
-              <span>Profile</span>
+            <SidebarMenuButton asChild tooltip="Profile">
+              <Link href="/dashboard/profile">
+                <User />
+                <span>Profile</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/dashboard/settings" tooltip="Settings">
-              <Settings />
-              <span>Settings</span>
+            <SidebarMenuButton asChild tooltip="Settings">
+              <Link href="/dashboard/settings">
+                <Settings />
+                <span>Settings</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
