@@ -38,7 +38,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     text: verifyUrl,
                     width: 134,
                     height: 134,
-                    colorDark: "#e5e7eb",   // light silver (scan-safe)
+                    colorDark: "#ffffff",   // light silver (scan-safe)
                     colorLight: "#0b1220", // solid dark background
                     correctLevel: QRCode.CorrectLevel.H
                 });
@@ -216,8 +216,8 @@ export default function CertificatePage() {
     };
 
     return (
-        <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center py-12 px-4 font-body">
-            <div className="no-print mb-8 w-full max-w-5xl flex justify-between items-center">
+        <div className="min-h-screen bg-muted/40 py-12 px-4 font-body">
+            <div className="no-print mb-8 w-full max-w-5xl flex justify-between items-center mx-auto">
                 <Button asChild variant="outline">
                     <Link href="/">Back to Home</Link>
                 </Button>
