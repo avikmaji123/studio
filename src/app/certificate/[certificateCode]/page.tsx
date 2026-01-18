@@ -51,7 +51,7 @@ async function generateCertificateQR(certificateCode: string, slotElement: HTMLE
     logo.src = "https://i.ibb.co/Y76Ct8pP/Screenshot-20260118-231138.jpg";
     logo.crossOrigin = "anonymous";
     
-    return new Promise<void>((resolve) => {
+    await new Promise<void>((resolve) => {
       logo.onload = () => {
         const logoSize = 32;
         const x = (canvas.width - logoSize) / 2;
@@ -236,8 +236,8 @@ export default function CertificatePage() {
     };
 
     return (
-        <div className="bg-muted/40 font-body">
-            <div id="app-controls" className="py-8 w-full max-w-5xl flex justify-between items-center mx-auto px-4">
+        <div className="container mx-auto px-4 py-16 sm:py-24">
+            <div id="app-controls" className="w-full max-w-5xl flex justify-between items-center mx-auto mb-8">
                 <Button asChild variant="outline">
                     <Link href="/">Back to Home</Link>
                 </Button>
@@ -248,7 +248,7 @@ export default function CertificatePage() {
                 </Button>
             </div>
             
-            <div className="flex justify-center py-4 px-4">
+            <div className="flex justify-center">
                 <div className="certificate-preview-wrapper">
                     {renderContent()}
                 </div>
@@ -256,3 +256,4 @@ export default function CertificatePage() {
         </div>
     );
 }
+
