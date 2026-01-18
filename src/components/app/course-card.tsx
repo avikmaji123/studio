@@ -1,3 +1,4 @@
+'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import React from 'react';
 
 
 type CourseCardProps = {
@@ -22,6 +25,17 @@ type CourseCardProps = {
 };
 
 export function CourseCard({ course, isEnrolled, certificate }: CourseCardProps) {
+  const { toast } = useToast();
+
+  const handleCertificateClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!certificate) {
+      e.preventDefault();
+      toast({
+        title: "Certificate Not Yet Earned",
+        description: "You must complete the course to receive your certificate.",
+      });
+    }
+  };
   
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
@@ -83,8 +97,11 @@ export function CourseCard({ course, isEnrolled, certificate }: CourseCardProps)
                         <span>Download Course</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer" disabled={!certificate}>
-                       <Link href={certificate ? `/certificate/${certificate.certificateCode}` : '#'}>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                       <Link 
+                        href={certificate ? `/certificate/${certificate.certificateCode}` : '#'}
+                        onClick={handleCertificateClick}
+                       >
                         <Award className="mr-2 h-4 w-4" />
                         <span>Certificate</span>
                       </Link>
