@@ -21,6 +21,7 @@ export default {
         body: ['"Source Sans 3"', 'sans-serif'],
         headline: ['Lexend', 'sans-serif'],
         code: ['monospace'],
+        signature: ['"Dancing Script"', 'cursive'],
       },
       colors: {
         background: 'hsl(var(--background))',

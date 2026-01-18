@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type Course = {
   id: string;
   slug: string;
@@ -64,3 +66,15 @@ export interface SiteSettings {
   qrCodeUrl: string;
   socialLinks: SocialLink[];
 }
+
+export type Certificate = {
+    id: string;
+    userId: string;
+    courseId: string;
+    studentName: string;
+    courseName: string;
+    issueDate: Timestamp;
+    certificateCode: string;
+    status: 'valid' | 'revoked';
+    certificateUrl?: string;
+};
