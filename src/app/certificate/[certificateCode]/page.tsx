@@ -39,7 +39,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
             {/* QR Code */}
             {certificate.qrCodeUrl && (
-                <div className="certificate-qr">
+                <div id="certificate-qr">
                     <Image src={certificate.qrCodeUrl} alt="Certificate Verification QR Code" width={110} height={110} className="bg-white p-1 rounded-md" />
                     <div className="qr-caption">
                         Scan to verify this certificate
