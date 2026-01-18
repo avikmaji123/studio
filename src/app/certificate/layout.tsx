@@ -1,5 +1,6 @@
 
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '../globals.css'; // Adjust path for nested layout
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -22,10 +23,10 @@ export default function CertificateLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* The QR code script is needed for this isolated layout */}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        {/* The QR code script is loaded using next/script to prevent hydration errors */}
       </head>
       <body>
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" strategy="afterInteractive" />
         <div id="app-root">
           <FirebaseClientProvider>
             {children}
