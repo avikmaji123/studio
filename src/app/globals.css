@@ -132,9 +132,8 @@
 ================================
 */
 body.preview-mode .certificate-preview-wrapper {
-  width: 100%;
-  max-width: 1123px;
-  aspect-ratio: 1.414 / 1;
+  width: 1123px;
+  height: 794px;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   overflow: hidden;
   border-radius: 0.5rem;
@@ -189,7 +188,7 @@ body.preview-mode #certificate-qr-slot canvas {
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
-
+  
   /* Kill entire website, leaving only the print root */
   body * {
     visibility: hidden !important;
