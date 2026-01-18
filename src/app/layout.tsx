@@ -21,9 +21,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lexend:wght@100..900&family=Macondo&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        {/* The QR code script is moved to the specific certificate layout */}
       </head>
       <body>
+        {/* The #app-root contains the entire interactive website */}
         <div id="app-root">
           <FirebaseClientProvider>
             <div className="flex min-h-screen flex-col">
@@ -34,6 +35,7 @@ export default function RootLayout({
             <Toaster />
           </FirebaseClientProvider>
         </div>
+        {/* The #print-root is a dedicated, hidden container for printing tasks (like certificates) */}
         <div id="print-root">
           <div id="certificate-print"></div>
         </div>

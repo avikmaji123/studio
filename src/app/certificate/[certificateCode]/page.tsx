@@ -152,7 +152,9 @@ export default function CertificatePage() {
      const handlePrint = async () => {
         if (!certificate) return;
         
-        const sourceNode = document.querySelector('.certificate-root');
+        // Find the on-screen certificate to clone
+        const sourceNode = document.querySelector('.certificate-preview-wrapper .certificate-root');
+        // Find the container dedicated to printing
         const printContainer = document.getElementById('certificate-print');
 
         if (!sourceNode || !printContainer) {
@@ -160,23 +162,23 @@ export default function CertificatePage() {
             return;
         }
         
-        // 1. Clone content into the dedicated print container
+        // 1. Clone the rendered certificate content into the print container
         printContainer.innerHTML = sourceNode.outerHTML;
 
-        // 2. Generate a new QR code specifically for the print container
+        // 2. Generate a new QR code targeting the cloned element inside the print container
         const newQrSlot = printContainer.querySelector('#certificate-qr-slot') as HTMLElement;
         if (newQrSlot) {
             await generateCertificateQR(certificate.certificateCode, newQrSlot);
         }
 
-        // 3. Add print mode class to body
+        // 3. Add the 'print-mode' class to the body to activate print-specific CSS
         document.body.classList.add('print-mode');
         document.body.classList.remove('preview-mode');
         
-        // 4. Trigger print dialog
+        // 4. Trigger the browser's print dialog
         window.print();
         
-        // 5. Clean up after printing
+        // 5. Clean up after the print dialog is closed
         printContainer.innerHTML = '';
         document.body.classList.remove('print-mode');
         document.body.classList.add('preview-mode');
@@ -256,4 +258,3 @@ export default function CertificatePage() {
         </div>
     );
 }
-
