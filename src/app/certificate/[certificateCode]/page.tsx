@@ -38,8 +38,8 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     // Step 1: Create QR
                     const qr = new QRCode(slot, {
                         text: verifyUrl,
-                        width: 150,
-                        height: 150,
+                        width: 110,
+                        height: 110,
                         colorDark: "#cfd8dc",   // light gray (PDF-safe)
                         colorLight: "transparent",
                         correctLevel: QRCode.CorrectLevel.H
@@ -60,7 +60,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     logo.crossOrigin = "anonymous";
 
                     logo.onload = () => {
-                        const size = 36;
+                        const size = 26;
                         const x = (canvas.width - size) / 2;
                         const y = (canvas.height - size) / 2;
 
