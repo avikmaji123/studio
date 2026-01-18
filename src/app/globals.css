@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -104,12 +105,23 @@
 }
 
 @media print {
+  /* Define the exact page size and remove margins. */
   @page {
     size: A4 landscape;
-    margin: 0;
+    margin: 0 !important;
   }
 
-  /* Reset body and html to prevent interference and ensure full-bleed */
+  /* Prevent any element from causing a page break. */
+  * {
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    transform: none !important;
+    zoom: 1 !important;
+    scale: 1 !important;
+  }
+  
+  /* Force the root elements to the exact A4 landscape size. This is the key to preventing extra pages. */
   html, body {
     width: 297mm !important;
     height: 210mm !important;
@@ -121,43 +133,33 @@
     print-color-adjust: exact !important;
   }
 
-  /* Hide everything by default */
+  /* Hide EVERYTHING by default. */
   body * {
     visibility: hidden !important;
   }
   
-  /* Show only the certificate container and its children */
+  /* Show ONLY the certificate container and its children. */
   #certificate-print-root,
   #certificate-print-root * {
     visibility: visible !important;
   }
 
-  /* Define the certificate container's exact print dimensions and position */
+  /* Force the certificate container to fill the entire page. */
   #certificate-print-root {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 297mm;
-    height: 210mm;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 297mm !important;
+    height: 210mm !important;
     overflow: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
-    transform: none !important;
-    zoom: 1 !important;
-    scale: 1 !important;
     border: none !important;
     box-shadow: none !important;
   }
 
-  /* Hide any element explicitly marked as no-print */
+  /* Hide any element explicitly marked as no-print. */
   .no-print {
     display: none !important;
-  }
-  
-  /* Globally prevent any page breaks as a failsafe */
-  * {
-    page-break-before: avoid !important;
-    page-break-after: avoid !important;
-    page-break-inside: avoid !important;
   }
 }
