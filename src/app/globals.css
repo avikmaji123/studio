@@ -126,29 +126,29 @@
   line-height: 1;
 }
 
-/* 
+/*
 ================================
 --- PREVIEW MODE (ON-SCREEN) ---
 ================================
 */
 .preview-mode .certificate-root {
   width: 100%;
-  max-width: 1123px; /* A4 width for reference */
+  max-width: 1123px;
   margin-left: auto;
   margin-right: auto;
   aspect-ratio: 1.414 / 1;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   overflow: hidden;
   border-radius: 0.5rem;
-  transform: translateZ(0); /* Promotes to new layer */
+  transform: translateZ(0);
 }
 
 .preview-mode #certificate-qr-slot {
   margin: 24px auto 0;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
   background: #0b1220;
-  padding: 6px;
+  padding: 8px;
   box-sizing: border-box;
   border-radius: 4px;
 }
@@ -161,83 +161,83 @@
 
 /* 
 ================================
---- PRINT/PDF MODE ---
+--- PRINT / PDF ISOLATION ---
 ================================
 */
 @media print {
+  /* Force color preservation */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
 
+  /* Hide entire website by default */
+  body.print-mode #app-root {
+    visibility: hidden !important;
+    display: none !important;
+  }
+
+  /* ONLY the print container and its contents are visible */
+  body.print-mode #print-root,
+  body.print-mode #print-root * {
+    visibility: visible !important;
+  }
+  
+  /* Reset page defaults */
   @page {
     size: A4 landscape;
     margin: 0;
   }
 
   body.print-mode {
-    width: 100%;
-    height: 100%;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden;
-    background: #0b1220 !important;
+    background: transparent !important;
   }
 
-  body.print-mode .no-print {
-    display: none;
-  }
-
-  /* Hide everything except the certificate wrapper */
-  body.print-mode > *:not(.certificate-print-wrapper) {
-    display: none;
-  }
-  
-  .certificate-print-wrapper, .certificate-print-wrapper > * {
-    visibility: visible;
-  }
-
-  .certificate-root {
-    visibility: visible;
+  /* Absolute centering for the print root */
+  #print-root {
     position: fixed;
-    left: 50%;
-    top: 50%;
-    width: 1123px; /* A4 Landscape width @ 96 DPI */
-    height: 794px;  /* A4 Landscape height @ 96 DPI */
-    transform: translate(-50%, -50%);
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Set exact dimensions for the certificate */
+  #certificate-print .certificate-root {
+    width: 1123px !important;
+    height: 794px !important;
     page-break-inside: avoid;
+    overflow: hidden;
     border-radius: 0;
     box-shadow: none;
-    background: linear-gradient(
-      135deg,
-      #0b1220 0%,
-      #0f1a2e 50%,
-      #0b1220 100%
-    ) !important;
+    background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%) !important;
     color: #e5e7eb !important;
   }
   
-  #certificate-qr-slot {
-    position: absolute;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 150px;
-    background: #0b1220 !important;
-    padding: 8px;
-    box-sizing: border-box;
+  /* Color Hard-Locks for PDF */
+  #certificate-print .certificate-title { color: #e5e7eb !important; }
+  #certificate-print .certificate-name { color: #ffffff !important; }
+  #certificate-print .certificate-course { color: #22d3ee !important; }
+  #certificate-print .certificate-meta p { color: #9ca3af !important; }
+  
+  #certificate-print #certificate-qr-slot {
+      position: absolute;
+      bottom: 28px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      background: #0b1220 !important;
+      padding: 8px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      width: 150px;
+      height: 150px;
   }
-
-  /* Color Preservation */
-  .certificate-title { color: #e5e7eb !important; }
-  .certificate-name { color: #ffffff !important; }
-  .certificate-course { color: #22d3ee !important; }
-  .certificate-meta { color: #9ca3af !important; }
+  #certificate-print #certificate-qr-slot canvas {
+      width: 134px !important;
+      height: 134px !important;
+  }
 }
-
-    
