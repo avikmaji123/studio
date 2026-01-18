@@ -222,20 +222,22 @@ body.preview-mode #certificate-qr-slot canvas {
   }
 
   /* Set exact certificate dimensions and prevent breaking */
-  #certificate-print .certificate-root {
-    width: 1123px !important;
-    height: 794px !important;
-    page-break-inside: avoid;
+  #certificate-print {
+    width: 1123px;
+    height: 794px;
     overflow: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 3rem;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Apply styles to the cloned certificate root inside the print container */
+  #certificate-print .certificate-root {
+    width: 100% !important;
+    height: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
     background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%) !important;
     color: #e5e7eb !important;
-    box-shadow: none;
-    border-radius: 0;
   }
   
   /* Color Hard-Locks for PDF */
@@ -244,21 +246,7 @@ body.preview-mode #certificate-qr-slot canvas {
   #certificate-print .certificate-course { color: #22d3ee !important; }
   #certificate-print .certificate-meta p { color: #9ca3af !important; }
   
-  /* Position QR code absolutely within the fixed-size certificate */
   #certificate-print #certificate-qr-slot {
-      position: absolute !important;
-      bottom: 28px !important;
-      left: 50% !important;
-      transform: translateX(-50%) !important;
       background: #0b1220 !important;
-      padding: 8px;
-      box-sizing: border-box;
-      border-radius: 4px;
-      width: 150px;
-      height: 150px;
-  }
-  #certificate-print #certificate-qr-slot canvas {
-      width: 134px !important;
-      height: 134px !important;
   }
 }
