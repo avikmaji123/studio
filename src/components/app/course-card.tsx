@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Course, Certificate } from '@/lib/types';
+import type { Course, Certificate, Enrollment } from '@/lib/types';
 import { Eye, Users, BarChart, CheckCircle, Download, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -16,25 +16,63 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import React from 'react';
+import { addDays, formatDistanceToNowStrict } from 'date-fns';
 
 
 type CourseCardProps = {
   course: Course;
   isEnrolled: boolean;
   certificate?: Certificate | null;
+  enrollment?: Enrollment | null;
 };
 
-export function CourseCard({ course, isEnrolled, certificate }: CourseCardProps) {
+export function CourseCard({ course, isEnrolled, certificate, enrollment }: CourseCardProps) {
   const { toast } = useToast();
 
-  const handleCertificateClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!certificate) {
-      e.preventDefault();
-      toast({
-        title: "Certificate Not Yet Earned",
-        description: "You must complete the course to receive your certificate.",
-      });
+  const CertificateMenuItem = () => {
+    if (certificate) {
+      return (
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link href={`/certificate/${certificate.certificateCode}`}>
+            <Award className="mr-2 h-4 w-4" />
+            <span>View Certificate</span>
+          </Link>
+        </DropdownMenuItem>
+      );
     }
+
+    const handleSelect = (e: Event) => {
+      e.preventDefault(); 
+
+      if (!isEnrolled || !enrollment) {
+        toast({ variant: "destructive", title: "Not Enrolled" });
+        return;
+      }
+
+      const countdownDays = course.certificateSettings?.countdownDays ?? 0;
+      const enrollmentDate = enrollment.enrollmentDate.toDate();
+      const unlockDate = addDays(enrollmentDate, countdownDays);
+      const now = new Date();
+
+      if (now < unlockDate) {
+        toast({
+          title: "Certificate Locked",
+          description: `This certificate unlocks in ${formatDistanceToNowStrict(unlockDate, { addSuffix: true })}.`,
+        });
+      } else {
+        toast({
+          title: "Ready to Earn",
+          description: "Please complete the final quiz to issue your certificate.",
+        });
+      }
+    };
+
+    return (
+      <DropdownMenuItem onSelect={handleSelect} className="cursor-pointer">
+        <Award className="mr-2 h-4 w-4" />
+        <span>Certificate</span>
+      </DropdownMenuItem>
+    );
   };
   
   return (
@@ -97,15 +135,7 @@ export function CourseCard({ course, isEnrolled, certificate }: CourseCardProps)
                         <span>Download Course</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer">
-                       <Link 
-                        href={certificate ? `/certificate/${certificate.certificateCode}` : '#'}
-                        onClick={handleCertificateClick}
-                       >
-                        <Award className="mr-2 h-4 w-4" />
-                        <span>Certificate</span>
-                      </Link>
-                    </DropdownMenuItem>
+                    <CertificateMenuItem />
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

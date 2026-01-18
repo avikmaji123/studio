@@ -17,7 +17,7 @@ import {
 import { CourseCard } from '@/components/app/course-card';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Course, Certificate } from '@/lib/types';
+import type { Course, Certificate, Enrollment } from '@/lib/types';
 
 function StatCard({
   title,
@@ -65,7 +65,7 @@ export default function DashboardOverviewPage() {
     [firestore, user]
   );
   const { data: enrollments, isLoading: isEnrollmentsLoading } =
-    useCollection(enrollmentsQuery);
+    useCollection<Enrollment>(enrollmentsQuery);
     
   const allCoursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
   const { data: allCourses, isLoading: areCoursesLoading } = useCollection<Course>(allCoursesQuery);
@@ -81,7 +81,7 @@ export default function DashboardOverviewPage() {
   const purchasedCourses = useMemo(() => {
     if (!enrollments || !allCourses) return [];
     const enrolledCourseIds = enrollments.map(e => e.courseId);
-    return allCourses.filter(c => enrolledCourseIds.includes(c.id)).slice(0, 3);
+    return allCourses.filter(course => enrolledCourseIds.includes(course.id)).slice(0, 3);
   }, [enrollments, allCourses]);
 
   const enrolledCourseIds = useMemo(() => {
@@ -172,12 +172,15 @@ export default function DashboardOverviewPage() {
                     {purchasedCourses.length > 0 ? (
                         purchasedCourses.map(course => {
                             const certificate = certificates?.find(c => c.courseId === course.id);
+                            const enrollment = enrollments?.find(e => e.courseId === course.id);
+                            const isEnrolled = enrolledCourseIds.includes(course.id);
                             return (
                                 <CourseCard 
                                   key={course.id} 
                                   course={course} 
-                                  isEnrolled={enrolledCourseIds.includes(course.id)} 
+                                  isEnrolled={isEnrolled} 
                                   certificate={certificate}
+                                  enrollment={enrollment}
                                 />
                             )
                         })

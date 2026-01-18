@@ -1,5 +1,13 @@
 import type { Timestamp } from 'firebase/firestore';
 
+export type Enrollment = {
+  id: string;
+  userId: string;
+  courseId: string;
+  enrollmentDate: Timestamp;
+  completionPercentage: number;
+};
+
 export type Course = {
   id: string;
   slug: string;
@@ -22,6 +30,10 @@ export type Course = {
   status?: 'draft' | 'published' | 'unpublished';
   downloadUrl?: string;
   downloadPassword?: string;
+  certificateSettings?: {
+    countdownDays?: number;
+    quizEnabled?: boolean;
+  };
 };
 
 export type LogEntry = {

@@ -118,6 +118,7 @@ export default function CoursesPage() {
     searchTerm, 
     setSearchTerm, 
     isLoading,
+    enrollments,
     enrolledCourseIds,
     certificates,
   } = useSearchAndFilter();
@@ -179,12 +180,15 @@ export default function CoursesPage() {
                 ) : filteredCourses.length > 0 ? (
                     filteredCourses.map(course => {
                         const certificate = certificates.find(c => c.courseId === course.id);
+                        const enrollment = enrollments.find(e => e.courseId === course.id);
+                        const isEnrolled = enrolledCourseIds.includes(course.id);
                         return (
                             <CourseCard 
                               key={course.id} 
                               course={course} 
-                              isEnrolled={enrolledCourseIds.includes(course.id)} 
+                              isEnrolled={isEnrolled} 
                               certificate={certificate}
+                              enrollment={enrollment}
                             />
                         )
                     })
