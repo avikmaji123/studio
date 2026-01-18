@@ -14,8 +14,10 @@ import {
   Lock,
   Star,
   CheckCircle,
+  Search,
+  Loader2,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { collection, query, where, limit } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -43,6 +45,8 @@ import {
 } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Course } from '@/lib/types';
+import { Input } from '@/components/ui/input';
+import { faqAssistant, type FaqAssistantOutput } from '@/ai/flows/faq-assistant';
 
 const testimonialImages = {
   'testimonial-1': PlaceHolderImages.find(p => p.id === 'testimonial-1'),
@@ -300,81 +304,143 @@ function TestimonialsSection() {
   );
 }
 
-function FaqSection() {
-  const faqData = [
+const faqData = [
     {
+      id: 'what-is-courseverse',
       question: 'What is CourseVerse and how does it work?',
       answer:
         'CourseVerse is a distribution platform for high-quality, licensed educational content. As the administrator, I manage the platform and ensure access to courses created by trusted third-party experts. It is not a marketplace for instructors to upload their own content.',
     },
     {
+      id: 'are-courses-licensed',
       question: 'Are CourseVerse courses officially licensed?',
       answer:
         'Yes. Every course available on CourseVerse is officially licensed from its original creator. We believe in ethical content distribution and compensating creators for their work.',
     },
-     {
+    {
+      id: 'lifetime-access',
       question: 'Do I get lifetime access after purchase?',
       answer:
         'Yes, once a course is purchased, you have lifetime access to its downloadable materials through your dashboard. You can download them as many times as you like.',
     },
     {
+      id: 'payment-verification',
       question: 'How does the payment and verification process work?',
       answer:
         'You pay the specified amount via UPI. After payment, you submit the transaction ID (UTR) and a screenshot on the payment page. Our automated system, enhanced with AI, verifies the payment. For valid payments, course access is granted instantly.',
     },
     {
+      id: 'after-purchase',
       question: 'What happens after I buy a course?',
       answer:
         'Once your payment is verified, the course is immediately added to your account. You will have access to download all the course materials, including videos and project files, directly from your dashboard.',
     },
     {
+      id: 'where-to-download',
       question: 'Where can I download my purchased courses?',
       answer:
         'All your purchased courses and their downloadable assets are available in the "My Downloads" section of your personal dashboard. You must be logged in to access this page.',
     },
     {
+      id: 'are-certificates-provided',
       question: 'Are certificates provided?',
       answer:
         'Yes, upon successful completion of a course, you will be issued a verifiable certificate which you can find in your dashboard.',
     },
     {
+      id: 'payment-issue',
       question: 'What should I do if I face a payment issue?',
       answer:
         'If your payment is successful but verification fails, or if you encounter any other issues, please contact us through the contact page. We will manually review your transaction and resolve the issue as quickly as possible.',
     },
      {
+      id: 'login-required',
       question: 'Is login required to access downloads?',
       answer:
         'Yes, you must be logged into your CourseVerse account to access the "My Downloads" page and download your purchased course materials. This ensures secure access to your content.',
     },
   ];
 
-  return (
-    <section id="faq" className="py-16 sm:py-24 bg-muted/50">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="mb-12 text-center max-w-3xl mx-auto">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
-            Frequently Asked Questions
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Clear answers, powered by smart assistance.
-          </p>
-        </div>
-        <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto">
-          {faqData.map((faq, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-base text-muted-foreground">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-    </section>
-  );
+function AiFaqSection() {
+    const [isPending, startTransition] = useTransition();
+    const [query, setQuery] = useState('');
+    const [result, setResult] = useState<FaqAssistantOutput | null>(null);
+    const [activeAccordionItem, setActiveAccordionItem] = useState<string | null>(null);
+    
+    const allFaqs = faqData;
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!query.trim()) return;
+
+        startTransition(async () => {
+            const res = await faqAssistant({ userQuestion: query });
+            setResult(res);
+            if (res.bestMatchId) {
+                setActiveAccordionItem(`item-${res.bestMatchId}`);
+            } else {
+                setActiveAccordionItem(null); 
+            }
+        });
+    };
+
+    return (
+        <section id="faq" className="py-16 sm:py-24 bg-muted/50">
+            <div className="container mx-auto px-4 md:px-6">
+                <div className="mb-12 text-center max-w-3xl mx-auto">
+                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+                        Frequently Asked Questions
+                    </h2>
+                    <p className="mt-4 text-lg text-muted-foreground">
+                        Clear answers, powered by smart assistance.
+                    </p>
+                </div>
+                
+                <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
+                     <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                            placeholder="Ask a question..." 
+                            className="pl-12 h-14 text-lg"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                        />
+                        {isPending && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin" />}
+                    </div>
+                </form>
+
+                {result && result.isGenerated && (
+                    <Card className="max-w-3xl mx-auto mb-8 bg-card border-border">
+                        <CardHeader>
+                            <CardTitle className="text-foreground">AI Generated Answer</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <p className="text-muted-foreground">{result.answer}</p>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <Accordion 
+                    type="single" 
+                    collapsible 
+                    className="w-full max-w-3xl mx-auto"
+                    value={activeAccordionItem || ''}
+                    onValueChange={setActiveAccordionItem}
+                >
+                    {allFaqs.map((faq) => (
+                        <AccordionItem key={faq.id} value={`item-${faq.id}`}>
+                            <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                                {faq.question}
+                            </AccordionTrigger>
+                            <AccordionContent className="text-base text-muted-foreground">
+                                {faq.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
+        </section>
+    );
 }
 
 
@@ -385,7 +451,7 @@ export default function Home() {
       <FeaturesSection />
       <FeaturedCoursesSection />
       <TestimonialsSection />
-      <FaqSection />
+      <AiFaqSection />
     </>
   );
 }
