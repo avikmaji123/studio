@@ -104,51 +104,57 @@
 }
 
 @media print {
-  /* 1. Define page size and remove margins */
   @page {
-    size: A4 landscape;
+    size: 297mm 210mm; /* A4 Landscape */
     margin: 0;
   }
 
-  /* 2. Ensure colors and backgrounds print correctly */
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    background: none !important;
-  }
-  
-  /* 3. Hide all elements by default */
-  body * {
-    visibility: hidden;
-  }
-  
-  /* 4. Make only the certificate container and its children visible */
-  #certificate-container, #certificate-container * {
-    visibility: visible;
-  }
-
-  /* 5. Force the certificate container to fill the A4 page exactly */
-  #certificate-container {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+  /* Reset body and html to prevent interference and ensure full-bleed */
+  html, body {
+    width: 297mm !important;
+    height: 210mm !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
+    overflow: hidden !important;
+    background: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+  
+  /* Show only the certificate container and its children */
+  #certificate-print-root,
+  #certificate-print-root * {
+    visibility: visible !important;
+  }
+
+  /* Define the certificate container's exact print dimensions and position */
+  #certificate-print-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 297mm;
+    height: 210mm;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
     transform: none !important;
     zoom: 1 !important;
     scale: 1 !important;
+    border: none !important;
+    box-shadow: none !important;
   }
-  
-  /* 6. Hide any element explicitly marked as no-print */
+
+  /* Hide any element explicitly marked as no-print */
   .no-print {
     display: none !important;
   }
-
-  /* 7. Globally prevent any page breaks as a failsafe */
+  
+  /* Globally prevent any page breaks as a failsafe */
   * {
     page-break-before: avoid !important;
     page-break-after: avoid !important;

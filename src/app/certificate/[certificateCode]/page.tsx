@@ -1,6 +1,6 @@
 'use client';
 
-import { doc, getDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import type { Certificate } from '@/lib/types';
@@ -134,7 +134,7 @@ export default function CertificatePage() {
                 </Button>
             </div>
             {/* The A4 landscape container for both preview and printing */}
-            <div id="certificate-container" className="w-full max-w-5xl aspect-[297/210] mx-auto shadow-2xl">
+            <div id="certificate-print-root" className="w-full max-w-5xl aspect-[297/210] mx-auto shadow-2xl">
                 {renderContent()}
             </div>
         </div>
