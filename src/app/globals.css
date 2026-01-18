@@ -124,7 +124,7 @@
 }
 
 @media print {
-  /* 1. Force page size and prevent breaks */
+  /* Force page size and prevent breaks */
   @page {
     size: A4 landscape;
     margin: 0;
@@ -139,18 +139,18 @@
     print-color-adjust: exact !important;
   }
 
-  /* 2. Isolate print content: hide everything by default */
+  /* Isolate print content: hide everything by default */
   body * {
     visibility: hidden !important;
   }
   
-  /* 3. Make only the print wrapper and its contents visible */
+  /* Make only the print wrapper and its contents visible */
   #print-wrapper,
   #print-wrapper * {
     visibility: visible !important;
   }
 
-  /* 4. Reset body/html for a clean canvas */
+  /* Reset body/html for a clean canvas */
   html, body {
     width: 100%;
     height: 100%;
@@ -160,7 +160,7 @@
     background: none !important;
   }
 
-  /* 5. Wrapper to center the certificate perfectly on the page */
+  /* Wrapper to center the certificate perfectly on the page */
   #print-wrapper {
     position: fixed;
     inset: 0;
@@ -172,7 +172,7 @@
     overflow: hidden;
   }
   
-  /* 6. Hard-lock certificate to A4 landscape dimensions */
+  /* Hard-lock certificate to A4 landscape dimensions */
   #certificate-print-root {
     width: 297mm;
     height: 210mm;
@@ -211,4 +211,24 @@
   font-size: 12px;
   opacity: 0.75;
   line-height: 1;
+}
+
+/* === Certificate QR Code Styles === */
+.certificate-qr {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.certificate-qr img {
+  width: 110px;
+  height: 110px;
+}
+
+.qr-caption {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.7;
 }

@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Enrollment = {
@@ -90,4 +91,5 @@ export type Certificate = {
     certificateCode: string;
     status: 'valid' | 'revoked';
     certificateUrl?: string;
+    qrCodeUrl?: string;
 };

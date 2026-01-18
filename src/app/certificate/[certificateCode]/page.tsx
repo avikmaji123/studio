@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc } from 'firebase/firestore';
@@ -9,6 +10,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 // New Landscape Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
@@ -35,6 +37,16 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                 <p className="font-headline text-3xl font-semibold text-cyan-400 mt-2">{certificate.courseName}</p>
                  {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mt-1">{certificate.courseLevel}</p>}
             </div>
+
+            {/* QR Code */}
+            {certificate.qrCodeUrl && (
+                <div className="certificate-qr">
+                    <Image src={certificate.qrCodeUrl} alt="Certificate Verification QR Code" width={110} height={110} className="bg-white p-1 rounded-md" />
+                    <div className="qr-caption">
+                        Scan to verify this certificate
+                    </div>
+                </div>
+            )}
 
             {/* Footer */}
             <div className="flex justify-between items-end z-10">
