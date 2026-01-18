@@ -9,13 +9,13 @@ const QuestionSchema = z.object({
   correctAnswer: z.string().describe('The correct answer text from the options array.'),
 });
 
-export const GenerateQuizInputSchema = z.object({
+const GenerateQuizInputSchema = z.object({
   courseTitle: z.string().describe('The title of the course.'),
   courseDescription: z.string().describe('The description of the course content.'),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
-export const GenerateQuizOutputSchema = z.object({
+const GenerateQuizOutputSchema = z.object({
   questions: z.array(QuestionSchema).length(10).describe('An array of 10 multiple-choice questions.'),
 });
 export type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;
