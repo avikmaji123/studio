@@ -61,7 +61,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
                     // Load logo synchronously
                     const logo = new Image();
-                    logo.src = "/logo/courseverse-mark.png";
+                    logo.src = "https://i.ibb.co/Y76Ct8pP/Screenshot-20260118-231138.jpg";
                     logo.crossOrigin = "anonymous";
 
                     logo.onload = () => {
@@ -78,7 +78,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     };
 
                     logo.onerror = () => {
-                        console.warn("QR logo at /logo/courseverse-mark.png not found. Generating QR code without logo.");
+                        console.warn("QR logo not found. Generating QR code without logo.");
                     };
 
                 } catch (err: any) {
