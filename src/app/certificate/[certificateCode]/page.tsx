@@ -1,32 +1,18 @@
-import { collection, query, where, getDocs, limit, Timestamp } from 'firebase/firestore';
-import { notFound } from 'next/navigation';
-import { getSdks } from '@/firebase/index.server';
+'use client';
+
+import { doc, getDoc, Timestamp } from 'firebase/firestore';
+import { useParams } from 'next/navigation';
+import { useFirestore } from '@/firebase';
 import type { Certificate } from '@/lib/types';
-import { BookOpen, Download, AlertTriangle } from 'lucide-react';
+import { BookOpen, Download, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-
-async function getCertificate(code: string): Promise<Certificate | null> {
-    const { firestore } = getSdks();
-    // The document ID is the code itself for fast lookups
-    const certRef = doc(firestore, 'certificates', code);
-    
-    try {
-        const docSnap = await getDoc(certRef);
-        if (!docSnap.exists()) {
-            return null;
-        }
-        return docSnap.data() as Certificate;
-    } catch (error) {
-        console.error("Error fetching certificate:", error);
-        return null;
-    }
-}
+import { useState, useEffect } from 'react';
 
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     return (
-        <div className="relative w-[21cm] h-[29.7cm] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden">
+        <div className="relative w-full max-w-[1123px] aspect-[1.414] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden print:w-[29.7cm] print:h-[21cm]">
             {/* Watermark & BG Pattern */}
             <div className="absolute inset-0 z-0">
                  <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-60 rotate-[-15deg]" />
@@ -82,11 +68,11 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 function InvalidCertificate({ title, message }: { title: string, message: string }) {
     return (
-        <div className="w-[21cm] h-[29.7cm] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
+        <div className="w-full max-w-[1123px] aspect-[1.414] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl print:w-[29.7cm] print:h-[21cm]">
             <AlertTriangle className="h-24 w-24 text-destructive mb-8" />
             <h1 className="font-headline text-5xl font-bold text-destructive">{title}</h1>
             <p className="text-xl text-muted-foreground mt-4 max-w-2xl">{message}</p>
-            <Button asChild className="mt-8">
+            <Button asChild className="mt-8 no-print">
                 <Link href="/verify-certificate">Try Again</Link>
             </Button>
         </div>
@@ -94,16 +80,59 @@ function InvalidCertificate({ title, message }: { title: string, message: string
 }
 
 
-export default async function CertificatePage({ params }: { params: { certificateCode: string } }) {
-    const code = params.certificateCode;
-    const certificate = await getCertificate(code);
-    
-    // This function runs on the server, so we can't use `window.print()` directly.
-    // The print button will be on the client.
-    const handlePrint = () => {
-        if (typeof window !== 'undefined') {
-            window.print();
+export default function CertificatePage() {
+    const params = useParams();
+    const code = params.certificateCode as string;
+    const firestore = useFirestore();
+
+    const [status, setStatus] = useState<'loading' | 'valid' | 'revoked' | 'invalid'>('loading');
+    const [certificate, setCertificate] = useState<Certificate | null>(null);
+
+    useEffect(() => {
+      if (!firestore || !code) return;
+      
+      const getCertificate = async () => {
+        const certRef = doc(firestore, 'certificates', code);
+        try {
+          const docSnap = await getDoc(certRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data() as Certificate;
+            setCertificate(data);
+            setStatus(data.status === 'revoked' ? 'revoked' : 'valid');
+          } else {
+            setStatus('invalid');
+          }
+        } catch (error) {
+          console.error("Error fetching certificate:", error);
+          setStatus('invalid');
         }
+      };
+
+      getCertificate();
+    }, [firestore, code]);
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    if (status === 'loading') {
+      return (
+        <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      );
+    }
+    
+    const renderContent = () => {
+      switch (status) {
+        case 'valid':
+          return certificate && <CertificateDisplay certificate={certificate} />;
+        case 'revoked':
+          return <InvalidCertificate title="Certificate Revoked" message="This certificate has been revoked by the administrator and is no longer valid." />;
+        case 'invalid':
+        default:
+          return <InvalidCertificate title="Invalid Certificate" message="The certificate code you are looking for does not exist. Please check the code and try again." />;
+      }
     };
 
     return (
@@ -118,20 +147,7 @@ export default async function CertificatePage({ params }: { params: { certificat
                     Download PDF
                 </Button>
             </div>
-            
-            {!certificate ? (
-                 <InvalidCertificate 
-                    title="Invalid Certificate"
-                    message="The certificate code you are looking for does not exist. Please check the code and try again."
-                />
-            ) : certificate.status === 'revoked' ? (
-                <InvalidCertificate 
-                    title="Certificate Revoked"
-                    message="This certificate has been revoked by the administrator and is no longer valid."
-                />
-            ) : (
-                <CertificateDisplay certificate={certificate} />
-            )}
+            {renderContent()}
         </div>
     );
 }
