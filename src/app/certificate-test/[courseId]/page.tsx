@@ -106,7 +106,7 @@ export default function CertificateTestPage() {
 
 
                 const certificateData = {
-                    id: certificateCode,
+                    id: course.id, // Using courseId as document ID in subcollection
                     userId: user.uid,
                     courseId: course.id,
                     studentName: studentName,
@@ -123,7 +123,7 @@ export default function CertificateTestPage() {
                 
                 // Create public verification record (doc ID is the unique code)
                 const publicCertRef = doc(firestore, 'certificates', certificateCode);
-                await setDoc(publicCertRef, certificateData);
+                await setDoc(publicCertRef, { ...certificateData, id: certificateCode }); // Here, id is the certificate code
                 
                 await createLogEntry({
                     source: 'system',
