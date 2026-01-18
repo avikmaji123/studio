@@ -9,7 +9,6 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 
 // New Landscape Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
@@ -40,7 +39,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
             {/* QR Code */}
             {certificate.qrCodeUrl && (
                 <div id="certificate-qr">
-                    <Image src={certificate.qrCodeUrl} alt="Certificate Verification QR Code" width={110} height={110} className="bg-white p-1 rounded-md" />
+                    <img src={certificate.qrCodeUrl} alt="Certificate Verification QR Code" width="110" height="110" className="bg-white p-1 rounded-md" />
                     <div className="qr-caption">
                         Scan to verify this certificate
                     </div>
