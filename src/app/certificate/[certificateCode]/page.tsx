@@ -1,4 +1,3 @@
-
 'use client';
 
 import { doc, getDoc } from 'firebase/firestore';
@@ -55,7 +54,9 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     }
 
                     const ctx = canvas.getContext("2d");
-                    if (!ctx) return;
+                    if (!ctx) {
+                        throw new Error("Could not get canvas context");
+                    }
 
                     // Load logo synchronously
                     const logo = new Image();
@@ -64,7 +65,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
                     await new Promise((resolve, reject) => {
                         logo.onload = resolve;
-                        logo.onerror = reject;
+                        logo.onerror = () => reject(new Error("Logo image failed to load"));
                     });
 
                     // Draw logo INTO canvas
@@ -79,7 +80,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     ctx.drawImage(logo, x, y, logoSize, logoSize);
 
                 } catch (err: any) {
-                    console.error("QR generation error:", err.message);
+                    console.error("QR generation error:", err?.message || err);
                 }
             }
 
