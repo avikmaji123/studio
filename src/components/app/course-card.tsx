@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Course } from '@/lib/types';
+import type { Course, Certificate } from '@/lib/types';
 import { Eye, Users, BarChart, CheckCircle, Download, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -18,9 +18,10 @@ import {
 type CourseCardProps = {
   course: Course;
   isEnrolled: boolean;
+  certificate?: Certificate | null;
 };
 
-export function CourseCard({ course, isEnrolled }: CourseCardProps) {
+export function CourseCard({ course, isEnrolled, certificate }: CourseCardProps) {
   
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
@@ -82,8 +83,8 @@ export function CourseCard({ course, isEnrolled }: CourseCardProps) {
                         <span>Download Course</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer">
-                       <Link href="#">
+                    <DropdownMenuItem asChild className="cursor-pointer" disabled={!certificate}>
+                       <Link href={certificate ? `/certificate/${certificate.certificateCode}` : '#'}>
                         <Award className="mr-2 h-4 w-4" />
                         <span>Certificate</span>
                       </Link>

@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { CourseCard } from "@/components/app/course-card";
@@ -30,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import type { SortOption } from '@/hooks/use-search-and-filter';
 
 const levels = ["Beginner", "Intermediate", "Advanced"];
 
@@ -116,7 +118,8 @@ export default function CoursesPage() {
     searchTerm, 
     setSearchTerm, 
     isLoading,
-    enrolledCourseIds
+    enrolledCourseIds,
+    certificates,
   } = useSearchAndFilter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -174,13 +177,17 @@ export default function CoursesPage() {
                         <Skeleton key={i} className="h-[350px] w-full" />
                     ))
                 ) : filteredCourses.length > 0 ? (
-                    filteredCourses.map(course => (
-                        <CourseCard 
-                          key={course.id} 
-                          course={course} 
-                          isEnrolled={enrolledCourseIds.includes(course.id)} 
-                        />
-                    ))
+                    filteredCourses.map(course => {
+                        const certificate = certificates.find(c => c.courseId === course.id);
+                        return (
+                            <CourseCard 
+                              key={course.id} 
+                              course={course} 
+                              isEnrolled={enrolledCourseIds.includes(course.id)} 
+                              certificate={certificate}
+                            />
+                        )
+                    })
                 ) : (
                     <div className="col-span-full text-center py-16">
                         <h3 className="text-xl font-semibold">No Courses Found</h3>

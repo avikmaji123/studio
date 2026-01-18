@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ArrowUpRight, Book, CheckCircle, Download } from 'lucide-react';
@@ -16,7 +17,7 @@ import {
 import { CourseCard } from '@/components/app/course-card';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Course } from '@/lib/types';
+import type { Course, Certificate } from '@/lib/types';
 
 function StatCard({
   title,
@@ -75,7 +76,7 @@ export default function DashboardOverviewPage() {
     [firestore, user]
   );
   const { data: certificates, isLoading: isCertificatesLoading } =
-    useCollection(certificatesQuery);
+    useCollection<Certificate>(certificatesQuery);
 
   const purchasedCourses = useMemo(() => {
     if (!enrollments || !allCourses) return [];
@@ -169,13 +170,17 @@ export default function DashboardOverviewPage() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {purchasedCourses.length > 0 ? (
-                        purchasedCourses.map(course => (
-                            <CourseCard 
-                              key={course.id} 
-                              course={course} 
-                              isEnrolled={enrolledCourseIds.includes(course.id)} 
-                            />
-                        ))
+                        purchasedCourses.map(course => {
+                            const certificate = certificates?.find(c => c.courseId === course.id);
+                            return (
+                                <CourseCard 
+                                  key={course.id} 
+                                  course={course} 
+                                  isEnrolled={enrolledCourseIds.includes(course.id)} 
+                                  certificate={certificate}
+                                />
+                            )
+                        })
                     ) : (
                         <div className="col-span-full text-center py-8">
                             <p className="text-muted-foreground">You haven't enrolled in any courses yet.</p>

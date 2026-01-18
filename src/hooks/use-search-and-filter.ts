@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Course } from '@/lib/types';
+import type { Course, Certificate } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 
@@ -25,6 +25,12 @@ export function useSearchAndFilter() {
     [firestore, user]
   );
   const { data: enrollments, isLoading: enrollmentsLoading } = useCollection(enrollmentsQuery);
+
+  const certificatesQuery = useMemoFirebase(
+    () => (user ? collection(firestore, 'users', user.uid, 'certificates') : null),
+    [firestore, user]
+  );
+  const { data: certificates, isLoading: certificatesLoading } = useCollection<Certificate>(certificatesQuery);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -120,7 +126,7 @@ export function useSearchAndFilter() {
     return filtered;
   }, [courses, searchTerm, selectedCategories, selectedLevels, priceRange, sortBy]);
   
-  const isLoading = coursesLoading || enrollmentsLoading;
+  const isLoading = coursesLoading || enrollmentsLoading || certificatesLoading;
 
   return {
     isLoading,
@@ -138,6 +144,7 @@ export function useSearchAndFilter() {
     setSortBy,
     filteredCourses,
     enrolledCourseIds: enrollments?.map(e => e.courseId) || [],
+    certificates: certificates || [],
     resetFilters
   };
 }

@@ -44,7 +44,7 @@ import {
   useMemoFirebase,
 } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Course } from '@/lib/types';
+import type { Course, Certificate } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { faqAssistant, type FaqAssistantOutput } from '@/ai/flows/faq-assistant';
 
@@ -195,6 +195,13 @@ function FeaturedCoursesSection() {
     [firestore, user]
   );
   const { data: enrollments } = useCollection(enrollmentsQuery);
+  
+  const certificatesQuery = useMemoFirebase(
+    () =>
+      user ? collection(firestore, 'users', user.uid, 'certificates') : null,
+    [firestore, user]
+  );
+  const { data: certificates } = useCollection<Certificate>(certificatesQuery);
 
   const enrolledCourseIds = useMemo(() => {
     if (!enrollments) return [];
@@ -217,13 +224,17 @@ function FeaturedCoursesSection() {
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-[350px] w-full" />
               ))
-            : courses?.map(course => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  isEnrolled={enrolledCourseIds.includes(course.id)}
-                />
-              ))}
+            : courses?.map(course => {
+                const certificate = certificates?.find(c => c.courseId === course.id);
+                return (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    isEnrolled={enrolledCourseIds.includes(course.id)}
+                    certificate={certificate}
+                  />
+                )
+            })}
         </div>
         <div className="mt-12 text-center">
           <Button asChild variant="outline">
