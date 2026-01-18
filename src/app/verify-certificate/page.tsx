@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { doc, getDoc, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { useFirestore } from '@/firebase';
@@ -28,19 +29,19 @@ type VerificationResult = {
 
 export default function VerifyCertificatePage() {
     const firestore = useFirestore();
+    const searchParams = useSearchParams();
     const [certificateCode, setCertificateCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<VerificationResult>(null);
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!firestore || !certificateCode.trim()) return;
+    const runVerification = useCallback(async (codeToVerify: string) => {
+        if (!firestore || !codeToVerify.trim()) return;
 
         setIsLoading(true);
         setResult(null);
+        const code = codeToVerify.trim();
 
         try {
-            const code = certificateCode.trim();
             const certRef = doc(firestore, 'certificates', code);
             const docSnap = await getDoc(certRef);
 
@@ -60,6 +61,19 @@ export default function VerifyCertificatePage() {
         } finally {
             setIsLoading(false);
         }
+    }, [firestore]);
+
+    useEffect(() => {
+        const codeFromUrl = searchParams.get('code');
+        if (codeFromUrl) {
+            setCertificateCode(codeFromUrl);
+            runVerification(codeFromUrl);
+        }
+    }, [searchParams, runVerification]);
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        runVerification(certificateCode);
     };
 
     const VerificationResultCard = () => {
@@ -176,7 +190,7 @@ export default function VerifyCertificatePage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleVerify} className="flex gap-2">
+                        <form onSubmit={handleFormSubmit} className="flex gap-2">
                             <Input 
                                 value={certificateCode}
                                 onChange={(e) => setCertificateCode(e.target.value)}
