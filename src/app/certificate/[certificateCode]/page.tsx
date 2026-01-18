@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc } from 'firebase/firestore';
@@ -50,7 +51,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
                     const canvas = slot.querySelector("canvas");
                     if (!canvas) {
-                    throw new Error("QR canvas failed to render");
+                        throw new Error("QR canvas failed to render");
                     }
 
                     const ctx = canvas.getContext("2d");
@@ -63,21 +64,22 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     logo.src = "/logo/courseverse-mark.png";
                     logo.crossOrigin = "anonymous";
 
-                    await new Promise((resolve, reject) => {
-                        logo.onload = resolve;
-                        logo.onerror = () => reject(new Error("Logo image failed to load"));
-                    });
+                    logo.onload = () => {
+                        // Draw logo INTO canvas
+                        const logoSize = 32;
+                        const x = (canvas.width - logoSize) / 2;
+                        const y = (canvas.height - logoSize) / 2;
 
-                    // Draw logo INTO canvas
-                    const logoSize = 32;
-                    const x = (canvas.width - logoSize) / 2;
-                    const y = (canvas.height - logoSize) / 2;
+                        // Solid backing behind logo (critical for scan)
+                        ctx.fillStyle = "#0b1220";
+                        ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
 
-                    // Solid backing behind logo (critical for scan)
-                    ctx.fillStyle = "#0b1220";
-                    ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
+                        ctx.drawImage(logo, x, y, logoSize, logoSize);
+                    };
 
-                    ctx.drawImage(logo, x, y, logoSize, logoSize);
+                    logo.onerror = () => {
+                        console.warn("QR logo at /logo/courseverse-mark.png not found. Generating QR code without logo.");
+                    };
 
                 } catch (err: any) {
                     console.error("QR generation error:", err?.message || err);
