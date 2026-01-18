@@ -102,3 +102,36 @@
     }
   }
 }
+
+/* Print Isolation and Certificate Styling */
+@layer components {
+    .certificate-preview-wrapper {
+        @apply w-full overflow-hidden;
+    }
+
+    .certificate-container {
+        @apply w-full aspect-[1123/794] relative overflow-hidden rounded-lg shadow-2xl;
+        background: radial-gradient(ellipse at center, #1a2a45 0%, #0f172a 70%);
+    }
+
+    .certificate-body {
+        @apply w-full h-full p-12 flex flex-col text-center text-white;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .certificate-border {
+        @apply absolute inset-0 pointer-events-none;
+    }
+
+    .certificate-border-left, .certificate-border-right {
+        @apply absolute top-0 bottom-0 w-8 bg-gradient-to-b from-cyan-400/30 via-sky-500/30 to-blue-600/30;
+    }
+
+    .certificate-border-left { @apply left-0; }
+    .certificate-border-right { @apply right-0; }
+
+    .certificate-vignette {
+        @apply absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.4)];
+    }
+}

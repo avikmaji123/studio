@@ -81,14 +81,14 @@ export interface SiteSettings {
 }
 
 export type Certificate = {
-    id: string;
+    id: string; // The doc ID in the user's subcollection (usually courseId)
     userId: string;
     courseId: string;
     studentName: string;
     courseName: string;
     courseLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
     issueDate: Timestamp;
-    certificateCode: string;
+    certificateCode: string; // The unique code, and the ID for the public collection
     status: 'valid' | 'revoked';
-    certificateUrl?: string;
+    certificateUrl?: string; // This is not used for PDF generation
 };

@@ -11,27 +11,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Search, CheckCircle, XCircle, Award, Download } from 'lucide-react';
+import { Loader2, Search, CheckCircle, XCircle, Award, Download, Eye } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import type { Certificate } from '@/lib/types';
 
-type CertificateData = {
-    studentName: string;
-    courseName: string;
-    issueDate: Timestamp;
-    status: 'valid' | 'revoked';
-    certificateCode: string;
-};
 
 type VerificationResult = {
     status: 'valid' | 'invalid' | 'revoked';
-    data?: CertificateData;
+    data?: Certificate;
 } | null;
 
 export default function VerifyCertificatePage() {
     const firestore = useFirestore();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const [certificateCode, setCertificateCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [result, setResult] = useState<VerificationResult>(null);
 
     const runVerification = useCallback(async (codeToVerify: string) => {
@@ -46,7 +43,7 @@ export default function VerifyCertificatePage() {
             const docSnap = await getDoc(certRef);
 
             if (docSnap.exists()) {
-                const data = docSnap.data() as CertificateData;
+                const data = docSnap.data() as Certificate;
                 if (data.status === 'revoked') {
                      setResult({ status: 'revoked', data });
                 } else {
@@ -75,6 +72,44 @@ export default function VerifyCertificatePage() {
         e.preventDefault();
         runVerification(certificateCode);
     };
+
+    const handleDownload = async (code: string) => {
+        setIsDownloading(true);
+        toast({ title: 'Generating PDF...', description: 'Your download will begin shortly.' });
+
+        try {
+            const response = await fetch(`/api/certificate/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ certificateCode: code }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate PDF.');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CourseVerse_Certificate_${code}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error: any) {
+             toast({
+                variant: 'destructive',
+                title: 'Download Failed',
+                description: error.message || 'An unexpected error occurred.',
+            });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
 
     const VerificationResultCard = () => {
         if (isLoading) {
@@ -161,12 +196,16 @@ export default function VerifyCertificatePage() {
                             </div>
                         </div>
                     </CardContent>
-                     <CardFooter className="bg-green-500/10 p-4">
-                        <Button asChild className="w-full" size="lg">
+                     <CardFooter className="bg-green-500/10 p-4 flex flex-col sm:flex-row gap-2">
+                        <Button asChild className="w-full" size="lg" variant="secondary">
                             <Link href={`/certificate/${certificateCode}`} target="_blank">
-                                <Download className="mr-2 h-4 w-4" />
-                                Download Certificate PDF
+                                <Eye className="mr-2 h-4 w-4" />
+                                Preview Certificate
                             </Link>
+                        </Button>
+                        <Button onClick={() => handleDownload(certificateCode)} disabled={isDownloading} className="w-full" size="lg">
+                            {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4" />}
+                            {isDownloading ? 'Generating...' : 'Download PDF'}
                         </Button>
                     </CardFooter>
                 </Card>
@@ -194,7 +233,7 @@ export default function VerifyCertificatePage() {
                             <Input 
                                 value={certificateCode}
                                 onChange={(e) => setCertificateCode(e.target.value)}
-                                placeholder="e.g., CV-2024-ABCDEF"
+                                placeholder="e.g., CV-CYB-A0B1-C2D3"
                                 className="h-12 text-lg flex-grow"
                                 disabled={isLoading}
                                 required
