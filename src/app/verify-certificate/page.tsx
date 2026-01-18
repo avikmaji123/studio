@@ -95,6 +95,18 @@ export default function VerifyCertificatePage() {
                             <CardDescription className="text-amber-600/80 dark:text-amber-500/80">This certificate is no longer valid.</CardDescription>
                          </div>
                     </CardHeader>
+                     <CardContent>
+                        <div className="space-y-4 text-sm mt-4">
+                            <div>
+                                <p className="font-semibold text-muted-foreground">RECIPIENT</p>
+                                <p className="font-medium text-foreground">{result.data?.studentName}</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-muted-foreground">COURSE</p>
+                                <p className="font-medium text-foreground">{result.data?.courseName}</p>
+                            </div>
+                        </div>
+                    </CardContent>
                 </Card>
             )
         }
@@ -104,27 +116,33 @@ export default function VerifyCertificatePage() {
              return (
                 <Card className="border-green-500/50 bg-green-500/10">
                     <CardHeader className="flex-row items-center gap-4 pb-4">
-                        <CheckCircle className="h-10 w-10 text-green-600" />
+                        <Award className="h-10 w-10 text-green-600" />
                         <div>
                             <CardTitle className="text-green-700 dark:text-green-400">Certificate Verified</CardTitle>
-                            <CardDescription className="text-green-600/80 dark:text-green-400/80">This certificate is authentic and has been issued by CourseVerse.</CardDescription>
+                            <CardDescription className="text-green-600/80 dark:text-green-400/80">This is an authentic certificate issued by CourseVerse.</CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Separator className="bg-green-500/30"/>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-4 text-sm">
                             <div>
                                 <p className="font-semibold text-muted-foreground">RECIPIENT</p>
                                 <p className="font-bold text-lg text-foreground">{studentName}</p>
                             </div>
                             <div>
-                                <p className="font-semibold text-muted-foreground">ISSUED ON</p>
-                                <p className="font-medium text-foreground">{format(issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                                <p className="font-semibold text-muted-foreground">COURSE COMPLETED</p>
+                                <p className="font-bold text-lg text-foreground">{courseName}</p>
                             </div>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-muted-foreground">COURSE COMPLETED</p>
-                            <p className="font-bold text-lg text-foreground">{courseName}</p>
+                            <div className="grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <p className="font-semibold text-muted-foreground">ISSUE DATE</p>
+                                    <p className="font-medium text-foreground">{format(issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-muted-foreground">STATUS</p>
+                                    <p className="font-medium text-green-600 flex items-center gap-1.5"><CheckCircle className="h-4 w-4" /> Valid</p>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
