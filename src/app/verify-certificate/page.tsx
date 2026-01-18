@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { doc, getDoc, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { useFirestore } from '@/firebase';
+import Link from 'next/link';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Search, CheckCircle, XCircle, Award } from 'lucide-react';
+import { Loader2, Search, CheckCircle, XCircle, Award, Download } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 type CertificateData = {
@@ -17,6 +18,7 @@ type CertificateData = {
     courseName: string;
     issueDate: Timestamp;
     status: 'valid' | 'revoked';
+    certificateCode: string;
 };
 
 type VerificationResult = {
@@ -112,7 +114,7 @@ export default function VerifyCertificatePage() {
         }
 
         if (result.status === 'valid' && result.data) {
-             const { studentName, courseName, issueDate } = result.data;
+             const { studentName, courseName, issueDate, certificateCode } = result.data;
              return (
                 <Card className="border-green-500/50 bg-green-500/10">
                     <CardHeader className="flex-row items-center gap-4 pb-4">
@@ -145,6 +147,14 @@ export default function VerifyCertificatePage() {
                             </div>
                         </div>
                     </CardContent>
+                     <CardFooter className="bg-green-500/10 p-4">
+                        <Button asChild className="w-full" size="lg">
+                            <Link href={`/certificate/${certificateCode}`} target="_blank">
+                                <Download className="mr-2 h-4 w-4" />
+                                Download Certificate PDF
+                            </Link>
+                        </Button>
+                    </CardFooter>
                 </Card>
              )
         }
@@ -189,4 +199,3 @@ export default function VerifyCertificatePage() {
         </div>
     );
 }
-    

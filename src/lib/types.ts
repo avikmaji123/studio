@@ -85,6 +85,7 @@ export type Certificate = {
     courseId: string;
     studentName: string;
     courseName: string;
+    courseLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
     issueDate: Timestamp;
     certificateCode: string;
     status: 'valid' | 'revoked';

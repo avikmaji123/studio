@@ -2,7 +2,6 @@ import { collection, query, where, getDocs, limit, Timestamp } from 'firebase/fi
 import { notFound } from 'next/navigation';
 import { getSdks } from '@/firebase/index.server';
 import type { Certificate } from '@/lib/types';
-import Image from 'next/image';
 import { BookOpen, Download, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -10,87 +9,80 @@ import { Button } from '@/components/ui/button';
 
 async function getCertificate(code: string): Promise<Certificate | null> {
     const { firestore } = getSdks();
-    const certRef = collection(firestore, 'certificates');
-    const q = query(certRef, where('certificateCode', '==', code), limit(1));
+    // The document ID is the code itself for fast lookups
+    const certRef = doc(firestore, 'certificates', code);
     
     try {
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-        return null;
+        const docSnap = await getDoc(certRef);
+        if (!docSnap.exists()) {
+            return null;
         }
-        
-        const certDoc = querySnapshot.docs[0];
-        // The document ID is the certificateCode, but we also have it in the data
-        return certDoc.data() as Certificate;
+        return docSnap.data() as Certificate;
     } catch (error) {
         console.error("Error fetching certificate:", error);
         return null;
     }
 }
 
-function CertificateDisplay({ certificate, verificationUrl }: { certificate: Certificate, verificationUrl: string }) {
+function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     return (
-        <div className="relative w-[29.7cm] h-[21cm] bg-background text-foreground p-12 flex flex-col shadow-2xl overflow-hidden bg-gradient-to-br from-background to-muted/30">
-            {/* Watermark */}
-            <div className="absolute inset-0 flex items-center justify-center z-0">
-                <BookOpen className="h-96 w-96 text-foreground/5 opacity-50 rotate-[-30deg]" />
+        <div className="relative w-[21cm] h-[29.7cm] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden">
+            {/* Watermark & BG Pattern */}
+            <div className="absolute inset-0 z-0">
+                 <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-60 rotate-[-15deg]" />
             </div>
-            
-            <div className="relative z-10 flex flex-col flex-grow">
+
+            <div className="relative z-10 flex flex-col items-center flex-grow text-center">
                 {/* Header */}
-                <header className="text-center mb-8">
-                    <div className="flex justify-center items-center gap-2">
-                        <BookOpen className="h-8 w-8 text-primary" />
-                        <h1 className="text-2xl font-bold">CourseVerse</h1>
+                <header className="w-full mb-10">
+                    <div className="flex justify-center items-center gap-3">
+                        <BookOpen className="h-8 w-8 text-cyan-400" />
+                        <h1 className="text-2xl font-bold tracking-wider">CourseVerse</h1>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">Your universe for high-quality licensed courses.</p>
                 </header>
 
-                <div className="flex-grow flex flex-col items-center justify-center text-center">
-                    {/* Title */}
-                    <p className="text-lg text-muted-foreground">This is to certify that</p>
-                    <h2 className="font-headline text-5xl font-bold my-4 tracking-wider">{certificate.studentName}</h2>
-                    <p className="text-lg text-muted-foreground">has successfully completed the course</p>
-                    <h3 className="text-3xl font-semibold text-primary my-4 underline decoration-accent decoration-2 underline-offset-4">{certificate.courseName}</h3>
-                </div>
+                {/* Main Content */}
+                <main className="flex-grow flex flex-col justify-center items-center w-full">
+                    <p className="font-headline text-5xl tracking-tight text-gray-300 mb-6">Certificate of Completion</p>
+                    <p className="text-lg text-gray-400 mb-4">This certifies that</p>
+                    <p className="font-headline text-6xl font-bold tracking-wider text-white mb-4">{certificate.studentName}</p>
+                    <p className="text-lg text-gray-400 mb-4">has successfully completed the</p>
+                    <p className="font-headline text-3xl font-semibold text-cyan-400 mb-2">{certificate.courseName}</p>
+                    <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mb-8">{certificate.courseLevel || ''}</p>
 
-                {/* Details Row */}
-                <div className="grid grid-cols-3 gap-4 text-center text-sm text-muted-foreground mb-16">
-                    <div>
-                        <p className="font-bold text-foreground">Issue Date</p>
-                        <p>{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                    <p className="max-w-xl text-gray-300 mb-12">
+                        Congratulations on successfully completing the course. This achievement demonstrates your commitment to professional development.
+                    </p>
+                </main>
+                 
+                {/* Details & Signature */}
+                <footer className="w-full mt-auto">
+                    <div className="flex justify-between items-end">
+                        <div className="text-left text-sm">
+                            <div className="mb-3">
+                                <p className="font-bold text-gray-400">Issue Date</p>
+                                <p className="text-gray-200">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                            </div>
+                            <div>
+                                <p className="font-bold text-gray-400">Certificate ID</p>
+                                <p className="font-mono text-xs text-gray-300">{certificate.certificateCode}</p>
+                            </div>
+                        </div>
+                        <div className="text-center">
+                            <p className="font-signature text-5xl text-gray-100">Avik Maji</p>
+                            <hr className="my-1 border-gray-600 w-48 mx-auto"/>
+                            <p className="text-sm text-gray-400">Founder, CourseVerse</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="font-bold text-foreground">Certificate ID</p>
-                        <p className="font-mono text-xs">{certificate.certificateCode}</p>
-                    </div>
-                     <div>
-                        <p className="font-bold text-foreground">Verification URL</p>
-                        <p className="font-mono text-xs">{verificationUrl}</p>
-                    </div>
-                </div>
-
-                {/* Signature */}
-                <div className="flex justify-end items-end">
-                    <div className="text-center">
-                        <p className="font-signature text-4xl">Avik Maji</p>
-                        <hr className="my-1 border-foreground/50"/>
-                        <p className="text-sm text-muted-foreground">Founder, CourseVerse</p>
-                    </div>
-                </div>
+                </footer>
             </div>
-
-            {/* Footer */}
-             <footer className="relative z-10 text-center text-xs text-muted-foreground pt-4">
-                <p>This certificate can be verified at {verificationUrl}</p>
-            </footer>
         </div>
     );
 }
 
 function InvalidCertificate({ title, message }: { title: string, message: string }) {
     return (
-        <div className="w-[29.7cm] h-[21cm] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
+        <div className="w-[21cm] h-[29.7cm] bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
             <AlertTriangle className="h-24 w-24 text-destructive mb-8" />
             <h1 className="font-headline text-5xl font-bold text-destructive">{title}</h1>
             <p className="text-xl text-muted-foreground mt-4 max-w-2xl">{message}</p>
@@ -105,7 +97,14 @@ function InvalidCertificate({ title, message }: { title: string, message: string
 export default async function CertificatePage({ params }: { params: { certificateCode: string } }) {
     const code = params.certificateCode;
     const certificate = await getCertificate(code);
-    const verificationUrl = `courseverse.in/verify-certificate`; // Use your actual domain
+    
+    // This function runs on the server, so we can't use `window.print()` directly.
+    // The print button will be on the client.
+    const handlePrint = () => {
+        if (typeof window !== 'undefined') {
+            window.print();
+        }
+    };
 
     return (
         <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center py-12 px-4 font-body">
@@ -114,7 +113,7 @@ export default async function CertificatePage({ params }: { params: { certificat
                     <Link href="/">Back to Home</Link>
                 </Button>
                 <h2 className="text-lg font-semibold">Certificate Preview</h2>
-                <Button onClick={() => 'window.print()'}>
+                 <Button onClick={handlePrint}>
                     <Download className="mr-2 h-4 w-4"/>
                     Download PDF
                 </Button>
@@ -131,7 +130,7 @@ export default async function CertificatePage({ params }: { params: { certificat
                     message="This certificate has been revoked by the administrator and is no longer valid."
                 />
             ) : (
-                <CertificateDisplay certificate={certificate} verificationUrl={verificationUrl} />
+                <CertificateDisplay certificate={certificate} />
             )}
         </div>
     );

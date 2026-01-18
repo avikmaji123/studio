@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import type { Course } from '@/lib/types';
 import { generateQuiz, type GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { Loader2, ArrowLeft } from 'lucide-react';
@@ -13,13 +13,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { createLogEntry } from '@/lib/actions';
 
 type AnswerState = { [questionIndex: number]: string };
 
 export default function CertificateTestPage() {
     const { courseId } = useParams();
     const router = useRouter();
-    const { user } = useUser();
+    const { user, profile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
 
@@ -69,20 +70,83 @@ export default function CertificateTestPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        // TODO: Implement submission and scoring logic.
-        // For now, we'll just log the answers and simulate success.
-        console.log("Submitting answers:", answers);
-        
-        toast({ title: "Submitting Quiz", description: "Your answers are being graded..."});
 
-        // This is where you would call a server action or another flow to score the quiz
-        // and issue the certificate if passed.
-        
-        setTimeout(() => {
+        if (!quiz || !user || !profile || !firestore || !course) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not submit quiz. Missing context.' });
             setIsSubmitting(false);
-            toast({ title: "Quiz Passed!", description: "Congratulations! Your certificate is being issued."});
-            router.push('/dashboard');
-        }, 2000);
+            return;
+        }
+
+        let score = 0;
+        quiz.questions.forEach((q, index) => {
+            if (answers[index] === q.correctAnswer) {
+                score++;
+            }
+        });
+
+        const passingScore = 6;
+        if (score >= passingScore) {
+            // Passed the quiz
+            try {
+                // Check if certificate already exists
+                const certRef = doc(firestore, 'users', user.uid, 'certificates', course.id);
+                const certSnap = await getDoc(certRef);
+
+                if (certSnap.exists()) {
+                    // Already issued, redirect to success page.
+                    router.push(`/certificate-issued/${course.id}`);
+                    return;
+                }
+
+                const certificateCode = `CV-${course.category.substring(0, 3).toUpperCase()}-${course.id.substring(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+                const issueDate = Timestamp.now();
+                const studentName = `${profile.firstName} ${profile.lastName}`.trim();
+
+                const certificateData = {
+                    id: certificateCode,
+                    userId: user.uid,
+                    courseId: course.id,
+                    studentName: studentName,
+                    courseName: course.title,
+                    courseLevel: course.level || 'Beginner',
+                    issueDate: issueDate,
+                    certificateCode: certificateCode,
+                    status: 'valid' as const,
+                };
+
+                // Create user's private certificate record (doc ID is course ID for uniqueness)
+                await setDoc(certRef, certificateData);
+                
+                // Create public verification record (doc ID is the unique code)
+                const publicCertRef = doc(firestore, 'certificates', certificateCode);
+                await setDoc(publicCertRef, certificateData);
+                
+                await createLogEntry({
+                    source: 'system',
+                    severity: 'info',
+                    message: 'Certificate issued after passing quiz.',
+                    metadata: { userId: user.uid, courseId: course.id, certificateCode: certificateCode }
+                });
+
+                toast({ title: "Quiz Passed!", description: "Congratulations! Your certificate has been issued." });
+                router.push(`/certificate-issued/${course.id}`);
+
+            } catch (error: any) {
+                console.error("Certificate issuance error:", error);
+                toast({ variant: 'destructive', title: 'Error Issuing Certificate', description: error.message });
+                setIsSubmitting(false);
+            }
+        } else {
+            // Failed the quiz
+            toast({
+                variant: "destructive",
+                title: "Quiz Failed",
+                description: `You scored ${score} out of ${quiz.questions.length}. A minimum of ${passingScore} is required. Please review the course material and try again.`,
+                duration: 9000,
+            });
+            // TODO: Add logic for retry attempts
+            setIsSubmitting(false);
+        }
     };
 
     if (isLoading) {
