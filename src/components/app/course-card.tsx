@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import React from 'react';
 import { addDays, formatDistanceToNowStrict } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 
 type CourseCardProps = {
@@ -28,6 +29,7 @@ type CourseCardProps = {
 
 export function CourseCard({ course, isEnrolled, certificate, enrollment }: CourseCardProps) {
   const { toast } = useToast();
+  const router = useRouter();
 
   const CertificateMenuItem = () => {
     if (certificate) {
@@ -57,13 +59,10 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
       if (now < unlockDate) {
         toast({
           title: "Certificate Locked",
-          description: `This certificate unlocks in ${formatDistanceToNowStrict(unlockDate, { addSuffix: true })}.`,
+          description: `This certificate unlocks ${formatDistanceToNowStrict(unlockDate, { addSuffix: true })}.`,
         });
       } else {
-        toast({
-          title: "Ready to Earn",
-          description: "Please complete the final quiz to issue your certificate.",
-        });
+        router.push(`/certificate-test/${course.id}`);
       }
     };
 

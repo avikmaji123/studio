@@ -7,3 +7,4 @@ import '@/ai/flows/refine-text.ts';
 import '@/ai/flows/generate-tags.ts';
 import '@/ai/flows/analyze-logs.ts';
 import '@/ai/flows/faq-assistant.ts';
+import '@/ai/flows/generate-quiz.ts';
