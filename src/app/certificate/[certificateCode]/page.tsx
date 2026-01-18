@@ -27,55 +27,59 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     if (!certificateCode) throw new Error("Missing certificate code");
 
                     const slot = document.getElementById("certificate-qr-slot");
-                    if (!slot) throw new Error("QR slot missing");
+                    if (!slot) throw new Error("QR slot not found");
 
                     slot.innerHTML = "";
 
-                    const baseUrl = window.location.origin;
                     const verifyUrl =
-                    baseUrl + "/verify-certificate?code=" + encodeURIComponent(certificateCode);
+                    window.location.origin +
+                    "/verify-certificate?code=" +
+                    encodeURIComponent(certificateCode);
 
-                    // Step 1: Create QR
+                    // Generate QR
                     const qr = new QRCode(slot, {
                         text: verifyUrl,
-                        width: 120,
-                        height: 120,
-                        colorDark: "#FFFFFF",
-                        colorLight: "transparent",
+                        width: 134,
+                        height: 134,
+                        colorDark: "#e5e7eb",   // light silver (scan-safe)
+                        colorLight: "#0b1220", // solid dark background
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    // Step 2: Wait for canvas
-                    await new Promise(resolve => setTimeout(resolve, 150));
+                    // Wait for canvas render
+                    await new Promise(r => setTimeout(r, 200));
 
                     const canvas = slot.querySelector("canvas");
-                    if (!canvas) throw new Error("QR canvas not rendered");
+                    if (!canvas) {
+                    throw new Error("QR canvas failed to render");
+                    }
 
                     const ctx = canvas.getContext("2d");
                     if (!ctx) return;
 
-                    // Step 3: Draw logo INTO canvas
+                    // Load logo synchronously
                     const logo = new Image();
                     logo.src = "/logo/courseverse-mark.png";
                     logo.crossOrigin = "anonymous";
 
-                    logo.onload = () => {
-                        const size = 28;
-                        const x = (canvas.width - size) / 2;
-                        const y = (canvas.height - size) / 2;
+                    await new Promise((resolve, reject) => {
+                        logo.onload = resolve;
+                        logo.onerror = reject;
+                    });
 
-                        ctx.fillStyle = "#0b1220";
-                        ctx.fillRect(x - 4, y - 4, size + 8, size + 8);
+                    // Draw logo INTO canvas
+                    const logoSize = 32;
+                    const x = (canvas.width - logoSize) / 2;
+                    const y = (canvas.height - logoSize) / 2;
 
-                        ctx.drawImage(logo, x, y, size, size);
-                    };
+                    // Solid backing behind logo (critical for scan)
+                    ctx.fillStyle = "#0b1220";
+                    ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
 
-                    logo.onerror = () => {
-                        console.warn("QR logo failed to load, continuing without logo");
-                    };
+                    ctx.drawImage(logo, x, y, logoSize, logoSize);
 
                 } catch (err: any) {
-                    console.error("QR generation failed:", err.message);
+                    console.error("QR generation error:", err.message);
                 }
             }
 
