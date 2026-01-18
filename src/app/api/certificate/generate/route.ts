@@ -1,40 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getSdks } from '@/firebase/index.server'; 
-import { PDFDocument, rgb, degrees } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import QRCode from 'qrcode';
 import { format } from 'date-fns';
 import type { Certificate } from '@/lib/types';
 import { headers } from 'next/headers';
-import { getFont } from '@/lib/fonts';
 
 // --- A4 paper dimensions in points (72 points per inch) ---
 const A4_LANDSCAPE_WIDTH = 841.89;
 const A4_LANDSCAPE_HEIGHT = 595.28;
 
 async function generatePdf(certificate: Certificate) {
-    // --- Font fetching ---
-    const [
-        lexendRegularFontBytes,
-        lexendBoldFontBytes,
-        sourceSansRegularFontBytes,
-        dancingScriptBoldFontBytes
-    ] = await Promise.all([
-        getFont('https://fonts.gstatic.com/s/lexend/v17/ir_UiQkyD0sYWtM81g.ttf'),
-        getFont('https://fonts.gstatic.com/s/lexend/v17/ir_XQkyD0sYWtM8uGtr-KA.ttf'),
-        getFont('https://fonts.gstatic.com/s/sourcesans3/v15/nwpStKy2OAdR1K-IwhWudF-R3w.ttf'),
-        getFont('https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9-Yg.ttf'),
-    ]);
-    
-    // --- Create a new PDF Document ---
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([A4_LANDSCAPE_WIDTH, A4_LANDSCAPE_HEIGHT]);
-    
-    // --- Embed Fonts ---
-    const lexendRegularFont = await pdfDoc.embedFont(lexendRegularFontBytes);
-    const lexendBoldFont = await pdfDoc.embedFont(lexendBoldFontBytes);
-    const sourceSansRegularFont = await pdfDoc.embedFont(sourceSansRegularFontBytes);
-    const dancingScriptBoldFont = await pdfDoc.embedFont(dancingScriptBoldFontBytes);
+
+    // --- Embed Standard Fonts (more reliable on server) ---
+    const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const scriptFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic); // Using a standard font as a substitute
 
     // --- Colors ---
     const colors = {
@@ -59,47 +43,46 @@ async function generatePdf(certificate: Certificate) {
     page.drawRectangle({ x: 0, y: 0, width: BORDER_WIDTH, height: A4_LANDSCAPE_HEIGHT, color: BORDER_COLOR });
     page.drawRectangle({ x: A4_LANDSCAPE_WIDTH - BORDER_WIDTH, y: 0, width: BORDER_WIDTH, height: A4_LANDSCAPE_HEIGHT, color: BORDER_COLOR });
     
-    const contentWidth = A4_LANDSCAPE_WIDTH - 140; // Margins of 70 on each side
     const centerX = A4_LANDSCAPE_WIDTH / 2;
 
     // --- Draw "Certificate of Completion" ---
     page.drawText('Certificate of Completion', {
-        x: centerX - lexendRegularFont.widthOfTextAtSize('Certificate of Completion', 20) / 2,
+        x: centerX - regularFont.widthOfTextAtSize('Certificate of Completion', 20) / 2,
         y: 480,
-        font: lexendRegularFont,
+        font: regularFont,
         size: 20,
         color: colors.cyan,
     });
 
     // --- Draw Main Content ---
     page.drawText('This is to certify that', {
-        x: centerX - sourceSansRegularFont.widthOfTextAtSize('This is to certify that', 16) / 2,
+        x: centerX - regularFont.widthOfTextAtSize('This is to certify that', 16) / 2,
         y: 430,
-        font: sourceSansRegularFont,
+        font: regularFont,
         size: 16,
         color: colors.gray,
     });
 
     page.drawText(certificate.studentName, {
-        x: centerX - lexendBoldFont.widthOfTextAtSize(certificate.studentName, 48) / 2,
+        x: centerX - boldFont.widthOfTextAtSize(certificate.studentName, 48) / 2,
         y: 360,
-        font: lexendBoldFont,
+        font: boldFont,
         size: 48,
         color: colors.white,
     });
 
     page.drawText('has successfully completed the course', {
-        x: centerX - sourceSansRegularFont.widthOfTextAtSize('has successfully completed the course', 16) / 2,
+        x: centerX - regularFont.widthOfTextAtSize('has successfully completed the course', 16) / 2,
         y: 330,
-        font: sourceSansRegularFont,
+        font: regularFont,
         size: 16,
         color: colors.gray,
     });
     
     page.drawText(certificate.courseName, {
-        x: centerX - lexendBoldFont.widthOfTextAtSize(certificate.courseName, 28) / 2,
+        x: centerX - boldFont.widthOfTextAtSize(certificate.courseName, 28) / 2,
         y: 280,
-        font: lexendBoldFont,
+        font: boldFont,
         size: 28,
         color: colors.cyan,
     });
@@ -114,19 +97,17 @@ async function generatePdf(certificate: Certificate) {
         width: 120,
         margin: 1,
         color: {
-            dark: '#0F172A', // Dark modules for contrast on white background
-            // Omitting `light` makes the background transparent
+            dark: '#0F172A',
         },
     });
     
     const qrPngBytes = Buffer.from(qrDataUrl.substring(qrDataUrl.indexOf(',') + 1), 'base64');
     const qrImage = await pdfDoc.embedPng(qrPngBytes);
     
-    // Draw a white background for the QR code to ensure scannability, mimicking the web preview
-    const qrBgSize = 128; // A bit larger than the QR code for padding
+    const qrBgSize = 128;
     page.drawRectangle({
         x: centerX - qrBgSize / 2,
-        y: 136, // Positioned to center the QR code vertically
+        y: 136,
         width: qrBgSize,
         height: qrBgSize,
         color: colors.white,
@@ -143,29 +124,27 @@ async function generatePdf(certificate: Certificate) {
     const footerY = 80;
     const marginX = 70;
     
-    // Bottom Left
-    page.drawText('Issue Date', { x: marginX, y: footerY + 20, font: lexendBoldFont, size: 10, color: colors.gray });
-    page.drawText(format(certificate.issueDate.toDate(), 'MMMM d, yyyy'), { x: marginX, y: footerY, font: sourceSansRegularFont, size: 12, color: colors.white });
+    page.drawText('Issue Date', { x: marginX, y: footerY + 20, font: boldFont, size: 10, color: colors.gray });
+    page.drawText(format(certificate.issueDate.toDate(), 'MMMM d, yyyy'), { x: marginX, y: footerY, font: regularFont, size: 12, color: colors.white });
     
-    page.drawText('Certificate ID', { x: marginX, y: footerY - 30, font: lexendBoldFont, size: 10, color: colors.gray });
-    page.drawText(certificate.certificateCode, { x: marginX, y: footerY - 45, font: sourceSansRegularFont, size: 12, color: colors.white });
+    page.drawText('Certificate ID', { x: marginX, y: footerY - 30, font: boldFont, size: 10, color: colors.gray });
+    page.drawText(certificate.certificateCode, { x: marginX, y: footerY - 45, font: regularFont, size: 12, color: colors.white });
 
-    // Bottom Right (Signature)
     const signatureText = 'Avik Maji';
-    const signatureWidth = dancingScriptBoldFont.widthOfTextAtSize(signatureText, 32);
+    const signatureWidth = scriptFont.widthOfTextAtSize(signatureText, 32);
     const signatureX = A4_LANDSCAPE_WIDTH - marginX - signatureWidth;
     
-    page.drawText(signatureText, { x: signatureX, y: footerY + 5, font: dancingScriptBoldFont, size: 32, color: colors.white });
+    page.drawText(signatureText, { x: signatureX, y: footerY + 5, font: scriptFont, size: 32, color: colors.white });
     page.drawLine({
-        start: { x: signatureX, y: footerY },
+        start: { x: signatureX - 10, y: footerY },
         end: { x: A4_LANDSCAPE_WIDTH - marginX, y: footerY },
         thickness: 1,
         color: colors.gray,
     });
     page.drawText('Founder, CourseVerse', {
-        x: signatureX + (signatureWidth - lexendRegularFont.widthOfTextAtSize('Founder, CourseVerse', 10))/2,
+        x: signatureX + (signatureWidth - regularFont.widthOfTextAtSize('Founder, CourseVerse', 10))/2,
         y: footerY - 15,
-        font: lexendRegularFont,
+        font: regularFont,
         size: 10,
         color: colors.gray,
     });
