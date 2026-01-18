@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 /**
  * This is a dedicated layout for the certificate page.
  * It intentionally omits the Header and Footer to create a clean, isolated
- * environment for both viewing and printing the certificate.
+ * environment for both viewing and printing the certificate. It provides
+ * the necessary Firebase context and the root DOM elements for the print logic.
  */
 export default function CertificateLayout({
   children,
@@ -23,10 +24,10 @@ export default function CertificateLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* The QR code script is loaded using next/script to prevent hydration errors */}
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" strategy="afterInteractive" />
       </head>
       <body>
-        <Script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" strategy="afterInteractive" />
+        {/* The #app-root contains the interactive on-screen version of the page */}
         <div id="app-root">
           <FirebaseClientProvider>
             {children}

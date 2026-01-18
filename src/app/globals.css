@@ -131,7 +131,7 @@
 --- PREVIEW MODE (ON-SCREEN) ---
 ================================
 */
-.preview-mode .certificate-preview-wrapper {
+body.preview-mode .certificate-preview-wrapper {
   width: 100%;
   max-width: 1123px;
   aspect-ratio: 1.414 / 1;
@@ -141,7 +141,7 @@
   transform: translateZ(0);
 }
 
-.preview-mode .certificate-root {
+body.preview-mode .certificate-root {
   width: 100%;
   height: 100%;
   position: relative;
@@ -150,12 +150,18 @@
   justify-content: space-between;
   padding: 3rem; /* 48px */
   font-family: var(--font-body);
-  color: white;
   background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%);
+  color: #e5e7eb;
   overflow: hidden;
 }
 
-.preview-mode #certificate-qr-slot {
+body.preview-mode .certificate-title { color: #e5e7eb; }
+body.preview-mode .certificate-name { color: #ffffff; }
+body.preview-mode .certificate-course { color: #22d3ee; }
+body.preview-mode .certificate-meta p { color: #9ca3af; }
+
+
+body.preview-mode #certificate-qr-slot {
   margin: 24px auto 0;
   width: 150px;
   height: 150px;
@@ -165,7 +171,7 @@
   border-radius: 4px;
 }
 
-.preview-mode #certificate-qr-slot canvas {
+body.preview-mode #certificate-qr-slot canvas {
   width: 100% !important;
   height: 100% !important;
 }
@@ -184,32 +190,29 @@
     color-adjust: exact !important;
   }
 
-  /* Hide entire website by default */
-  body.print-mode #app-root {
+  /* Kill entire website, leaving only the print root */
+  body * {
     visibility: hidden !important;
-    display: none !important;
   }
-
-  /* ONLY the print container and its contents are visible */
-  body.print-mode #print-root,
-  body.print-mode #print-root * {
+  #print-root,
+  #print-root * {
     visibility: visible !important;
   }
   
-  /* Reset page defaults */
+  /* Reset page defaults and remove margins */
   @page {
     size: A4 landscape;
     margin: 0;
   }
 
-  body.print-mode {
+  body {
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden;
     background: transparent !important;
   }
 
-  /* Absolute centering for the print root */
+  /* Center the print container on the page */
   #print-root {
     position: fixed;
     inset: 0;
@@ -218,14 +221,12 @@
     justify-content: center;
   }
 
-  /* Set exact dimensions for the certificate */
+  /* Set exact certificate dimensions and prevent breaking */
   #certificate-print .certificate-root {
     width: 1123px !important;
     height: 794px !important;
     page-break-inside: avoid;
     overflow: hidden;
-    border-radius: 0;
-    box-shadow: none;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -233,6 +234,8 @@
     padding: 3rem;
     background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%) !important;
     color: #e5e7eb !important;
+    box-shadow: none;
+    border-radius: 0;
   }
   
   /* Color Hard-Locks for PDF */
@@ -241,8 +244,9 @@
   #certificate-print .certificate-course { color: #22d3ee !important; }
   #certificate-print .certificate-meta p { color: #9ca3af !important; }
   
+  /* Position QR code absolutely within the fixed-size certificate */
   #certificate-print #certificate-qr-slot {
-      position: absolute;
+      position: absolute !important;
       bottom: 28px !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
