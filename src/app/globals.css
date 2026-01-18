@@ -108,70 +108,20 @@
 @media screen {
   #print-wrapper {
     width: 100%;
-    max-width: 900px; 
+    max-width: 1123px; /* A4 landscape width at 96 DPI */
     margin-left: auto;
     margin-right: auto;
   }
 
   #certificate-print-root {
     width: 100%;
-    aspect-ratio: 297 / 210;
+    aspect-ratio: 1.414 / 1; /* A4 aspect ratio */
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     overflow: hidden;
     border-radius: 0.5rem;
     transform: translateZ(0);
   }
 }
-
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 0;
-  }
-
-  html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: none;
-  }
-
-  body * {
-    visibility: hidden;
-  }
-
-  /* Make only the wrapper and its contents visible */
-  #print-wrapper, #print-wrapper * {
-    visibility: visible;
-  }
-
-  /* Position the wrapper to fill the entire page */
-  #print-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Force the certificate root to fill the wrapper, overriding any screen styles */
-  .certificate-root {
-      width: 100% !important;
-      height: 100% !important;
-      max-width: none !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      overflow: hidden;
-      page-break-inside: avoid;
-  }
-  
-  .no-print {
-    display: none;
-  }
-}
-
 
 /* === Certificate Signature Styles === */
 .certificate-signature {
@@ -195,7 +145,6 @@
   line-height: 1;
 }
 
-/* === Certificate QR Code Styles === */
 #certificate-qr-slot {
   position: absolute;
   bottom: 28px;
@@ -203,13 +152,86 @@
   transform: translateX(-50%);
   width: 150px;
   height: 150px;
-  background: #0b1220; /* quiet zone base */
+  background: #0b1220 !important;
   padding: 8px;
   box-sizing: border-box;
 }
 
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #0b1220 !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #print-wrapper, #print-wrapper * {
+    visibility: visible;
+  }
+
+  #print-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .certificate-root {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden;
+    page-break-inside: avoid;
+    background: linear-gradient(
+      135deg,
+      #0b1220 0%,
+      #0f1a2e 50%,
+      #0b1220 100%
+    ) !important;
+    color: #e5e7eb !important;
+  }
+  
+  .no-print {
+    display: none;
+  }
+
   #certificate-qr-slot {
     position: absolute;
+  }
+
+  .certificate-title {
+    color: #e5e7eb !important;
+  }
+
+  .certificate-name {
+    color: #ffffff !important;
+  }
+
+  .certificate-course {
+    color: #22d3ee !important;
+  }
+
+  .certificate-meta {
+    color: #9ca3af !important;
   }
 }

@@ -18,74 +18,71 @@ declare var QRCode: any;
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     
     useEffect(() => {
-        // This effect runs on the client-side after the component has mounted
-        // It ensures that `window` and `document` are available
-        if (typeof window !== 'undefined' && typeof QRCode !== 'undefined') {
-            
-            async function generateCertificateQR(certificateCode: string) {
-                try {
-                    if (!certificateCode) throw new Error("Certificate code missing");
+        async function generateCertificateQR(certificateCode: string) {
+            try {
+                if (!certificateCode) throw new Error("Certificate code missing");
 
-                    const slot = document.getElementById("certificate-qr-slot");
-                    if (!slot) throw new Error("QR slot not found");
+                const slot = document.getElementById("certificate-qr-slot");
+                if (!slot) throw new Error("QR slot not found");
 
-                    slot.innerHTML = "";
+                slot.innerHTML = "";
 
-                    const verifyUrl =
-                    window.location.origin +
-                    "/verify-certificate?code=" +
-                    encodeURIComponent(certificateCode);
+                const verifyUrl =
+                window.location.origin +
+                "/verify-certificate?code=" +
+                encodeURIComponent(certificateCode);
 
-                    // Generate QR
-                    const qr = new QRCode(slot, {
-                        text: verifyUrl,
-                        width: 134,
-                        height: 134,
-                        colorDark: "#e5e7eb",   // light silver (scan-safe)
-                        colorLight: "#0b1220", // solid dark background
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
+                // Generate QR
+                const qr = new QRCode(slot, {
+                    text: verifyUrl,
+                    width: 134,
+                    height: 134,
+                    colorDark: "#e5e7eb",   // light silver (scan-safe)
+                    colorLight: "#0b1220", // solid dark background
+                    correctLevel: QRCode.CorrectLevel.H
+                });
 
-                    // Wait for canvas render
-                    await new Promise(r => setTimeout(r, 200));
+                // Wait for canvas render
+                await new Promise(r => setTimeout(r, 200));
 
-                    const canvas = slot.querySelector("canvas");
-                    if (!canvas) {
-                        throw new Error("QR canvas failed to render");
-                    }
-
-                    const ctx = canvas.getContext("2d");
-                    if (!ctx) {
-                        throw new Error("Could not get canvas context");
-                    }
-
-                    // Load logo synchronously
-                    const logo = new Image();
-                    logo.src = "https://i.ibb.co/Y76Ct8pP/Screenshot-20260118-231138.jpg";
-                    logo.crossOrigin = "anonymous";
-
-                    logo.onload = () => {
-                        // Draw logo INTO canvas
-                        const logoSize = 32;
-                        const x = (canvas.width - logoSize) / 2;
-                        const y = (canvas.height - logoSize) / 2;
-
-                        // Solid backing behind logo (critical for scan)
-                        ctx.fillStyle = "#0b1220";
-                        ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
-
-                        ctx.drawImage(logo, x, y, logoSize, logoSize);
-                    };
-
-                    logo.onerror = () => {
-                        console.warn("QR logo not found. Generating QR code without logo.");
-                    };
-
-                } catch (err: any) {
-                    console.error("QR generation error:", err?.message || err);
+                const canvas = slot.querySelector("canvas");
+                if (!canvas) {
+                    throw new Error("QR canvas failed to render");
                 }
-            }
 
+                const ctx = canvas.getContext("2d");
+                if (!ctx) {
+                    throw new Error("Could not get canvas context");
+                }
+
+                // Load logo synchronously
+                const logo = new Image();
+                logo.src = "https://i.ibb.co/Y76Ct8pP/Screenshot-20260118-231138.jpg";
+                logo.crossOrigin = "anonymous";
+
+                logo.onload = () => {
+                    // Draw logo INTO canvas
+                    const logoSize = 32;
+                    const x = (canvas.width - logoSize) / 2;
+                    const y = (canvas.height - logoSize) / 2;
+
+                    // Solid backing behind logo (critical for scan)
+                    ctx.fillStyle = "#0b1220";
+                    ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
+
+                    ctx.drawImage(logo, x, y, logoSize, logoSize);
+                };
+
+                logo.onerror = () => {
+                    console.warn("QR logo not found. Generating QR code without logo.");
+                };
+
+            } catch (err: any) {
+                console.error("QR generation error:", err?.message || err);
+            }
+        }
+
+        if (typeof window !== 'undefined' && typeof QRCode !== 'undefined') {
             generateCertificateQR(certificate.certificateCode);
         }
     }, [certificate.certificateCode]);
@@ -107,11 +104,11 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
             
             {/* Main Content */}
             <div className="text-center z-10 -mt-8">
-                <p className="font-headline text-5xl tracking-tight text-gray-200">Certificate of Completion</p>
+                <p className="font-headline text-5xl tracking-tight text-gray-200 certificate-title">Certificate of Completion</p>
                 <p className="text-lg text-gray-400 mt-6 mb-4">This is to certify that</p>
-                <p className="font-headline text-6xl font-bold tracking-wider text-white">{certificate.studentName}</p>
+                <p className="font-headline text-6xl font-bold tracking-wider text-white certificate-name">{certificate.studentName}</p>
                 <p className="text-lg text-gray-400 mt-4">has successfully completed the course</p>
-                <p className="font-headline text-3xl font-semibold text-cyan-400 mt-2">{certificate.courseName}</p>
+                <p className="font-headline text-3xl font-semibold text-cyan-400 mt-2 certificate-course">{certificate.courseName}</p>
                  {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mt-1">{certificate.courseLevel}</p>}
             </div>
 
@@ -121,7 +118,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
             {/* Footer */}
             <div className="flex justify-between items-end z-10">
-                <div className="text-left text-xs font-mono">
+                <div className="text-left text-xs font-mono certificate-meta">
                     <p className="font-sans font-bold text-gray-400">ISSUE DATE</p>
                     <p className="text-gray-300">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
                     <p className="font-sans font-bold text-gray-400 mt-2">CERTIFICATE ID</p>
@@ -182,7 +179,20 @@ export default function CertificatePage() {
       getCertificate();
     }, [firestore, code]);
 
+    useEffect(() => {
+        const afterPrint = () => {
+            document.body.classList.remove("print-mode");
+        };
+
+        window.addEventListener('afterprint', afterPrint);
+
+        return () => {
+            window.removeEventListener('afterprint', afterPrint);
+        };
+    }, []);
+
     const handlePrint = () => {
+        document.body.classList.add("print-mode");
         setTimeout(() => window.print(), 300);
     };
 
@@ -217,9 +227,8 @@ export default function CertificatePage() {
                 </Button>
             </div>
             
-            {/* This new wrapper structure is critical for correct printing and preview */}
             <div id="print-wrapper">
-                <div id="certificate-print-root" className="certificate-root">
+                <div className="certificate-root">
                     {renderContent()}
                 </div>
             </div>
