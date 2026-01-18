@@ -212,17 +212,16 @@ body.preview-mode #certificate-qr-slot canvas {
     background: transparent !important;
   }
 
-  /* Center the print container on the page */
   #print-root {
     position: fixed;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
-
-  /* Set exact certificate dimensions and prevent breaking */
+  
   #certificate-print {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: 1123px;
     height: 794px;
     overflow: hidden;
