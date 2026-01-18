@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc } from 'firebase/firestore';
@@ -21,54 +22,60 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
         // It ensures that `window` and `document` are available
         if (typeof window !== 'undefined' && typeof QRCode !== 'undefined') {
             
-            function generateCertificateQR(certificateCode: string) {
+            async function generateCertificateQR(certificateCode: string) {
                 try {
-                    if (!certificateCode) {
-                        throw new Error("Certificate code missing");
-                    }
+                    if (!certificateCode) throw new Error("Missing certificate code");
 
-                    const qrContainer = document.getElementById("certificate-qr");
-                    if (!qrContainer) {
-                        // This can happen on the first render before the element is in the DOM
-                        // We will retry on the next render pass if needed
-                        return;
-                    }
+                    const slot = document.getElementById("certificate-qr-slot");
+                    if (!slot) throw new Error("QR slot missing");
 
-                    // Clear previous QR code if any
-                    qrContainer.innerHTML = "";
+                    slot.innerHTML = "";
 
                     const baseUrl = window.location.origin;
                     const verifyUrl =
-                        baseUrl +
-                        "/verify-certificate?code=" +
-                        encodeURIComponent(certificateCode);
-                    
-                    const qr = new QRCode(qrContainer, {
+                    baseUrl + "/verify-certificate?code=" + encodeURIComponent(certificateCode);
+
+                    // Step 1: Create QR
+                    const qr = new QRCode(slot, {
                         text: verifyUrl,
                         width: 150,
                         height: 150,
-                        colorDark: "#ffffff",
+                        colorDark: "#cfd8dc",   // light gray (PDF-safe)
                         colorLight: "transparent",
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    // Force transparency for PDF engines
-                    setTimeout(() => {
-                        const canvas = qrContainer.querySelector("canvas");
-                        if (!canvas) {
-                            console.error("QR canvas failed to render in time");
-                            return;
-                        }
-                        canvas.style.background = "transparent";
-                    }, 0);
+                    // Step 2: Wait for canvas
+                    await new Promise(resolve => setTimeout(resolve, 150));
 
-                } catch (error: any) {
-                    console.error("[Certificate QR Error]", error.message);
-                    const fallback = document.getElementById("certificate-qr");
-                    if (fallback) {
-                        fallback.innerHTML =
-                        '<div style="width:150px;height:150px;border:2px dashed #555;color:#777;display:flex;align-items:center;justify-content:center;font-size:10px;text-align:center;">QR unavailable</div>';
-                    }
+                    const canvas = slot.querySelector("canvas");
+                    if (!canvas) throw new Error("QR canvas not rendered");
+
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) return;
+
+                    // Step 3: Draw logo INTO canvas
+                    const logo = new Image();
+                    logo.src = "/logo/courseverse-mark.png";
+                    logo.crossOrigin = "anonymous";
+
+                    logo.onload = () => {
+                        const size = 36;
+                        const x = (canvas.width - size) / 2;
+                        const y = (canvas.height - size) / 2;
+
+                        ctx.fillStyle = "#0b1220";
+                        ctx.fillRect(x - 4, y - 4, size + 8, size + 8);
+
+                        ctx.drawImage(logo, x, y, size, size);
+                    };
+
+                    logo.onerror = () => {
+                        console.warn("QR logo failed to load, continuing without logo");
+                    };
+
+                } catch (err: any) {
+                    console.error("QR generation failed:", err.message);
                 }
             }
 
@@ -102,14 +109,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
             </div>
 
             {/* QR Code Wrapper */}
-            <div id="certificate-qr-wrapper">
-              <div id="certificate-qr"></div>
-              <img
-                id="certificate-qr-logo"
-                src="/logo/courseverse-mark.svg"
-                alt="CourseVerse"
-              />
-            </div>
+            <div id="certificate-qr-slot"></div>
 
 
             {/* Footer */}
@@ -176,7 +176,7 @@ export default function CertificatePage() {
     }, [firestore, code]);
 
     const handlePrint = () => {
-        window.print();
+        setTimeout(() => window.print(), 300);
     };
 
     const renderContent = () => {
@@ -212,7 +212,7 @@ export default function CertificatePage() {
             
             {/* This new wrapper structure is critical for correct printing and preview */}
             <div id="print-wrapper">
-                <div id="certificate-print-root">
+                <div id="certificate-print-root" className="certificate-root">
                     {renderContent()}
                 </div>
             </div>
