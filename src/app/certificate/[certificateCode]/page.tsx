@@ -38,9 +38,9 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     // Step 1: Create QR
                     const qr = new QRCode(slot, {
                         text: verifyUrl,
-                        width: 110,
-                        height: 110,
-                        colorDark: "#cfd8dc",   // light gray (PDF-safe)
+                        width: 120,
+                        height: 120,
+                        colorDark: "#FFFFFF",
                         colorLight: "transparent",
                         correctLevel: QRCode.CorrectLevel.H
                     });
@@ -60,7 +60,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     logo.crossOrigin = "anonymous";
 
                     logo.onload = () => {
-                        const size = 26;
+                        const size = 28;
                         const x = (canvas.width - size) / 2;
                         const y = (canvas.height - size) / 2;
 
@@ -85,7 +85,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 
     return (
-        <div className="relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
+        <div className="certificate-root relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
             {/* Watermark */}
             <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-75" />
 
