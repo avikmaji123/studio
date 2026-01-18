@@ -9,11 +9,74 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
+
+// Make QRCode constructor available from the CDN script
+declare var QRCode: any;
 
 // New Landscape Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
-    const verificationUrl = `https://cloudworkstations.dev/verify-certificate?code=${certificate.certificateCode}`;
+    
+    useEffect(() => {
+        // This effect runs on the client-side after the component has mounted
+        // It ensures that `window` and `document` are available
+        if (typeof window !== 'undefined' && typeof QRCode !== 'undefined') {
+            
+            function generateCertificateQR(certificateCode: string) {
+                try {
+                    if (!certificateCode) {
+                        throw new Error("Certificate code missing");
+                    }
+
+                    const qrContainer = document.getElementById("certificate-qr");
+                    if (!qrContainer) {
+                        // This can happen on the first render before the element is in the DOM
+                        // We will retry on the next render pass if needed
+                        return;
+                    }
+
+                    // Clear previous QR code if any
+                    qrContainer.innerHTML = "";
+
+                    const baseUrl = window.location.origin;
+                    const verifyUrl =
+                        baseUrl +
+                        "/verify-certificate?code=" +
+                        encodeURIComponent(certificateCode);
+                    
+                    const qr = new QRCode(qrContainer, {
+                        text: verifyUrl,
+                        width: 150,
+                        height: 150,
+                        colorDark: "#ffffff",
+                        colorLight: "transparent",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+
+                    // Force transparency for PDF engines
+                    setTimeout(() => {
+                        const canvas = qrContainer.querySelector("canvas");
+                        if (!canvas) {
+                            console.error("QR canvas failed to render in time");
+                            return;
+                        }
+                        canvas.style.background = "transparent";
+                    }, 0);
+
+                } catch (error: any) {
+                    console.error("[Certificate QR Error]", error.message);
+                    const fallback = document.getElementById("certificate-qr");
+                    if (fallback) {
+                        fallback.innerHTML =
+                        '<div style="width:150px;height:150px;border:2px dashed #555;color:#777;display:flex;align-items:center;justify-content:center;font-size:10px;text-align:center;">QR unavailable</div>';
+                    }
+                }
+            }
+
+            generateCertificateQR(certificate.certificateCode);
+        }
+    }, [certificate.certificateCode]);
+
+
     return (
         <div className="relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
             {/* Watermark */}
@@ -38,20 +101,16 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                  {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mt-1">{certificate.courseLevel}</p>}
             </div>
 
-            {/* QR Code */}
-            <div id="certificate-qr">
-                <QRCodeCanvas
-                    value={verificationUrl}
-                    size={140}
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                    level="H"
-                    includeMargin={false}
-                />
-                <div className="qr-caption">
-                    Scan to verify this certificate
-                </div>
+            {/* QR Code Wrapper */}
+            <div id="certificate-qr-wrapper">
+              <div id="certificate-qr"></div>
+              <img
+                id="certificate-qr-logo"
+                src="/logo/courseverse-mark.svg"
+                alt="CourseVerse"
+              />
             </div>
+
 
             {/* Footer */}
             <div className="flex justify-between items-end z-10">

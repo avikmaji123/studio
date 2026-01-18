@@ -124,7 +124,7 @@
 }
 
 @media print {
-  /* Force page size and prevent breaks */
+  /* Enforce page size and prevent breaks */
   @page {
     size: A4 landscape;
     margin: 0;
@@ -167,9 +167,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
   }
   
   /* Hard-lock certificate to A4 landscape dimensions */
@@ -214,17 +213,42 @@
 }
 
 /* === Certificate QR Code Styles === */
-#certificate-qr {
+#certificate-qr-wrapper {
   position: absolute;
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
-  text-align: center;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
   z-index: 20;
 }
 
-#certificate-qr .qr-caption {
-  margin-top: 6px;
-  font-size: 11px;
-  opacity: 0.7;
+#certificate-qr {
+  width: 150px;
+  height: 150px;
+}
+
+#certificate-qr canvas {
+  width: 150px !important;
+  height: 150px !important;
+  background: transparent !important;
+}
+
+#certificate-qr-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  transform: translate(-50%, -50%);
+  background: #0b1220;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+@media print {
+  #certificate-qr-wrapper {
+    position: absolute;
+  }
 }
