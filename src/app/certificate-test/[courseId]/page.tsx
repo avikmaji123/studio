@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -102,7 +101,7 @@ export default function CertificateTestPage() {
                 const certificateCode = `CV-${course.category.substring(0, 3).toUpperCase()}-${course.id.substring(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
                 const issueDate = Timestamp.now();
                 const studentName = `${profile.firstName} ${profile.lastName}`.trim();
-                const verificationUrl = `https://courseverse.dev/verify-certificate?code=${certificateCode}`;
+                const verificationUrl = `https://cloudworkstations.dev/verify-certificate?code=${certificateCode}`;
                 const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`;
 
 
