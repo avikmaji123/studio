@@ -126,21 +126,33 @@
   line-height: 1;
 }
 
-/*
+/* 
 ================================
 --- PREVIEW MODE (ON-SCREEN) ---
 ================================
 */
-.preview-mode .certificate-root {
+.preview-mode .certificate-preview-wrapper {
   width: 100%;
   max-width: 1123px;
-  margin-left: auto;
-  margin-right: auto;
   aspect-ratio: 1.414 / 1;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   overflow: hidden;
   border-radius: 0.5rem;
   transform: translateZ(0);
+}
+
+.preview-mode .certificate-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem; /* 48px */
+  font-family: var(--font-body);
+  color: white;
+  background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%);
+  overflow: hidden;
 }
 
 .preview-mode #certificate-qr-slot {
@@ -214,6 +226,11 @@
     overflow: hidden;
     border-radius: 0;
     box-shadow: none;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem;
     background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%) !important;
     color: #e5e7eb !important;
   }

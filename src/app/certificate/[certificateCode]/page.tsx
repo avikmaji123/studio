@@ -84,7 +84,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 
     return (
-        <div className="certificate-root relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
+        <div className="certificate-root">
             {/* Watermark */}
             <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-75" />
 
@@ -129,7 +129,7 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
 
 function InvalidCertificate({ title, message }: { title: string, message: string }) {
     return (
-        <div className="w-full h-full bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
+        <div className="certificate-root items-center justify-center text-center">
             <AlertTriangle className="h-24 w-24 text-destructive mb-8" />
             <h1 className="font-headline text-5xl font-bold text-destructive">{title}</h1>
             <p className="text-xl text-muted-foreground mt-4 max-w-2xl">{message}</p>
@@ -161,7 +161,7 @@ export default function CertificatePage() {
         }
         
         // 1. Clone content into the dedicated print container
-        printContainer.innerHTML = sourceNode.innerHTML;
+        printContainer.innerHTML = sourceNode.outerHTML;
 
         // 2. Generate a new QR code specifically for the print container
         const newQrSlot = printContainer.querySelector('#certificate-qr-slot') as HTMLElement;
@@ -171,6 +171,7 @@ export default function CertificatePage() {
 
         // 3. Add print mode class to body
         document.body.classList.add('print-mode');
+        document.body.classList.remove('preview-mode');
         
         // 4. Trigger print dialog
         window.print();
@@ -178,6 +179,7 @@ export default function CertificatePage() {
         // 5. Clean up after printing
         printContainer.innerHTML = '';
         document.body.classList.remove('print-mode');
+        document.body.classList.add('preview-mode');
     };
 
     useEffect(() => {
@@ -219,7 +221,7 @@ export default function CertificatePage() {
       switch (status) {
         case 'loading':
             return (
-                <div className="w-full h-full bg-background text-foreground p-12 flex flex-col items-center justify-center text-center shadow-2xl">
+                <div className="certificate-root items-center justify-center">
                     <Loader2 className="h-16 w-16 animate-spin text-primary" />
                 </div>
             );
@@ -234,20 +236,22 @@ export default function CertificatePage() {
     };
 
     return (
-        <div className="min-h-screen bg-muted/40 py-12 px-4 font-body">
-            <div id="app-controls" className="mb-8 w-full max-w-5xl flex justify-between items-center mx-auto">
+        <div className="bg-muted/40 font-body">
+            <div id="app-controls" className="py-8 w-full max-w-5xl flex justify-between items-center mx-auto px-4">
                 <Button asChild variant="outline">
                     <Link href="/">Back to Home</Link>
                 </Button>
-                <h2 className="text-lg font-semibold">Certificate Preview</h2>
+                <h2 className="text-lg font-semibold text-foreground">Certificate Preview</h2>
                  <Button onClick={handlePrint} disabled={status !== 'valid'}>
                     <Download className="mr-2 h-4 w-4"/>
                     Download PDF
                 </Button>
             </div>
             
-            <div className="certificate-preview-wrapper">
-                {renderContent()}
+            <div className="flex justify-center py-4 px-4">
+                <div className="certificate-preview-wrapper">
+                    {renderContent()}
+                </div>
             </div>
         </div>
     );
