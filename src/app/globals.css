@@ -105,7 +105,7 @@
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: A4 landscape;
     margin: 0;
   }
 
@@ -149,6 +149,7 @@
     transform: scale(1);
     box-shadow: none !important;
     border: none !important;
+    overflow: hidden;
     page-break-before: avoid;
     page-break-after: avoid;
     page-break-inside: avoid;
@@ -164,5 +165,6 @@
     border-radius: 0 !important;
     aspect-ratio: auto !important;
     display: flex;
+    flex-direction: column;
   }
 }

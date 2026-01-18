@@ -10,67 +10,44 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
-// New Portrait Certificate Layout
+// New Landscape Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
     return (
-        <div className="relative w-full h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white p-12 flex flex-col shadow-2xl overflow-hidden font-body">
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
             {/* Watermark */}
-            <div className="absolute inset-0 z-0">
-                 <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] text-white/5 opacity-50 rotate-[-15deg]" />
-            </div>
+            <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] text-white/5 opacity-75" />
 
-            <div className="relative z-10 flex flex-col items-center text-center h-full">
-                {/* 1. Logo */}
-                <div className="flex justify-center items-center gap-3 mb-4">
+            {/* Header */}
+            <div className="text-center z-10">
+                <div className="flex justify-center items-center gap-3">
                     <BookOpen className="h-8 w-8 text-cyan-400" />
                     <h1 className="text-2xl font-bold tracking-wider font-headline">CourseVerse</h1>
                 </div>
+                 <hr className="w-48 mx-auto my-3 border-cyan-400/20" />
+            </div>
+            
+            {/* Main Content */}
+            <div className="text-center z-10 -mt-8">
+                <p className="font-headline text-5xl tracking-tight text-gray-200">Certificate of Completion</p>
+                <p className="text-lg text-gray-400 mt-6 mb-4">This is to certify that</p>
+                <p className="font-headline text-6xl font-bold tracking-wider text-white">{certificate.studentName}</p>
+                <p className="text-lg text-gray-400 mt-4">has successfully completed the course</p>
+                <p className="font-headline text-3xl font-semibold text-cyan-400 mt-2">{certificate.courseName}</p>
+                 {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mt-1">{certificate.courseLevel}</p>}
+            </div>
 
-                {/* 2. Title */}
-                <p className="font-headline text-5xl tracking-tight text-gray-200 mt-6 mb-4">Certificate of Completion</p>
-                
-                {/* 3. Subtitle */}
-                <p className="text-lg text-gray-400 mb-6">This certifies that</p>
-                
-                {/* 4. Recipient Name */}
-                <p className="font-headline text-6xl font-bold tracking-wider text-white mb-6">{certificate.studentName}</p>
-                
-                {/* 5. Body text */}
-                <p className="text-lg text-gray-400 mb-2">has successfully completed the</p>
-                
-                {/* 6. Course Name */}
-                <p className="font-headline text-3xl font-semibold text-cyan-400 mb-1">{certificate.courseName}</p>
-                
-                {/* 7. Course Level */}
-                {certificate.courseLevel && <p className="text-base font-semibold uppercase tracking-widest text-gray-500 mb-8">{certificate.courseLevel}</p>}
-                
-                {/* Spacer takes up available space */}
-                <div className="flex-grow" />
-
-                {/* 8. Congratulatory line */}
-                <p className="max-w-2xl text-gray-300 mb-8 text-sm">
-                    Congratulations on successfully completing the course. This achievement demonstrates your commitment to professional development.
-                </p>
-
-                {/* 9 & 10. Certificate Code & Issue Date */}
-                <div className="w-full flex justify-between text-left text-xs mb-10 font-mono">
-                    <div>
-                        <p className="font-sans font-bold text-gray-400">CERTIFICATE ID</p>
-                        <p className="text-gray-300">{certificate.certificateCode}</p>
-                    </div>
-                     <div>
-                        <p className="font-sans font-bold text-gray-400 text-right">ISSUE DATE</p>
-                        <p className="text-gray-200 text-right">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
-                    </div>
+            {/* Footer */}
+            <div className="flex justify-between items-end z-10">
+                <div className="text-left text-xs font-mono">
+                    <p className="font-sans font-bold text-gray-400">ISSUE DATE</p>
+                    <p className="text-gray-300">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                    <p className="font-sans font-bold text-gray-400 mt-2">CERTIFICATE ID</p>
+                    <p className="text-gray-300">{certificate.certificateCode}</p>
                 </div>
-
-                {/* 11. Signature */}
-                <div className="w-full flex justify-end">
-                    <div className="text-center">
-                        <p className="font-signature text-5xl text-gray-100">Avik Maji</p>
-                        <hr className="my-1 border-gray-600 w-48 mx-auto"/>
-                        <p className="text-sm text-gray-400">Founder, CourseVerse</p>
-                    </div>
+                <div className="text-center">
+                    <p className="font-signature text-5xl text-gray-100 -mb-4">Avik Maji</p>
+                    <hr className="my-1 border-gray-600 w-48 mx-auto"/>
+                    <p className="text-sm text-gray-400">Founder, CourseVerse</p>
                 </div>
             </div>
         </div>
@@ -146,7 +123,7 @@ export default function CertificatePage() {
 
     return (
         <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center py-12 px-4 font-body">
-            <div className="no-print mb-8 w-full max-w-4xl flex justify-between items-center">
+            <div className="no-print mb-8 w-full max-w-5xl flex justify-between items-center">
                 <Button asChild variant="outline">
                     <Link href="/">Back to Home</Link>
                 </Button>
@@ -156,8 +133,8 @@ export default function CertificatePage() {
                     Download PDF
                 </Button>
             </div>
-            {/* The A4 container for both preview and printing */}
-            <div id="certificate-container" className="w-full max-w-[800px] aspect-[210/297] mx-auto shadow-2xl">
+            {/* The A4 landscape container for both preview and printing */}
+            <div id="certificate-container" className="w-full max-w-5xl aspect-[297/210] mx-auto shadow-2xl">
                 {renderContent()}
             </div>
         </div>
