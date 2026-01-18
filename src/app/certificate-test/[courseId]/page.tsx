@@ -101,10 +101,7 @@ export default function CertificateTestPage() {
                 const certificateCode = `CV-${course.category.substring(0, 3).toUpperCase()}-${course.id.substring(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
                 const issueDate = Timestamp.now();
                 const studentName = `${profile.firstName} ${profile.lastName}`.trim();
-                const verificationUrl = `https://cloudworkstations.dev/verify-certificate?code=${certificateCode}`;
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`;
-
-
+                
                 const certificateData = {
                     id: course.id, // Using courseId as document ID in subcollection
                     userId: user.uid,
@@ -115,7 +112,6 @@ export default function CertificateTestPage() {
                     issueDate: issueDate,
                     certificateCode: certificateCode,
                     status: 'valid' as const,
-                    qrCodeUrl: qrCodeUrl,
                 };
 
                 // Create user's private certificate record (doc ID is course ID for uniqueness)

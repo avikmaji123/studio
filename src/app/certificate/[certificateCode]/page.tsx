@@ -9,9 +9,11 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 // New Landscape Certificate Layout
 function CertificateDisplay({ certificate }: { certificate: Certificate }) {
+    const verificationUrl = `https://cloudworkstations.dev/verify-certificate?code=${certificate.certificateCode}`;
     return (
         <div className="relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white p-12 flex flex-col justify-between shadow-2xl overflow-hidden font-body">
             {/* Watermark */}
@@ -37,14 +39,19 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
             </div>
 
             {/* QR Code */}
-            {certificate.qrCodeUrl && (
-                <div id="certificate-qr">
-                    <img src={certificate.qrCodeUrl} alt="Certificate Verification QR Code" width="110" height="110" className="bg-white p-1 rounded-md" />
-                    <div className="qr-caption">
-                        Scan to verify this certificate
-                    </div>
+            <div id="certificate-qr">
+                <QRCodeCanvas
+                    value={verificationUrl}
+                    size={140}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="H"
+                    includeMargin={false}
+                />
+                <div className="qr-caption">
+                    Scan to verify this certificate
                 </div>
-            )}
+            </div>
 
             {/* Footer */}
             <div className="flex justify-between items-end z-10">
