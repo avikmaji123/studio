@@ -44,10 +44,10 @@ function CertificateDisplay({ certificate }: { certificate: Certificate }) {
                     <p className="font-sans font-bold text-gray-400 mt-2">CERTIFICATE ID</p>
                     <p className="text-gray-300">{certificate.certificateCode}</p>
                 </div>
-                <div className="text-center">
-                    <p className="font-signature text-5xl text-gray-100 -mb-4">Avik Maji</p>
-                    <hr className="my-1 border-gray-600 w-48 mx-auto"/>
-                    <p className="text-sm text-gray-400">Founder, CourseVerse</p>
+                <div className="certificate-signature">
+                  <span className="signature-name">Avik Maji</span>
+                  <hr className="w-full my-1 border-gray-600"/>
+                  <span className="signature-title">Founder, CourseVerse</span>
                 </div>
             </div>
         </div>

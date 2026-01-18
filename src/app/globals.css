@@ -105,8 +105,6 @@
 }
 
 /* === Certificate Print & Preview Styles === */
-
-/* Screen-only styles for previewing the certificate */
 @media screen {
   #print-wrapper {
     width: 100%;
@@ -117,15 +115,14 @@
 
   #certificate-print-root {
     width: 100%;
-    aspect-ratio: 297 / 210; /* A4 Landscape aspect ratio */
+    aspect-ratio: 297 / 210;
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     overflow: hidden;
     border-radius: 0.5rem;
-    transform: translateZ(0); /* Promote to its own layer for smoother scaling */
+    transform: translateZ(0);
   }
 }
 
-/* Print-only styles for perfect PDF generation */
 @media print {
   /* 1. Force page size and prevent breaks */
   @page {
@@ -133,10 +130,13 @@
     margin: 0;
   }
 
+  /* Global page break prevention */
   * {
     page-break-before: avoid !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* 2. Isolate print content: hide everything by default */
@@ -176,20 +176,39 @@
   #certificate-print-root {
     width: 297mm;
     height: 210mm;
-    display: flex; /* Allow content to fill it */
+    display: flex;
     flex-direction: column;
-    justify-content: space-between; /* This matches the component's internal layout */
+    justify-content: space-between;
     overflow: hidden !important;
     box-shadow: none !important;
     border-radius: 0 !important;
     transform: none !important;
     zoom: 1 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
   
-  /* 7. Hide any elements explicitly marked as no-print */
   .no-print {
     display: none !important;
   }
+}
+
+/* === Certificate Signature Styles === */
+.certificate-signature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.signature-name {
+  font-family: "Dancing Script", cursive;
+  font-size: 28px;
+  line-height: 1;
+  padding-bottom: 0px;
+  vertical-align: baseline;
+}
+
+.signature-title {
+  font-size: 12px;
+  opacity: 0.75;
+  line-height: 1;
 }
