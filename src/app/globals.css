@@ -126,19 +126,64 @@
   line-height: 1;
 }
 
-/* 
-================================
---- PREVIEW MODE (ON-SCREEN) ---
-================================
-*/
+/* === Certificate Rendering Modes === */
+
+/* --- PREVIEW MODE (ON-SCREEN) --- */
+body.preview-mode #app-root {
+  visibility: visible;
+}
+body.preview-mode #print-root {
+  visibility: hidden;
+}
+
+.certificate-viewport {
+  width: 100%;
+  height: 794px; /* Default height */
+}
+
 body.preview-mode .certificate-preview-wrapper {
   width: 1123px;
   height: 794px;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   overflow: hidden;
   border-radius: 0.5rem;
-  transform: translateZ(0);
+  transform-origin: top center;
+  margin-left: auto;
+  margin-right: auto;
+  transform: scale(1);
+  transition: transform 0.2s ease-in-out;
 }
+
+/* Media queries to scale down */
+@media (max-width: 1122px) {
+  .certificate-viewport { height: 715px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.9); }
+}
+@media (max-width: 1010px) {
+  .certificate-viewport { height: 635px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.8); }
+}
+@media (max-width: 898px) {
+  .certificate-viewport { height: 556px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.7); }
+}
+@media (max-width: 786px) {
+  .certificate-viewport { height: 476px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.6); }
+}
+@media (max-width: 673px) {
+  .certificate-viewport { height: 397px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.5); }
+}
+@media (max-width: 561px) {
+  .certificate-viewport { height: 318px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.4); }
+}
+ @media (max-width: 449px) {
+  .certificate-viewport { height: 238px; }
+  body.preview-mode .certificate-preview-wrapper { transform: scale(0.3); }
+}
+
 
 body.preview-mode .certificate-root {
   width: 100%;
@@ -176,11 +221,7 @@ body.preview-mode #certificate-qr-slot canvas {
 }
 
 
-/* 
-================================
---- PRINT / PDF ISOLATION ---
-================================
-*/
+/* --- PRINT / PDF ISOLATION --- */
 @media print {
   /* Force color preservation */
   * {
@@ -190,8 +231,9 @@ body.preview-mode #certificate-qr-slot canvas {
   }
   
   /* Kill entire website, leaving only the print root */
-  body * {
+  body.print-mode #app-root {
     visibility: hidden !important;
+    display: none !important;
   }
   #print-root,
   #print-root * {
@@ -228,14 +270,20 @@ body.preview-mode #certificate-qr-slot canvas {
     break-inside: avoid;
   }
 
-  /* Apply styles to the cloned certificate root inside the print container */
   #certificate-print .certificate-root {
     width: 100% !important;
     height: 100% !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem !important;
+    font-family: var(--font-body);
     background: linear-gradient(135deg, #0b1220 0%, #0f1a2e 50%, #0b1220 100%) !important;
     color: #e5e7eb !important;
+    overflow: hidden;
   }
   
   /* Color Hard-Locks for PDF */
@@ -245,6 +293,16 @@ body.preview-mode #certificate-qr-slot canvas {
   #certificate-print .certificate-meta p { color: #9ca3af !important; }
   
   #certificate-print #certificate-qr-slot {
-      background: #0b1220 !important;
+    margin: 24px auto 0 !important;
+    width: 150px !important;
+    height: 150px !important;
+    background: #0b1220 !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    border-radius: 4px !important;
+  }
+   #certificate-print #certificate-qr-slot canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 }
