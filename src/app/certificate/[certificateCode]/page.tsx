@@ -133,9 +133,12 @@ export default function CertificatePage() {
                     Download PDF
                 </Button>
             </div>
-            {/* The A4 landscape container for both preview and printing */}
-            <div id="certificate-print-root" className="w-full max-w-5xl aspect-[297/210] mx-auto shadow-2xl">
-                {renderContent()}
+            
+            {/* This new wrapper structure is critical for correct printing and preview */}
+            <div id="print-wrapper">
+                <div id="certificate-print-root">
+                    {renderContent()}
+                </div>
             </div>
         </div>
     );

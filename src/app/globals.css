@@ -104,61 +104,91 @@
   }
 }
 
-@media print {
-  /* Define the exact page size and remove margins. */
-  @page {
-    size: A4 landscape;
-    margin: 0 !important;
+/* === Certificate Print & Preview Styles === */
+
+/* Screen-only styles for previewing the certificate */
+@media screen {
+  #print-wrapper {
+    width: 100%;
+    max-width: 900px; 
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  /* Prevent any element from causing a page break. */
+  #certificate-print-root {
+    width: 100%;
+    aspect-ratio: 297 / 210; /* A4 Landscape aspect ratio */
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    overflow: hidden;
+    border-radius: 0.5rem;
+    transform: translateZ(0); /* Promote to its own layer for smoother scaling */
+  }
+}
+
+/* Print-only styles for perfect PDF generation */
+@media print {
+  /* 1. Force page size and prevent breaks */
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
   * {
     page-break-before: avoid !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
-    transform: none !important;
-    zoom: 1 !important;
-    scale: 1 !important;
-  }
-  
-  /* Force the root elements to the exact A4 landscape size. This is the key to preventing extra pages. */
-  html, body {
-    width: 297mm !important;
-    height: 210mm !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    background: none !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Hide EVERYTHING by default. */
+  /* 2. Isolate print content: hide everything by default */
   body * {
     visibility: hidden !important;
   }
   
-  /* Show ONLY the certificate container and its children. */
-  #certificate-print-root,
-  #certificate-print-root * {
+  /* 3. Make only the print wrapper and its contents visible */
+  #print-wrapper,
+  #print-wrapper * {
     visibility: visible !important;
   }
 
-  /* Force the certificate container to fill the entire page. */
-  #certificate-print-root {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 297mm !important;
-    height: 210mm !important;
-    overflow: hidden !important;
+  /* 4. Reset body/html for a clean canvas */
+  html, body {
+    width: 100%;
+    height: 100%;
     margin: 0 !important;
     padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
+    overflow: hidden !important;
+    background: none !important;
   }
 
-  /* Hide any element explicitly marked as no-print. */
+  /* 5. Wrapper to center the certificate perfectly on the page */
+  #print-wrapper {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  /* 6. Hard-lock certificate to A4 landscape dimensions */
+  #certificate-print-root {
+    width: 297mm;
+    height: 210mm;
+    display: flex; /* Allow content to fill it */
+    flex-direction: column;
+    justify-content: space-between; /* This matches the component's internal layout */
+    overflow: hidden !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    zoom: 1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* 7. Hide any elements explicitly marked as no-print */
   .no-print {
     display: none !important;
   }
