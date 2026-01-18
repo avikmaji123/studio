@@ -45,7 +45,6 @@ async function generatePdf(certificate: Certificate) {
     };
 
     // --- Draw Background ---
-    // pdf-lib doesn't support gradients, so we use a solid dark color.
     page.drawRectangle({
         x: 0,
         y: 0,
@@ -114,10 +113,25 @@ async function generatePdf(certificate: Certificate) {
         errorCorrectionLevel: 'H',
         width: 120,
         margin: 1,
-        color: { dark: '#0F172A', light: '#FFFFFF' },
+        color: {
+            dark: '#0F172A', // Dark modules for contrast on white background
+            // Omitting `light` makes the background transparent
+        },
     });
     
-    const qrImage = await pdfDoc.embedPng(qrDataUrl);
+    const qrPngBytes = Buffer.from(qrDataUrl.substring(qrDataUrl.indexOf(',') + 1), 'base64');
+    const qrImage = await pdfDoc.embedPng(qrPngBytes);
+    
+    // Draw a white background for the QR code to ensure scannability, mimicking the web preview
+    const qrBgSize = 128; // A bit larger than the QR code for padding
+    page.drawRectangle({
+        x: centerX - qrBgSize / 2,
+        y: 136, // Positioned to center the QR code vertically
+        width: qrBgSize,
+        height: qrBgSize,
+        color: colors.white,
+    });
+
     page.drawImage(qrImage, {
         x: centerX - qrImage.width / 2,
         y: 140,
