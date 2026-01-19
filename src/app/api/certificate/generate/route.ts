@@ -35,11 +35,12 @@ export async function POST(req: NextRequest) {
         });
         const page = await browser.newPage();
         
-        // Go to the render page
-        await page.goto(renderUrl, { waitUntil: 'domcontentloaded' });
+        // Go to the render page and wait for network activity to be minimal.
+        // This is more reliable for ensuring fonts and other resources are loaded.
+        await page.goto(renderUrl, { waitUntil: 'networkidle2' });
 
-        // Explicitly wait for the QR code container to be rendered by client-side JS
-        await page.waitForSelector('[data-testid="qr-code-container"]', { timeout: 20000 });
+        // As a final guarantee, also wait for the client-side JS to render the QR code.
+        await page.waitForSelector('[data-testid="qr-code-container"]', { timeout: 10000 });
 
         const pdfBytes = await page.pdf({
             width: '1123px',
@@ -62,7 +63,11 @@ export async function POST(req: NextRequest) {
     } catch (error: any) {
         console.error('PUPPETEER PDF Generation API Error:', error);
         if (browser) {
-            await browser.close();
+            try {
+                await browser.close();
+            } catch (closeError) {
+                console.error('Failed to close browser instance:', closeError);
+            }
         }
         return NextResponse.json({ error: 'An unexpected error occurred during PDF generation.' }, { status: 500 });
     }
