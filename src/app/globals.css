@@ -103,25 +103,22 @@
   }
 }
 
-/* Certificate Preview and Layout Styles */
+/* New Certificate Preview Styles */
 @layer components {
     /* Viewport for scaling the preview */
     .certificate-viewport {
         @apply mx-auto w-full flex justify-center items-center;
-        /* Adjust height for different screen sizes */
         height: 600px; /* Default for mobile */
         
         @screen sm {
             height: 700px;
         }
         @screen lg {
-            height: 850px; /* Taller on large screens */
+            height: 850px;
         }
     }
 
     .certificate-container {
-        @apply relative overflow-hidden rounded-lg shadow-2xl;
-        background: radial-gradient(ellipse at center, #1a2a45 0%, #0f172a 70%);
         /* Fixed A4 landscape size */
         width: 1123px;
         height: 794px;
@@ -142,24 +139,5 @@
          @screen xl {
             --certificate-scale: 1.0;
         }
-    }
-
-    .certificate-body {
-        @apply w-full h-full p-12 flex flex-col text-center text-white;
-    }
-    
-    .certificate-border {
-        @apply absolute inset-0 pointer-events-none;
-    }
-
-    .certificate-border-left, .certificate-border-right {
-        @apply absolute top-0 bottom-0 w-2 bg-cyan-400/30;
-    }
-
-    .certificate-border-left { @apply left-0; }
-    .certificate-border-right { @apply right-0; }
-
-    .certificate-vignette {
-        @apply absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.5)];
     }
 }

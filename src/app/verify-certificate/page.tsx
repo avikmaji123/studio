@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { doc, getDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { useFirestore } from '@/firebase';
 import Link from 'next/link';
@@ -10,12 +10,10 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader2, Search, CheckCircle, XCircle, Award, Download, Eye } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import type { Certificate } from '@/lib/types';
-
 
 type VerificationResult = {
     status: 'valid' | 'invalid' | 'revoked';
@@ -75,7 +73,7 @@ export default function VerifyCertificatePage() {
 
     const handleDownload = async (code: string) => {
         setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your download will begin shortly.' });
+        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly. This may take a moment.' });
 
         try {
             const response = await fetch(`/api/certificate/generate`, {
@@ -109,7 +107,6 @@ export default function VerifyCertificatePage() {
             setIsDownloading(false);
         }
     };
-
 
     const VerificationResultCard = () => {
         if (isLoading) {
@@ -187,7 +184,7 @@ export default function VerifyCertificatePage() {
                             <div className="grid grid-cols-2 gap-x-4">
                                 <div>
                                     <p className="font-semibold text-muted-foreground">ISSUE DATE</p>
-                                    <p className="font-medium text-foreground">{format(issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                                    <p className="font-medium text-foreground">{issueDate.toDate ? format(issueDate.toDate(), 'MMMM d, yyyy') : 'N/A'}</p>
                                 </div>
                                 <div>
                                     <p className="font-semibold text-muted-foreground">STATUS</p>
@@ -211,7 +208,6 @@ export default function VerifyCertificatePage() {
                 </Card>
              )
         }
-
         return null;
     }
 
@@ -233,7 +229,7 @@ export default function VerifyCertificatePage() {
                             <Input 
                                 value={certificateCode}
                                 onChange={(e) => setCertificateCode(e.target.value)}
-                                placeholder="e.g., CV-CYB-A0B1-C2D3"
+                                placeholder="e.g., CV-ABCD1234"
                                 className="h-12 text-lg flex-grow"
                                 disabled={isLoading}
                                 required

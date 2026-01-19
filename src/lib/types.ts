@@ -1,4 +1,3 @@
-
 import type { Timestamp } from 'firebase/firestore';
 
 export type Enrollment = {
@@ -86,9 +85,8 @@ export type Certificate = {
     courseId: string;
     studentName: string;
     courseName: string;
-    courseLevel?: 'Beginner' | 'Intermediate' | 'Advanced';
+    courseLevel: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
     issueDate: Timestamp;
     certificateCode: string; // The unique code, and the ID for the public collection
     status: 'valid' | 'revoked';
-    certificateUrl?: string; // This is not used for PDF generation
 };

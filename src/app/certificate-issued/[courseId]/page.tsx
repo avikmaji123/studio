@@ -8,7 +8,7 @@ import { doc } from 'firebase/firestore';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, CheckCircle, Copy } from 'lucide-react';
+import { Loader2, CheckCircle, Copy, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Certificate } from '@/lib/types';
 
@@ -26,11 +26,9 @@ export default function CertificateIssuedPage() {
 
     const { data: certificate, isLoading: isCertLoading } = useDoc<Certificate>(certificateRef);
 
-    const handleCopy = () => {
-        if (certificate?.certificateCode) {
-            navigator.clipboard.writeText(certificate.certificateCode);
-            toast({ title: 'Copied to clipboard!', description: 'You can now paste the code to verify.' });
-        }
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({ title: 'Copied to clipboard!', description: 'You can now paste the code to verify.' });
     };
     
     useEffect(() => {
@@ -61,6 +59,8 @@ export default function CertificateIssuedPage() {
         );
     }
 
+    const verificationUrl = typeof window !== 'undefined' ? `${window.location.origin}/verify-certificate?code=${certificate.certificateCode}` : '';
+
     return (
         <main className="container mx-auto px-4 py-16 sm:py-24 max-w-2xl">
             <Card className="text-center shadow-lg">
@@ -74,20 +74,36 @@ export default function CertificateIssuedPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <p>Your certificate has been securely generated. You can download it anytime by verifying its authenticity using your unique code.</p>
-                    <div className="p-4 bg-muted rounded-lg">
-                        <p className="text-sm text-muted-foreground font-semibold">YOUR UNIQUE CERTIFICATE CODE</p>
-                        <div className="flex items-center justify-center gap-4 mt-2">
-                            <p className="text-2xl font-bold font-mono tracking-widest text-primary">{certificate.certificateCode}</p>
-                            <Button variant="ghost" size="icon" onClick={handleCopy}>
-                                <Copy className="h-5 w-5" />
-                                <span className="sr-only">Copy code</span>
-                            </Button>
+                    <p>Your certificate has been securely generated. You can view, download, or share it using your unique verification link.</p>
+                    
+                    <div className="p-4 bg-muted rounded-lg space-y-4">
+                        <div>
+                            <p className="text-sm text-muted-foreground font-semibold">YOUR UNIQUE CERTIFICATE CODE</p>
+                            <div className="flex items-center justify-center gap-4 mt-1">
+                                <p className="text-2xl font-bold font-mono tracking-widest text-primary">{certificate.certificateCode}</p>
+                                <Button variant="ghost" size="icon" onClick={() => handleCopy(certificate.certificateCode)}>
+                                    <Copy className="h-5 w-5" />
+                                    <span className="sr-only">Copy code</span>
+                                </Button>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground font-semibold">SHARABLE VERIFICATION LINK</p>
+                            <div className="flex items-center justify-center gap-4 mt-1">
+                                <p className="text-sm font-mono text-primary truncate">{verificationUrl}</p>
+                                <Button variant="ghost" size="icon" onClick={() => handleCopy(verificationUrl)}>
+                                    <Copy className="h-5 w-5" />
+                                    <span className="sr-only">Copy link</span>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button asChild size="lg">
-                            <Link href="/verify-certificate">Verify & Download</Link>
+                            <Link href={`/certificate/${certificate.certificateCode}`} target="_blank">
+                                <Eye className="mr-2 h-4 w-4" />
+                                Preview & Download
+                            </Link>
                         </Button>
                          <Button asChild variant="outline" size="lg">
                             <Link href="/dashboard/courses">Back to My Courses</Link>

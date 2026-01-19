@@ -14,11 +14,14 @@ export default function CertificateLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-slate-900">
+    // The certificate page is always dark, so we force the dark theme here.
+    <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
+      <body>
         <FirebaseClientProvider>
             {children}
             <Toaster />
         </FirebaseClientProvider>
-    </div>
+      </body>
+    </html>
   );
 }

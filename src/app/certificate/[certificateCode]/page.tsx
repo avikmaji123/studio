@@ -3,20 +3,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import type { Certificate } from '@/lib/types';
-import { Loader2, ArrowLeft, Download, ShieldAlert } from 'lucide-react';
+import { Loader2, ArrowLeft, Download, ShieldAlert, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { CertificateDisplay } from '@/components/app/certificate-display';
 import { createLogEntry } from '@/lib/actions';
 
+// Base64 encoded SVG of the BookOpen icon
+const bookOpenLogoSvg = btoa('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>');
+
 export default function CertificatePage() {
     const params = useParams();
     const code = params.certificateCode as string;
     const firestore = useFirestore();
-    const { user } = useUser();
     const { toast } = useToast();
 
     const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'revoked'>('loading');
@@ -55,14 +57,7 @@ export default function CertificatePage() {
         if (!certificate) return;
 
         setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
-
-        await createLogEntry({
-            source: 'user',
-            severity: 'info',
-            message: 'Certificate download initiated.',
-            metadata: { userId: user?.uid, certificateCode: certificate.certificateCode },
-        });
+        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly. This may take a moment.' });
 
         try {
             const response = await fetch(`/api/certificate/generate`, {
@@ -85,19 +80,25 @@ export default function CertificatePage() {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
+             await createLogEntry({
+                source: 'user',
+                severity: 'info',
+                message: 'Certificate PDF downloaded.',
+                metadata: { certificateCode: certificate.certificateCode },
+            });
 
         } catch (error: any) {
             console.error("PDF Download Error:", error);
             toast({
                 variant: 'destructive',
                 title: 'Download Failed',
-                description: error.message || 'An unexpected error occurred while generating the PDF.',
+                description: error.message || 'An unexpected error occurred.',
             });
-            await createLogEntry({
+             await createLogEntry({
                 source: 'system',
                 severity: 'critical',
                 message: 'Certificate PDF generation failed.',
-                metadata: { userId: user?.uid, certificateCode: certificate.certificateCode, error: error.message },
+                metadata: { certificateCode: certificate.certificateCode, error: error.message },
             });
         } finally {
             setIsDownloading(false);
@@ -116,7 +117,7 @@ export default function CertificatePage() {
             case 'valid':
                 return certificate && qrCodeUrl && (
                     <div className="certificate-viewport">
-                      <CertificateDisplay certificate={certificate} qrCodeUrl={qrCodeUrl} />
+                      <CertificateDisplay certificate={certificate} qrCodeUrl={qrCodeUrl} qrLogoSvg={bookOpenLogoSvg} />
                     </div>
                 );
             case 'revoked':

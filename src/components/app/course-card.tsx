@@ -32,22 +32,29 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
   const router = useRouter();
 
   const CertificateMenuItem = () => {
+    // If certificate exists, link to view it.
     if (certificate) {
       return (
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link href={`/certificate/${certificate.certificateCode}`}>
+          <Link href={`/certificate/${certificate.certificateCode}`} target="_blank">
             <Award className="mr-2 h-4 w-4" />
             <span>View Certificate</span>
           </Link>
         </DropdownMenuItem>
       );
     }
+    
+    // If quiz is disabled for the course, don't show the option.
+    if(course.certificateSettings?.quizEnabled === false) {
+        return null;
+    }
 
+    // Logic to handle taking the test or seeing countdown.
     const handleSelect = (e: Event) => {
       e.preventDefault(); 
 
       if (!isEnrolled || !enrollment) {
-        toast({ variant: "destructive", title: "Not Enrolled" });
+        toast({ variant: "destructive", title: "Not Enrolled", description: "You must be enrolled to take the certificate test." });
         return;
       }
 
@@ -58,10 +65,11 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
 
       if (now < unlockDate) {
         toast({
-          title: "Certificate Locked",
-          description: `This certificate unlocks ${formatDistanceToNowStrict(unlockDate, { addSuffix: true })}.`,
+          title: "Certificate Test Locked",
+          description: `This test unlocks ${formatDistanceToNowStrict(unlockDate, { addSuffix: true })}.`,
         });
       } else {
+        // Redirect to the test page
         router.push(`/certificate-test/${course.id}`);
       }
     };
@@ -69,7 +77,7 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
     return (
       <DropdownMenuItem onSelect={handleSelect} className="cursor-pointer">
         <Award className="mr-2 h-4 w-4" />
-        <span>Certificate</span>
+        <span>Take Certificate Test</span>
       </DropdownMenuItem>
     );
   };

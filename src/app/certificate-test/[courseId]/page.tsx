@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { createLogEntry } from '@/lib/actions';
+import { v4 as uuidv4 } from 'uuid';
 
 type AnswerState = { [questionIndex: number]: string };
 
@@ -46,6 +47,15 @@ export default function CertificateTestPage() {
                 const courseData = docSnap.data() as Course;
                 setCourse(courseData);
 
+                // Check if certificate already exists before generating a new quiz
+                const certCheckRef = doc(firestore, 'users', user.uid, 'certificates', courseData.id);
+                const certCheckSnap = await getDoc(certCheckRef);
+                if(certCheckSnap.exists()) {
+                    toast({ title: "Certificate Already Issued", description: "Redirecting you to the success page." });
+                    router.push(`/certificate-issued/${courseData.id}`);
+                    return;
+                }
+
                 const quizData = await generateQuiz({
                     courseTitle: courseData.title,
                     courseDescription: courseData.description,
@@ -61,7 +71,7 @@ export default function CertificateTestPage() {
         };
 
         fetchCourseAndGenerateQuiz();
-    }, [courseRef, user, router, toast]);
+    }, [courseRef, user, router, toast, firestore]);
 
     const handleAnswerChange = (questionIndex: number, value: string) => {
         setAnswers(prev => ({...prev, [questionIndex]: value}));
@@ -88,38 +98,29 @@ export default function CertificateTestPage() {
         if (score >= passingScore) {
             // Passed the quiz
             try {
-                // Check if certificate already exists
-                const certRef = doc(firestore, 'users', user.uid, 'certificates', course.id);
-                const certSnap = await getDoc(certRef);
-
-                if (certSnap.exists()) {
-                    // Already issued, redirect to success page.
-                    router.push(`/certificate-issued/${course.id}`);
-                    return;
-                }
-
-                const certificateCode = `CV-${course.category.substring(0, 3).toUpperCase()}-${course.id.substring(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+                const certificateCode = `CV-${uuidv4().substring(0, 8).toUpperCase()}`;
                 const issueDate = Timestamp.now();
                 const studentName = `${profile.firstName} ${profile.lastName}`.trim();
                 
                 const certificateData = {
-                    id: course.id, // Using courseId as document ID in subcollection
+                    id: course.id,
                     userId: user.uid,
                     courseId: course.id,
                     studentName: studentName,
                     courseName: course.title,
-                    courseLevel: course.level || 'Beginner',
+                    courseLevel: course.level || 'All Levels' as const,
                     issueDate: issueDate,
                     certificateCode: certificateCode,
                     status: 'valid' as const,
                 };
 
-                // Create user's private certificate record (doc ID is course ID for uniqueness)
-                await setDoc(certRef, certificateData);
+                // Create user's private certificate record
+                const userCertRef = doc(firestore, 'users', user.uid, 'certificates', course.id);
+                await setDoc(userCertRef, certificateData);
                 
-                // Create public verification record (doc ID is the unique code)
+                // Create public verification record
                 const publicCertRef = doc(firestore, 'certificates', certificateCode);
-                await setDoc(publicCertRef, { ...certificateData, id: certificateCode }); // Here, id is the certificate code
+                await setDoc(publicCertRef, { ...certificateData, id: certificateCode });
                 
                 await createLogEntry({
                     source: 'system',
@@ -144,7 +145,6 @@ export default function CertificateTestPage() {
                 description: `You scored ${score} out of ${quiz.questions.length}. A minimum of ${passingScore} is required. Please review the course material and try again.`,
                 duration: 9000,
             });
-            // TODO: Add logic for retry attempts
             setIsSubmitting(false);
         }
     };
