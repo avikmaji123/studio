@@ -23,12 +23,15 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
         style={{
           width: CERTIFICATE_WIDTH,
           height: CERTIFICATE_HEIGHT,
+          fontFamily: 'Lexend, sans-serif'
         }}
       >
+        {/* Decorative elements */}
         <div className="absolute top-0 bottom-0 left-0 w-2 bg-cyan-400/30"></div>
         <div className="absolute top-0 bottom-0 right-0 w-2 bg-cyan-400/30"></div>
         <div className="absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.5)]"></div>
 
+        {/* Header */}
         <header className="space-y-4">
           <BookOpen className="h-12 w-12 mx-auto text-cyan-400" />
           <p className="font-headline text-2xl tracking-[0.2em] uppercase text-cyan-400/80">
@@ -36,7 +39,8 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
           </p>
         </header>
 
-        <main className="flex-grow flex flex-col justify-center items-center space-y-2">
+        {/* Main Content (Vertically Centered) */}
+        <main className="flex-grow flex flex-col justify-center items-center text-center space-y-2">
             <p className="text-xl text-gray-300">This is to certify that</p>
             <h1 className="font-headline text-7xl font-bold text-white tracking-tight">
                 {certificate.studentName}
@@ -48,7 +52,24 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
             <div className="!mt-4 font-headline text-lg tracking-widest uppercase text-cyan-400/60">
               {(certificate.courseLevel || 'All Levels').toUpperCase()} LEVEL
             </div>
-             <div className="!mt-12 flex-shrink-0" data-testid="qr-code-container">
+        </main>
+        
+        {/* Footer */}
+        <footer className="w-full flex justify-between items-end text-sm z-10">
+            {/* Left Section */}
+            <div className="text-left text-gray-300 space-y-4">
+                <div>
+                    <p className="font-bold text-gray-400 tracking-wider">ISSUE DATE</p>
+                    <p className="text-base">{certificate.issueDate?.toDate ? format(certificate.issueDate.toDate(), 'MMMM d, yyyy') : 'N/A'}</p>
+                </div>
+                <div>
+                    <p className="font-bold text-gray-400 tracking-wider">CERTIFICATE ID</p>
+                    <p className="font-mono tracking-widest text-base">{certificate.certificateCode}</p>
+                </div>
+            </div>
+
+             {/* Center Section (QR Code) */}
+            <div className="flex-shrink-0" data-testid="qr-code-container">
                  <div className="bg-white p-2 rounded-md shadow-2xl">
                     <QRCodeCanvas
                         value={qrCodeUrl}
@@ -66,20 +87,8 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
                     />
                 </div>
             </div>
-        </main>
-        
-        <footer className="w-full flex justify-between items-end text-sm z-10">
-            <div className="text-left text-gray-300 space-y-4">
-                <div>
-                    <p className="font-bold text-gray-400 tracking-wider">ISSUE DATE</p>
-                    <p className="text-base">{certificate.issueDate?.toDate ? format(certificate.issueDate.toDate(), 'MMMM d, yyyy') : 'N/A'}</p>
-                </div>
-                <div>
-                    <p className="font-bold text-gray-400 tracking-wider">CERTIFICATE ID</p>
-                    <p className="font-mono tracking-widest text-base">{certificate.certificateCode}</p>
-                </div>
-            </div>
 
+            {/* Right Section */}
             <div className="text-center">
                 <p className="font-signature text-4xl text-gray-200">Avik Maji</p>
                 <hr className="border-t border-gray-400 w-full my-1"/>

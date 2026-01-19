@@ -99,11 +99,14 @@ export default function CertificatePage() {
         }
 
         try {
+            // Ensure all fonts are loaded before capturing the canvas
+            await document.fonts.ready;
+            
             const canvas = await html2canvas(certificateElement, {
                 scale: 2, // Increase resolution for better quality
-                useCORS: true,
+                useCORS: true, // Needed for external images/fonts
                 allowTaint: true,
-                backgroundColor: null, 
+                backgroundColor: null, // Preserve transparency and gradients
             });
 
             const imgData = canvas.toDataURL('image/png');
@@ -111,7 +114,7 @@ export default function CertificatePage() {
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'px',
-                format: [1123, 794]
+                format: [1123, 794] // Match the fixed size of our certificate canvas
             });
 
             pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
@@ -120,7 +123,7 @@ export default function CertificatePage() {
             await createLogEntry({
                 source: 'user',
                 severity: 'info',
-                message: 'Certificate PDF downloaded.',
+                message: 'Certificate PDF downloaded successfully.',
                 metadata: { certificateCode: certificate.certificateCode },
             });
 
@@ -129,12 +132,12 @@ export default function CertificatePage() {
             toast({
                 variant: 'destructive',
                 title: 'Download Failed',
-                description: error.message || 'An unexpected error occurred while generating the PDF.',
+                description: 'An unexpected error occurred while generating the PDF. The issue has been logged.',
             });
              await createLogEntry({
                 source: 'system',
                 severity: 'critical',
-                message: 'Certificate PDF generation failed (client-side).',
+                message: 'Client-side PDF generation failed.',
                 metadata: { certificateCode: certificate.certificateCode, error: error.message },
             });
         } finally {
