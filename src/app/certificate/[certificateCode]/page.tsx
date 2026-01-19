@@ -17,14 +17,14 @@ import jsPDF from 'jspdf';
 // Base64 encoded SVG of the BookOpen icon, with a color that works on the QR code's white background
 const bookOpenLogoSvg = btoa('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>');
 
-// A simple viewport scaler hook
+// A simple viewport scaler hook to handle the preview display
 function useViewportScaler(elementWidth: number) {
     const [scale, setScale] = useState(1);
 
     useEffect(() => {
         function handleResize() {
             if (typeof window !== 'undefined') {
-                // 32px padding on each side
+                // 32px padding on each side for the preview
                 const availableWidth = window.innerWidth - 64;
                 setScale(Math.min(1, availableWidth / elementWidth));
             }
@@ -50,7 +50,7 @@ export default function CertificatePage() {
     const [qrCodeUrl, setQrCodeUrl] = useState('');
 
     const certificateRef = useRef<HTMLDivElement>(null);
-    const scale = useViewportScaler(1123); // 1123px is the fixed width
+    const scale = useViewportScaler(1123); // Fixed certificate width
 
     const fetchCertificate = useCallback(async () => {
         if (!firestore || !code) return;
@@ -63,6 +63,7 @@ export default function CertificatePage() {
                 setCertificate(data);
                 setStatus(data.status === 'revoked' ? 'revoked' : 'valid');
                 if (typeof window !== 'undefined') {
+                    // Dynamically generate QR code content based on current domain
                     setQrCodeUrl(`${window.location.origin}/verify-certificate?code=${data.certificateCode}`);
                 }
             } else {
@@ -84,7 +85,7 @@ export default function CertificatePage() {
             toast({
                 variant: 'destructive',
                 title: 'Download Failed',
-                description: 'Certificate element not found.',
+                description: 'Certificate element not found. Please refresh and try again.',
             });
             return;
         }
@@ -93,20 +94,20 @@ export default function CertificatePage() {
         toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
 
         try {
-            // Using html2canvas to capture the DOM node
+            // Using html2canvas to capture the single-source-of-truth DOM node.
             const canvas = await html2canvas(certificateRef.current, {
-                scale: 2, // Increase resolution for better quality
+                scale: 2, // Increase resolution for better PDF quality
                 useCORS: true, 
-                backgroundColor: null, // Use element's background
+                backgroundColor: null, // Transparent background to capture the component's own styling
             });
 
             const imgData = canvas.toDataURL('image/png');
             
-            // Using jsPDF to create the PDF
+            // Using jsPDF to create a single-page PDF with the exact dimensions.
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'px',
-                format: [1123, 794],
+                format: [1123, 794], // A4 landscape at ~96 DPI
             });
 
             pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
@@ -123,7 +124,7 @@ export default function CertificatePage() {
             toast({
                 variant: 'destructive',
                 title: 'Download Failed',
-                description: error.message || 'An unexpected error occurred.',
+                description: error.message || 'An unexpected error occurred while generating the PDF.',
             });
             await createLogEntry({
                 source: 'system',
@@ -147,8 +148,9 @@ export default function CertificatePage() {
                 );
             case 'valid':
                 return certificate && qrCodeUrl && (
-                    // This is the viewport for the scaled preview
+                    // This is the viewport for the scaled preview. It handles centering.
                     <div className="my-8 flex justify-center items-center" style={{ minHeight: 794 * scale }}>
+                        {/* The wrapper applies the visual scale without affecting layout */}
                         <div style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}>
                            <CertificateDisplay ref={certificateRef} certificate={certificate} qrCodeUrl={qrCodeUrl} qrLogoSvg={bookOpenLogoSvg} />
                         </div>
@@ -172,6 +174,7 @@ export default function CertificatePage() {
     };
 
     return (
+        // The background is set on the parent div to avoid it being captured by html2canvas
         <div className="bg-slate-900 text-white min-h-screen">
             <div className="container mx-auto px-4 py-8 sm:py-12">
                  <div className="mx-auto">

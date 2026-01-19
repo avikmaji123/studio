@@ -12,24 +12,26 @@ type CertificateDisplayProps = {
   qrLogoSvg: string; // Base64 encoded SVG string for the logo
 };
 
-// Use forwardRef to pass the ref to the root div
+// Use forwardRef to pass the ref to the root div for html2canvas to capture.
 export const CertificateDisplay = React.forwardRef<HTMLDivElement, CertificateDisplayProps>(
   ({ certificate, qrCodeUrl, qrLogoSvg }, ref) => {
-    // Fixed dimensions for the certificate canvas
+    // Fixed dimensions for the certificate canvas, ensuring a locked aspect ratio and size.
     const CERTIFICATE_WIDTH = 1123;
     const CERTIFICATE_HEIGHT = 794;
 
     return (
       // This container is the single source of truth for the certificate's design.
       // It has a fixed size and will be captured for the PDF.
+      // All styles are self-contained to avoid theme conflicts.
       <div
         ref={ref}
         id="certificate-canvas"
-        className="relative overflow-hidden font-sans dark" // Force dark theme
+        className="relative overflow-hidden font-sans" // Removed 'dark' to be independent of theme context
         style={{
           width: CERTIFICATE_WIDTH,
           height: CERTIFICATE_HEIGHT,
           background: 'radial-gradient(ellipse at center, #1a2a45 0%, #0f172a 70%)',
+          color: '#ffffff', // Explicitly set text color
         }}
       >
         {/* Decorative Borders */}
@@ -38,11 +40,11 @@ export const CertificateDisplay = React.forwardRef<HTMLDivElement, CertificateDi
           <div className="absolute top-0 bottom-0 right-0 w-2 bg-cyan-400/30"></div>
         </div>
         
-        {/* Vignette Effect */}
+        {/* Vignette Effect - using a box-shadow to be print-safe */}
         <div className="absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.5)]"></div>
 
         {/* Certificate Content */}
-        <div className="w-full h-full p-16 flex flex-col text-center text-white">
+        <div className="w-full h-full p-16 flex flex-col text-center">
           <header className="space-y-4">
             <BookOpen className="h-12 w-12 mx-auto text-cyan-400" />
             <p className="font-headline text-2xl tracking-[0.2em] uppercase text-cyan-400/80">
@@ -77,19 +79,19 @@ export const CertificateDisplay = React.forwardRef<HTMLDivElement, CertificateDi
                   </div>
               </div>
 
-              {/* QR Code in its own flex container for centering */}
-              <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
+              {/* QR Code in its own flex container for centering and ensuring it is part of the flow */}
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2" data-testid="qr-code-container">
                    <div className="bg-white p-2 rounded-md shadow-2xl">
                       <QRCodeCanvas
                           value={qrCodeUrl}
-                          size={120}
+                          size={120} // Exact size as required
                           bgColor={"#ffffff"}
-                          fgColor={"#0F172A"}
-                          level={"H"}
+                          fgColor={"#0F172A"} // Dark foreground for high contrast
+                          level={"H"} // High error correction
                           includeMargin={false}
                           imageSettings={{
                               src: `data:image/svg+xml;base64,${qrLogoSvg}`,
-                              height: 24, // 20% of 120
+                              height: 24, // Approx 20% of 120
                               width: 24,
                               excavate: true,
                           }}

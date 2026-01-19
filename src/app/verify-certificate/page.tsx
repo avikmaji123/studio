@@ -82,55 +82,6 @@ export default function VerifyCertificatePage() {
         runVerification(certificateCode);
     };
 
-    const handleDownload = async (code: string) => {
-        setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly. This may take a moment.' });
-
-        try {
-            const response = await fetch(`/api/certificate/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ certificateCode: code }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate PDF.');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `CourseVerse_Certificate_${code}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-             await createLogEntry({
-                source: 'user',
-                severity: 'info',
-                message: 'Certificate PDF downloaded from verification page.',
-                metadata: { certificateCode: code },
-            });
-
-        } catch (error: any) {
-             toast({
-                variant: 'destructive',
-                title: 'Download Failed',
-                description: error.message || 'An unexpected error occurred.',
-            });
-             await createLogEntry({
-                source: 'system',
-                severity: 'critical',
-                message: 'Certificate PDF generation failed from verification page.',
-                metadata: { certificateCode: code, error: error.message },
-            });
-        } finally {
-            setIsDownloading(false);
-        }
-    };
-
     const VerificationResultCard = () => {
         if (isLoading) {
             return (
@@ -223,9 +174,11 @@ export default function VerifyCertificatePage() {
                                 Preview Certificate
                             </Link>
                         </Button>
-                        <Button onClick={() => handleDownload(certificateCode)} disabled={isDownloading} className="w-full" size="lg">
-                            {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4" />}
-                            {isDownloading ? 'Generating...' : 'Download PDF'}
+                        <Button asChild className="w-full" size="lg">
+                            <Link href={`/certificate/${certificateCode}`}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Download PDF
+                            </Link>
                         </Button>
                     </CardFooter>
                 </Card>
