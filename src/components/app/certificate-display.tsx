@@ -50,7 +50,7 @@ export function CertificateDisplay({ certificate, qrCodeUrl, qrLogoSvg }: Certif
 
             {/* QR Code Container */}
             <div className="!mt-6"> {/* Using !mt-6 to override space-y */}
-                 <div className="bg-white p-2 rounded-md shadow-2xl">
+                 <div className="bg-white p-2 rounded-md shadow-2xl" data-testid="qr-code-container">
                     <QRCodeCanvas
                         value={qrCodeUrl}
                         size={100} // Slightly smaller to give it breathing room

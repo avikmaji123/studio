@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getDoc, doc } from 'firebase/firestore';
 import { getSdks } from '@/firebase/index.server'; 
-import type { Certificate } from '@/lib/types';
 import { headers } from 'next/headers';
 import puppeteer from 'puppeteer';
 
@@ -38,6 +37,9 @@ export async function POST(req: NextRequest) {
         
         // Go to the render page
         await page.goto(renderUrl, { waitUntil: 'domcontentloaded' });
+
+        // Explicitly wait for the QR code container to be rendered by client-side JS
+        await page.waitForSelector('[data-testid="qr-code-container"]', { timeout: 20000 });
 
         const pdfBytes = await page.pdf({
             width: '1123px',
