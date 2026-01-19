@@ -14,6 +14,7 @@ import { Loader2, Search, CheckCircle, XCircle, Award, Download, Eye } from 'luc
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import type { Certificate } from '@/lib/types';
+import { createLogEntry } from '@/lib/actions';
 
 type VerificationResult = {
     status: 'valid' | 'invalid' | 'revoked';
@@ -48,10 +49,20 @@ export default function VerifyCertificatePage() {
                      setResult({ status: 'valid', data });
                 }
             } else {
+                await createLogEntry({
+                    source: 'user',
+                    severity: 'warning',
+                    message: `Invalid certificate verification attempt for code: ${code}`,
+                });
                 setResult({ status: 'invalid' });
             }
         } catch (error) {
             console.error("Certificate verification error:", error);
+            await createLogEntry({
+                source: 'system',
+                severity: 'critical',
+                message: `Certificate verification system error for code: ${code}`,
+            });
             setResult({ status: 'invalid' });
         } finally {
             setIsLoading(false);
@@ -96,12 +107,24 @@ export default function VerifyCertificatePage() {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
+             await createLogEntry({
+                source: 'user',
+                severity: 'info',
+                message: 'Certificate PDF downloaded from verification page.',
+                metadata: { certificateCode: code },
+            });
 
         } catch (error: any) {
              toast({
                 variant: 'destructive',
                 title: 'Download Failed',
                 description: error.message || 'An unexpected error occurred.',
+            });
+             await createLogEntry({
+                source: 'system',
+                severity: 'critical',
+                message: 'Certificate PDF generation failed from verification page.',
+                metadata: { certificateCode: code, error: error.message },
             });
         } finally {
             setIsDownloading(false);
