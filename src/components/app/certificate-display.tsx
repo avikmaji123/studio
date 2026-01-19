@@ -3,8 +3,8 @@
 import type { Certificate } from '@/lib/types';
 import { BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
-import { useQRCode } from '@/hooks/use-qrcode';
 import Image from 'next/image';
+import { QRCodeCanvas } from 'qrcode.react';
 
 type CertificateDisplayProps = {
   certificate: Certificate;
@@ -13,28 +13,14 @@ type CertificateDisplayProps = {
 
 export function CertificateDisplay({ certificate, qrCodeUrl }: CertificateDisplayProps) {
 
-  const { dataUrl: qrCodeDataUrl } = useQRCode({
-    text: qrCodeUrl,
-    options: {
-      errorCorrectionLevel: 'H',
-      margin: 2,
-      width: 120,
-      color: {
-        dark: '#0F172A', // Deep navy
-        light: '#00000000', // Transparent
-      },
-    },
-  });
-
   return (
-    <div className="certificate-container">
+    <div className="certificate-container dark">
       {/* Decorative Borders */}
       <div className="certificate-border">
         <div className="certificate-border-left"></div>
         <div className="certificate-border-right"></div>
       </div>
       
-      {/* Vignette Overlay */}
       <div className="certificate-vignette"></div>
 
       <div className="certificate-body">
@@ -45,34 +31,36 @@ export function CertificateDisplay({ certificate, qrCodeUrl }: CertificateDispla
           </p>
         </header>
 
-        <main className="flex-grow flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center">
-            <p className="text-lg md:text-xl text-gray-300">This is to certify that</p>
-            <h1 className="font-headline text-4xl md:text-6xl font-bold text-white tracking-tight">
+        <main className="flex-grow flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center -mt-8">
+            <p className="text-lg md:text-xl text-gray-300 font-sans">This is to certify that</p>
+            <h1 className="font-headline text-5xl md:text-6xl font-bold text-white tracking-tight">
                 {certificate.studentName}
             </h1>
-            <p className="text-lg md:text-xl text-gray-300">has successfully completed the course</p>
+            <p className="text-lg md:text-xl text-gray-300 font-sans">has successfully completed the course</p>
             <h2 className="font-headline text-2xl md:text-3xl font-semibold text-cyan-400">
                 {certificate.courseName}
             </h2>
-             {certificate.courseLevel && (
+            {certificate.courseLevel && (
                  <p className="font-semibold uppercase tracking-widest text-gray-400 text-sm md:text-base">
                     {certificate.courseLevel} Level
                 </p>
              )}
-             <div className="pt-4">
-              {qrCodeDataUrl && (
-                  <Image 
-                      src={qrCodeDataUrl} 
-                      alt="Certificate Verification QR Code"
-                      width={120}
-                      height={120}
-                      className="bg-white p-1 rounded-md"
-                  />
-              )}
-            </div>
         </main>
+        
+        <div className="absolute bottom-[130px] left-1/2 -translate-x-1/2">
+            <div className="bg-white p-1 rounded-md shadow-2xl">
+                 <QRCodeCanvas
+                    value={qrCodeUrl}
+                    size={120}
+                    bgColor={"#ffffff"}
+                    fgColor={"#0F172A"}
+                    level={"H"}
+                    includeMargin={false}
+                 />
+            </div>
+        </div>
 
-        <footer className="flex justify-between items-end text-sm">
+        <footer className="flex justify-between items-end text-sm z-10">
             <div className="text-left text-gray-300">
                 <p className="font-bold text-gray-400">Issue Date</p>
                 <p>{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>

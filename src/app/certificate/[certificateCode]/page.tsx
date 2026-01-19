@@ -34,7 +34,9 @@ export default function CertificatePage() {
                 const data = docSnap.data() as Certificate;
                 setCertificate(data);
                 setStatus(data.status === 'revoked' ? 'revoked' : 'valid');
-                setQrCodeUrl(`${window.location.origin}/verify-certificate?code=${data.certificateCode}`);
+                if (typeof window !== 'undefined') {
+                    setQrCodeUrl(`${window.location.origin}/verify-certificate?code=${data.certificateCode}`);
+                }
             } else {
                 setStatus('invalid');
                 notFound();
@@ -53,7 +55,7 @@ export default function CertificatePage() {
         if (!certificate) return;
 
         setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your download will begin shortly.' });
+        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
 
         await createLogEntry({
             source: 'user',
@@ -108,12 +110,12 @@ export default function CertificatePage() {
                 return (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
                         <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                        <p className="text-muted-foreground">Loading Certificate...</p>
+                        <p className="text-muted-foreground">Verifying Certificate...</p>
                     </div>
                 );
             case 'valid':
                 return certificate && qrCodeUrl && (
-                    <div className="certificate-preview-wrapper">
+                    <div className="certificate-viewport">
                       <CertificateDisplay certificate={certificate} qrCodeUrl={qrCodeUrl} />
                     </div>
                 );
@@ -126,7 +128,7 @@ export default function CertificatePage() {
                         <h1 className="font-headline text-5xl font-bold text-destructive">Certificate Invalid</h1>
                         <p className="text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
                             {status === 'revoked' 
-                                ? 'This certificate has been revoked and is no longer valid.'
+                                ? 'This certificate has been revoked by the administrator and is no longer valid.'
                                 : 'The certificate code could not be found. Please check the code and try again.'}
                         </p>
                     </div>
@@ -136,16 +138,16 @@ export default function CertificatePage() {
 
     return (
         <div className="bg-slate-900 text-white min-h-screen">
-            <div className="container mx-auto px-4 py-8 sm:py-16">
-                 <div className="max-w-5xl mx-auto">
+            <div className="container mx-auto px-4 py-8 sm:py-12">
+                 <div className="mx-auto">
                     <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                        <Button asChild variant="outline" className="bg-transparent text-white hover:bg-white/10 hover:text-white">
-                            <Link href="/">
+                        <Button asChild variant="outline" className="bg-transparent text-white hover:bg-white/10 hover:text-white border-white/20">
+                            <Link href="/dashboard/courses">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Home
+                                Back to My Courses
                             </Link>
                         </Button>
-                        <h1 className="text-2xl font-bold text-center sm:text-left">Certificate Preview</h1>
+                        <h1 className="text-2xl font-bold text-center sm:text-left">Certificate of Completion</h1>
                         <Button
                             onClick={handleDownload}
                             disabled={isDownloading || status !== 'valid'}

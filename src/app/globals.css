@@ -103,35 +103,63 @@
   }
 }
 
-/* Print Isolation and Certificate Styling */
+/* Certificate Preview and Layout Styles */
 @layer components {
-    .certificate-preview-wrapper {
-        @apply w-full overflow-hidden;
+    /* Viewport for scaling the preview */
+    .certificate-viewport {
+        @apply mx-auto w-full flex justify-center items-center;
+        /* Adjust height for different screen sizes */
+        height: 600px; /* Default for mobile */
+        
+        @screen sm {
+            height: 700px;
+        }
+        @screen lg {
+            height: 850px; /* Taller on large screens */
+        }
     }
 
     .certificate-container {
-        @apply w-full aspect-[1123/794] relative overflow-hidden rounded-lg shadow-2xl;
+        @apply relative overflow-hidden rounded-lg shadow-2xl;
         background: radial-gradient(ellipse at center, #1a2a45 0%, #0f172a 70%);
+        /* Fixed A4 landscape size */
+        width: 1123px;
+        height: 794px;
+        /* Scale down for preview */
+        transform-origin: center center;
+        transform: scale(var(--certificate-scale, 0.7));
+
+        /* Adjust scale based on viewport size */
+        @screen sm {
+            --certificate-scale: 0.6;
+        }
+        @screen md {
+            --certificate-scale: 0.8;
+        }
+        @screen lg {
+            --certificate-scale: 0.9;
+        }
+         @screen xl {
+            --certificate-scale: 1.0;
+        }
     }
 
     .certificate-body {
         @apply w-full h-full p-12 flex flex-col text-center text-white;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
     }
-
+    
     .certificate-border {
         @apply absolute inset-0 pointer-events-none;
     }
 
     .certificate-border-left, .certificate-border-right {
-        @apply absolute top-0 bottom-0 w-8 bg-gradient-to-b from-cyan-400/30 via-sky-500/30 to-blue-600/30;
+        @apply absolute top-0 bottom-0 w-2 bg-cyan-400/30;
     }
 
     .certificate-border-left { @apply left-0; }
     .certificate-border-right { @apply right-0; }
 
     .certificate-vignette {
-        @apply absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.4)];
+        @apply absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.5)];
     }
 }

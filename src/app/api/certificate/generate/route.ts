@@ -18,7 +18,8 @@ async function generatePdf(certificate: Certificate) {
     // --- Embed Standard Fonts (more reliable on server) ---
     const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const scriptFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic); // Using a standard font as a substitute
+    const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+    const scriptFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
 
     // --- Colors ---
     const colors = {
@@ -28,7 +29,8 @@ async function generatePdf(certificate: Certificate) {
         darkBlue: rgb(0.06, 0.09, 0.16)
     };
 
-    // --- Draw Background ---
+    // --- Draw Background Gradient (Simplified for pdf-lib) ---
+    // pdf-lib doesn't support gradients directly, so we use a solid dark color
     page.drawRectangle({
         x: 0,
         y: 0,
@@ -38,27 +40,27 @@ async function generatePdf(certificate: Certificate) {
     });
 
     // --- Draw Decorative Borders ---
-    const BORDER_WIDTH = 20;
-    const BORDER_COLOR = rgb(0.1, 0.2, 0.4); // A darker, subtle blue
-    page.drawRectangle({ x: 0, y: 0, width: BORDER_WIDTH, height: A4_LANDSCAPE_HEIGHT, color: BORDER_COLOR });
-    page.drawRectangle({ x: A4_LANDSCAPE_WIDTH - BORDER_WIDTH, y: 0, width: BORDER_WIDTH, height: A4_LANDSCAPE_HEIGHT, color: BORDER_COLOR });
+    const BORDER_WIDTH = 5;
+    page.drawRectangle({ x: 0, y: 0, width: BORDER_WIDTH, height: A4_LANDSCAPE_HEIGHT, color: colors.cyan, opacity: 0.3 });
+    page.drawRectangle({ x: A4_LANDSCAPE_WIDTH - BORDER_WIDTH, y: 0, width: BORDER_WIDTH, height: A4_LANDSCAPE_HEIGHT, color: colors.cyan, opacity: 0.3 });
     
     const centerX = A4_LANDSCAPE_WIDTH / 2;
 
-    // --- Draw "Certificate of Completion" ---
-    page.drawText('Certificate of Completion', {
-        x: centerX - regularFont.widthOfTextAtSize('Certificate of Completion', 20) / 2,
+    // --- Header ---
+    page.drawText('CERTIFICATE OF COMPLETION', {
+        x: centerX - regularFont.widthOfTextAtSize('CERTIFICATE OF COMPLETION', 20) / 2,
         y: 480,
         font: regularFont,
         size: 20,
         color: colors.cyan,
+        letterSpacing: 2,
     });
 
-    // --- Draw Main Content ---
+    // --- Main Content ---
     page.drawText('This is to certify that', {
-        x: centerX - regularFont.widthOfTextAtSize('This is to certify that', 16) / 2,
+        x: centerX - italicFont.widthOfTextAtSize('This is to certify that', 16) / 2,
         y: 430,
-        font: regularFont,
+        font: italicFont,
         size: 16,
         color: colors.gray,
     });
@@ -72,9 +74,9 @@ async function generatePdf(certificate: Certificate) {
     });
 
     page.drawText('has successfully completed the course', {
-        x: centerX - regularFont.widthOfTextAtSize('has successfully completed the course', 16) / 2,
+        x: centerX - italicFont.widthOfTextAtSize('has successfully completed the course', 16) / 2,
         y: 330,
-        font: regularFont,
+        font: italicFont,
         size: 16,
         color: colors.gray,
     });
@@ -98,21 +100,13 @@ async function generatePdf(certificate: Certificate) {
         margin: 1,
         color: {
             dark: '#0F172A',
+            light: '#FFFFFF', // Use a solid white background
         },
     });
     
     const qrPngBytes = Buffer.from(qrDataUrl.substring(qrDataUrl.indexOf(',') + 1), 'base64');
     const qrImage = await pdfDoc.embedPng(qrPngBytes);
     
-    const qrBgSize = 128;
-    page.drawRectangle({
-        x: centerX - qrBgSize / 2,
-        y: 136,
-        width: qrBgSize,
-        height: qrBgSize,
-        color: colors.white,
-    });
-
     page.drawImage(qrImage, {
         x: centerX - qrImage.width / 2,
         y: 140,
@@ -120,16 +114,18 @@ async function generatePdf(certificate: Certificate) {
         height: 120,
     });
 
-    // --- Draw Footer Content ---
+    // --- Footer Content ---
     const footerY = 80;
     const marginX = 70;
     
+    // Left side
     page.drawText('Issue Date', { x: marginX, y: footerY + 20, font: boldFont, size: 10, color: colors.gray });
     page.drawText(format(certificate.issueDate.toDate(), 'MMMM d, yyyy'), { x: marginX, y: footerY, font: regularFont, size: 12, color: colors.white });
     
     page.drawText('Certificate ID', { x: marginX, y: footerY - 30, font: boldFont, size: 10, color: colors.gray });
     page.drawText(certificate.certificateCode, { x: marginX, y: footerY - 45, font: regularFont, size: 12, color: colors.white });
 
+    // Right side
     const signatureText = 'Avik Maji';
     const signatureWidth = scriptFont.widthOfTextAtSize(signatureText, 32);
     const signatureX = A4_LANDSCAPE_WIDTH - marginX - signatureWidth;
