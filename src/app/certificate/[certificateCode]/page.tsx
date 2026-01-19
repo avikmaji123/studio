@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { CertificateDisplay } from '@/components/app/certificate-display';
 import { createLogEntry } from '@/lib/actions';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Base64 encoded SVG of the BookOpen icon, with a color that works on the QR code's white background
 const bookOpenLogoSvg = btoa('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>');
@@ -61,12 +63,7 @@ export default function CertificatePage() {
                 setCertificate(data);
                 setStatus(data.status === 'revoked' ? 'revoked' : 'valid');
                 
-                // For server-side rendering (Puppeteer), the QR URL is passed as a query param.
-                // For client-side preview, we generate it from the window location.
-                const puppeteerQrUrl = searchParams.get('qrCodeUrl');
-                if (puppeteerQrUrl) {
-                    setQrCodeUrl(decodeURIComponent(puppeteerQrUrl));
-                } else if (typeof window !== 'undefined') {
+                if (typeof window !== 'undefined') {
                     setQrCodeUrl(`${window.location.origin}/verify-certificate?code=${data.certificateCode}`);
                 }
             } else {
@@ -77,7 +74,7 @@ export default function CertificatePage() {
             console.error("Error fetching certificate:", error);
             setStatus('invalid');
         }
-    }, [firestore, code, searchParams]);
+    }, [firestore, code]);
 
     useEffect(() => {
         fetchCertificate();
@@ -88,28 +85,37 @@ export default function CertificatePage() {
 
         setIsDownloading(true);
         toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
+        
+        const certificateElement = document.getElementById('certificate-canvas');
+
+        if (!certificateElement) {
+             toast({
+                variant: 'destructive',
+                title: 'Download Failed',
+                description: 'Could not find the certificate element to capture.',
+            });
+            setIsDownloading(false);
+            return;
+        }
 
         try {
-            const response = await fetch('/api/certificate/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: certificate.certificateCode, qrCodeUrl: qrCodeUrl }),
+            const canvas = await html2canvas(certificateElement, {
+                scale: 2, // Increase resolution for better quality
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null, 
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate PDF.');
-            }
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [1123, 794]
+            });
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `CourseVerse_Certificate_${certificate.certificateCode}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
+            pdf.save(`CourseVerse_Certificate_${certificate.certificateCode}.pdf`);
             
             await createLogEntry({
                 source: 'user',
@@ -128,7 +134,7 @@ export default function CertificatePage() {
              await createLogEntry({
                 source: 'system',
                 severity: 'critical',
-                message: 'Certificate PDF generation failed.',
+                message: 'Certificate PDF generation failed (client-side).',
                 metadata: { certificateCode: certificate.certificateCode, error: error.message },
             });
         } finally {
