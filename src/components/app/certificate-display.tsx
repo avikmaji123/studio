@@ -9,7 +9,7 @@ type CertificateDisplayProps = {
   certificate: Certificate;
   qrCodeUrl: string;
   // Base64 encoded SVG string for the logo
-  qrLogoSvg: string; 
+  qrLogoSvg: string;
 };
 
 export function CertificateDisplay({ certificate, qrCodeUrl, qrLogoSvg }: CertificateDisplayProps) {
@@ -37,44 +37,43 @@ export function CertificateDisplay({ certificate, qrCodeUrl, qrLogoSvg }: Certif
           </p>
         </header>
 
-        <main className="flex-grow flex flex-col justify-center items-center space-y-6 text-center -mt-8">
+        {/* Main content now includes QR code in the flow */}
+        <main className="flex-grow flex flex-col justify-center items-center space-y-4 text-center -mt-4">
             <p className="text-xl text-gray-300">This is to certify that</p>
             <h1 className="font-headline text-7xl font-bold text-white tracking-tight">
                 {certificate.studentName}
             </h1>
             <p className="text-xl text-gray-300">has successfully completed the course</p>
-            <h2 className="font-headline text-4xl font-semibold text-cyan-400">
+            <h2 className="font-headline text-3xl font-semibold text-cyan-400 max-w-3xl">
                 {certificate.courseName}
             </h2>
-            <p className="font-semibold uppercase tracking-widest text-gray-400 text-base">
-                {certificate.courseLevel} Level
-            </p>
+
+            {/* QR Code Container */}
+            <div className="!mt-6"> {/* Using !mt-6 to override space-y */}
+                 <div className="bg-white p-2 rounded-md shadow-2xl">
+                    <QRCodeCanvas
+                        value={qrCodeUrl}
+                        size={100} // Slightly smaller to give it breathing room
+                        bgColor={"#ffffff"}
+                        fgColor={"#0F172A"}
+                        level={"H"}
+                        includeMargin={false}
+                        imageSettings={{
+                            src: `data:image/svg+xml;base64,${qrLogoSvg}`,
+                            height: 20, // Scaled down
+                            width: 20,  // Scaled down
+                            excavate: true,
+                        }}
+                    />
+                </div>
+            </div>
         </main>
         
-        <div className="absolute bottom-[160px] left-1/2 -translate-x-1/2">
-             <div className="bg-white p-2 rounded-md shadow-2xl">
-                <QRCodeCanvas
-                    value={qrCodeUrl}
-                    size={120}
-                    bgColor={"#ffffff"}
-                    fgColor={"#0F172A"}
-                    level={"H"}
-                    includeMargin={false}
-                    imageSettings={{
-                        src: `data:image/svg+xml;base64,${qrLogoSvg}`,
-                        height: 24,
-                        width: 24,
-                        excavate: true,
-                    }}
-                />
-            </div>
-        </div>
-
         <footer className="flex justify-between items-end text-sm z-10">
             <div className="text-left text-gray-300 space-y-4">
                 <div>
                     <p className="font-bold text-gray-400 tracking-wider">ISSUE DATE</p>
-                    <p className="text-base">{format(certificate.issueDate.toDate(), 'MMMM d, yyyy')}</p>
+                    <p className="text-base">{certificate.issueDate.toDate ? format(certificate.issueDate.toDate(), 'MMMM d, yyyy') : 'N/A'}</p>
                 </div>
                 <div>
                     <p className="font-bold text-gray-400 tracking-wider">CERTIFICATE ID</p>

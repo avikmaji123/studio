@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
         const page = await browser.newPage();
         
         // Go to the render page
-        await page.goto(renderUrl, { waitUntil: 'networkidle0' });
+        await page.goto(renderUrl, { waitUntil: 'domcontentloaded' });
 
         const pdfBytes = await page.pdf({
             width: '1123px',
