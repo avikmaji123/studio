@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, notFound, useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Certificate } from '@/lib/types';
@@ -11,8 +11,6 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { CertificateDisplay } from '@/components/app/certificate-display';
 import { createLogEntry } from '@/lib/actions';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 // Base64 encoded SVG of the BookOpen icon, with a color that works on the QR code's white background
 const bookOpenLogoSvg = btoa('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>');
@@ -40,6 +38,7 @@ function useViewportScaler(elementWidth: number) {
 
 export default function CertificatePage() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const code = params.certificateCode as string;
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -49,7 +48,6 @@ export default function CertificatePage() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [qrCodeUrl, setQrCodeUrl] = useState('');
 
-    const certificateRef = useRef<HTMLDivElement>(null);
     const scale = useViewportScaler(1123); // Fixed certificate width
 
     const fetchCertificate = useCallback(async () => {
@@ -62,8 +60,13 @@ export default function CertificatePage() {
                 const data = docSnap.data() as Certificate;
                 setCertificate(data);
                 setStatus(data.status === 'revoked' ? 'revoked' : 'valid');
-                if (typeof window !== 'undefined') {
-                    // Dynamically generate QR code content based on current domain
+                
+                // For server-side rendering (Puppeteer), the QR URL is passed as a query param.
+                // For client-side preview, we generate it from the window location.
+                const puppeteerQrUrl = searchParams.get('qrCodeUrl');
+                if (puppeteerQrUrl) {
+                    setQrCodeUrl(decodeURIComponent(puppeteerQrUrl));
+                } else if (typeof window !== 'undefined') {
                     setQrCodeUrl(`${window.location.origin}/verify-certificate?code=${data.certificateCode}`);
                 }
             } else {
@@ -74,51 +77,47 @@ export default function CertificatePage() {
             console.error("Error fetching certificate:", error);
             setStatus('invalid');
         }
-    }, [firestore, code]);
+    }, [firestore, code, searchParams]);
 
     useEffect(() => {
         fetchCertificate();
     }, [fetchCertificate]);
 
     const handleDownload = async () => {
-        if (!certificateRef.current || !certificate) {
-            toast({
-                variant: 'destructive',
-                title: 'Download Failed',
-                description: 'Certificate element not found. Please refresh and try again.',
-            });
-            return;
-        }
+        if (!certificate) return;
 
         setIsDownloading(true);
         toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
 
         try {
-            // Using html2canvas to capture the single-source-of-truth DOM node.
-            const canvas = await html2canvas(certificateRef.current, {
-                scale: 2, // Increase resolution for better PDF quality
-                useCORS: true, 
-                backgroundColor: null, // Transparent background to capture the component's own styling
+            const response = await fetch('/api/certificate/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: certificate.certificateCode, qrCodeUrl: qrCodeUrl }),
             });
 
-            const imgData = canvas.toDataURL('image/png');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate PDF.');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CourseVerse_Certificate_${certificate.certificateCode}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
             
-            // Using jsPDF to create a single-page PDF with the exact dimensions.
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'px',
-                format: [1123, 794], // A4 landscape at ~96 DPI
-            });
-
-            pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
-            pdf.save(`CourseVerse_Certificate_${certificate.certificateCode}.pdf`);
-
             await createLogEntry({
                 source: 'user',
                 severity: 'info',
                 message: 'Certificate PDF downloaded.',
                 metadata: { certificateCode: certificate.certificateCode },
             });
+
         } catch (error: any) {
             console.error("PDF Download Error:", error);
             toast({
@@ -126,7 +125,7 @@ export default function CertificatePage() {
                 title: 'Download Failed',
                 description: error.message || 'An unexpected error occurred while generating the PDF.',
             });
-            await createLogEntry({
+             await createLogEntry({
                 source: 'system',
                 severity: 'critical',
                 message: 'Certificate PDF generation failed.',
@@ -152,7 +151,7 @@ export default function CertificatePage() {
                     <div className="my-8 flex justify-center items-center" style={{ minHeight: 794 * scale }}>
                         {/* The wrapper applies the visual scale without affecting layout */}
                         <div style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}>
-                           <CertificateDisplay ref={certificateRef} certificate={certificate} qrCodeUrl={qrCodeUrl} qrLogoSvg={bookOpenLogoSvg} />
+                           <CertificateDisplay certificate={certificate} qrCodeUrl={qrCodeUrl} qrLogoSvg={bookOpenLogoSvg} />
                         </div>
                     </div>
                 );
