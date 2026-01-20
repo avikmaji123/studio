@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,7 +11,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { useFirestore, useUser, useStorage } from '@/firebase';
-import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { createLogEntry } from '@/lib/actions';
-import { generateCourseOutline, GenerateCourseOutlineOutput } from '@/ai/flows/generate-course-outline';
+import { generateCourseOutline } from '@/ai/flows/generate-course-outline';
 import { slugify } from '@/lib/utils';
 import type { Course } from '@/lib/types';
 
@@ -42,16 +42,24 @@ const courseSchema = z.object({
     estimatedDuration: z.string().optional(),
     courseFormat: z.enum(['Recorded', 'Live', 'Mixed']),
     courseType: z.enum(['Free', 'Paid']),
-    price: z.string().refine((val) => /^\d+$/.test(val) || val === '0', {
-        message: "Price must be a valid number",
-    }).optional(),
+    price: z.string().optional(),
     discountPrice: z.string().optional(),
     accessValidity: z.string().min(1, 'Access validity is required'),
     status: z.enum(['draft', 'published', 'unpublished']),
-    visibility: z.enum(['public', 'private']),
+    visibility: z.enum(['public', 'private', 'hidden']),
     certificateEnabled: z.boolean(),
     quizRequired: z.boolean(),
     imageUrl: z.string().url('Must be a valid URL').optional(),
+    downloadUrl: z.string().url('Must be a valid URL').optional(),
+    downloadPassword: z.string().optional(),
+}).refine(data => {
+    if (data.courseType === 'Paid' && !data.price) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Price is required for paid courses",
+    path: ["price"],
 });
 
 type CourseFormValues = z.infer<typeof courseSchema>;
@@ -87,6 +95,8 @@ export default function NewCoursePage() {
             certificateEnabled: true,
             quizRequired: true,
             imageUrl: '',
+            downloadUrl: '',
+            downloadPassword: '',
         },
     });
 
@@ -101,9 +111,8 @@ export default function NewCoursePage() {
         try {
             const result = await generateCourseOutline({ courseIdea: aiRawText });
             
-            // Reset form with AI-generated values
             form.reset({
-                ...form.getValues(), // keep existing values
+                ...form.getValues(),
                 title: result.title,
                 shortDescription: result.shortDescription,
                 description: result.description,
@@ -130,7 +139,15 @@ export default function NewCoursePage() {
             const reader = new FileReader();
             reader.onloadend = () => setImagePreview(reader.result as string);
             reader.readAsDataURL(file);
+            form.setValue('imageUrl', ''); // Clear URL field if file is chosen
         }
+    };
+
+    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const url = e.target.value;
+        form.setValue('imageUrl', url);
+        setImagePreview(url);
+        setImageFile(null); // Clear file if URL is entered
     };
 
     const onSubmit = async (data: CourseFormValues) => {
@@ -143,7 +160,6 @@ export default function NewCoursePage() {
         let finalImageUrl = data.imageUrl || '';
 
         try {
-            // Upload image if a new one was selected
             if (imageFile) {
                 toast({ title: "Uploading image..." });
                 const storageRef = ref(storage, `course-images/${uuidv4()}-${imageFile.name}`);
@@ -172,6 +188,8 @@ export default function NewCoursePage() {
                 status: data.status,
                 visibility: data.visibility,
                 imageUrl: finalImageUrl,
+                downloadUrl: data.downloadUrl,
+                downloadPassword: data.downloadPassword,
                 enrollmentCount: 0,
                 isNew: true,
                 certificateSettings: {
@@ -254,6 +272,13 @@ export default function NewCoursePage() {
                                         <FormField control={form.control} name="courseFormat" render={({ field }) => (<FormItem><FormLabel>Format</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Recorded">Recorded</SelectItem><SelectItem value="Live">Live</SelectItem><SelectItem value="Mixed">Mixed</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                                     </CardContent>
                                 </Card>
+                                <Card>
+                                    <CardHeader><CardTitle>Delivery Settings</CardTitle><CardDescription>Provide the link for course asset downloads.</CardDescription></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <FormField control={form.control} name="downloadUrl" render={({ field }) => (<FormItem><FormLabel>Download URL</FormLabel><FormControl><Input placeholder="https://..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="downloadPassword" render={({ field }) => (<FormItem><FormLabel>Download Password (Optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
                             </div>
                             <div className="space-y-8 auto-rows-max">
                                 <Card>
@@ -271,7 +296,7 @@ export default function NewCoursePage() {
                                         {watchCourseType === 'Paid' && (
                                             <>
                                             <FormField control={form.control} name="price" render={({ field }) => (<FormItem><FormLabel>Price (₹)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={form.control} name="discountPrice" render={({ field }) => (<FormItem><FormLabel>Discount Price (₹)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <FormField control={form.control} name="discountPrice" render={({ field }) => (<FormItem><FormLabel>Discount Price (₹, Optional)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                             </>
                                         )}
                                         <FormField control={form.control} name="accessValidity" render={({ field }) => (<FormItem><FormLabel>Access Validity</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Lifetime">Lifetime</SelectItem><SelectItem value="12 Months">12 Months</SelectItem><SelectItem value="6 Months">6 Months</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
@@ -281,7 +306,7 @@ export default function NewCoursePage() {
                                     <CardHeader><CardTitle>Publishing</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                          <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="unpublished">Unpublished</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                                         <FormField control={form.control} name="visibility" render={({ field }) => (<FormItem><FormLabel>Visibility</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 mt-2"><FormItem><FormControl><RadioGroupItem value="public" id="public" /></FormControl><FormLabel htmlFor="public">Public</FormLabel></FormItem><FormItem><FormControl><RadioGroupItem value="private" id="private" /></FormControl><FormLabel htmlFor="private">Private</FormLabel></FormItem></RadioGroup></FormControl></FormItem>)} />
+                                         <FormField control={form.control} name="visibility" render={({ field }) => (<FormItem><FormLabel>Visibility</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 mt-2"><FormItem><FormControl><RadioGroupItem value="public" id="public" /></FormControl><FormLabel htmlFor="public">Public</FormLabel></FormItem><FormItem><FormControl><RadioGroupItem value="private" id="private" /></FormControl><FormLabel htmlFor="private">Private</FormLabel></FormItem><FormItem><FormControl><RadioGroupItem value="hidden" id="hidden" /></FormControl><FormLabel htmlFor="hidden">Hidden</FormLabel></FormItem></RadioGroup></FormControl></FormItem>)} />
                                     </CardContent>
                                 </Card>
                                 <Card>
@@ -295,13 +320,20 @@ export default function NewCoursePage() {
                                     <CardHeader><CardTitle>Thumbnail Image</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         {imagePreview && <div className="relative aspect-video"><Image src={imagePreview} alt="Preview" fill className="object-cover rounded-md" /></div>}
-                                        <FormField control={form.control} name="imageUrl" render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://" {...field} onChange={(e) => { field.onChange(e); setImagePreview(e.target.value); }} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://" value={form.watch('imageUrl')} onChange={handleImageUrlChange} /></FormControl><FormMessage /></FormItem>
                                         <div className="text-center my-2 text-xs text-muted-foreground">OR</div>
                                         <FormItem><FormLabel>Upload Image</FormLabel><FormControl><Input type="file" accept="image/*" onChange={handleImageFileChange} /></FormControl></FormItem>
                                     </CardContent>
                                 </Card>
                             </div>
                         </div>
+                    </div>
+                     <div className="flex items-center justify-center gap-2 md:hidden mt-6">
+                        <Button variant="outline" size="sm" type="button" onClick={() => router.push('/admin911/courses')}>Cancel</Button>
+                        <Button size="sm" type="submit" disabled={isSaving}>
+                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save and Continue
+                        </Button>
                     </div>
                 </form>
             </Form>
