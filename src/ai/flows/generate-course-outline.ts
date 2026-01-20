@@ -23,8 +23,8 @@ const GenerateCourseOutlineOutputSchema = z.object({
   category: z.string().describe('The most appropriate single category for the course (e.g., "Cyber Security", "Web Development", "Marketing").'),
   level: z.enum(['Beginner', 'Intermediate', 'Advanced']).describe("The estimated difficulty level for the target audience."),
   estimatedDuration: z.string().describe('A realistic estimate of the total time to complete the course (e.g., "Approx. 8 hours", "3 Weeks").'),
-  totalModules: z.number().int().positive().describe('The suggested number of modules or main sections in the course.'),
-  totalLessons: z.number().int().positive().describe('The total number of lessons across all modules.'),
+  totalModules: z.number().int().describe('The suggested number of modules or main sections in the course. This must be a positive integer.'),
+  totalLessons: z.number().int().describe('The total number of lessons across all modules. This must be a positive integer.'),
 });
 export type GenerateCourseOutlineOutput = z.infer<typeof GenerateCourseOutlineOutputSchema>;
 
@@ -50,8 +50,8 @@ Based on the user's input, generate the following fields:
 - category: The most appropriate single category (e.g., "Web Development", "Cyber Security", "Marketing", "Design").
 - level: The difficulty level ('Beginner', 'Intermediate', 'Advanced').
 - estimatedDuration: A realistic estimate of the course length (e.g., "Approx. 8 hours").
-- totalModules: The number of modules or main sections.
-- totalLessons: The total number of lessons across all modules.
+- totalModules: The number of modules or main sections. This must be a positive integer.
+- totalLessons: The total number of lessons across all modules. This must be a positive integer.
 
 Your output MUST be a valid JSON object matching the specified schema.`,
 });
