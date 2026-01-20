@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { CertificateDisplay } from '@/components/app/certificate-display';
 import { createLogEntry } from '@/lib/actions';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Base64 encoded SVG of the BookOpen icon, with a color that works on the QR code's white background
 const bookOpenLogoSvg = btoa('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>');
@@ -81,46 +83,63 @@ export default function CertificatePage() {
     const handleDownload = async () => {
         if (!certificate) return;
 
+        const certificateElement = document.getElementById('certificate-canvas');
+        if (!certificateElement) {
+            toast({
+                variant: 'destructive',
+                title: 'Download Failed',
+                description: 'Certificate element not found in the DOM.',
+            });
+            return;
+        }
+
         setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
+        toast({ title: 'Generating PDF...', description: 'Your download will begin shortly.' });
 
         try {
-            const response = await fetch(`/api/certificate/generate?code=${certificate.certificateCode}`);
+            // 1. Ensure all fonts are loaded before capture
+            await document.fonts.ready;
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate PDF.');
-            }
+            // 2. Capture the DOM element using html2canvas
+            const canvas = await html2canvas(certificateElement, {
+                scale: 2, // Increase scale for higher resolution
+                useCORS: true, // Important for external images/fonts
+                allowTaint: true,
+                backgroundColor: null, // Use element's own background
+            });
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `CourseVerse_Certificate_${certificate.certificateCode}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-            
+            const imgData = canvas.toDataURL('image/png');
+
+            // 3. Create a PDF using jsPDF
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [canvas.width, canvas.height],
+            });
+
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`CourseVerse_Certificate_${certificate.certificateCode}.pdf`);
+
             await createLogEntry({
                 source: 'user',
                 severity: 'info',
-                message: 'Certificate PDF downloaded successfully.',
+                message: 'Certificate PDF downloaded successfully via client.',
                 metadata: { certificateCode: certificate.certificateCode },
             });
 
         } catch (error: any) {
-            console.error("PDF Download Error:", error);
+            console.error("Client-side PDF Generation Error:", error);
+            const errorMessage = error.message || 'An unknown error occurred during PDF generation.';
             toast({
                 variant: 'destructive',
                 title: 'Download Failed',
-                description: error.message || 'An unexpected error occurred while generating the PDF.',
+                description: errorMessage,
             });
-             await createLogEntry({
+            await createLogEntry({
                 source: 'system',
                 severity: 'critical',
-                message: 'Server-side PDF generation failed.',
-                metadata: { certificateCode: certificate.certificateCode, error: error.message },
+                message: 'Client-side PDF generation failed.',
+                metadata: { certificateCode: certificate.certificateCode, error: errorMessage },
             });
         } finally {
             setIsDownloading(false);
