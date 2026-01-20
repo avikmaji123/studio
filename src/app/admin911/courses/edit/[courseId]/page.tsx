@@ -58,6 +58,8 @@ export default function EditCoursePage() {
     }, [allCourses]);
 
     const courseLevels = ['Beginner', 'Intermediate', 'Advanced'];
+    const courseFormats = ['Recorded', 'Live', 'Mixed'];
+    const accessOptions = ['Lifetime', '12 Months', '6 Months', '3 Months'];
 
     const courseRef = useMemoFirebase(() => doc(firestore, 'courses', courseId as string), [firestore, courseId]);
     
@@ -69,24 +71,35 @@ export default function EditCoursePage() {
     const [slug, setSlug] = useState('');
     const [shortDescription, setShortDescription] = useState('');
     const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('');
-    const [status, setStatus] = useState<'draft' | 'published'>('draft');
+    const [status, setStatus] = useState<'draft' | 'published' | 'unpublished'>('draft');
     const [category, setCategory] = useState('');
     const [level, setLevel] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [currentTag, setCurrentTag] = useState('');
     const [learningOutcomes, setLearningOutcomes] = useState<string[]>(['']);
     const [prerequisites, setPrerequisites] = useState('');
-    const [downloadUrl, setDownloadUrl] = useState('');
-    const [downloadPassword, setDownloadPassword] = useState('');
     
     // Image state
     const [imagePreview, setImagePreview] = useState('');
     const [finalImageUrl, setFinalImageUrl] = useState('');
 
-    const [isPurchaseEnabled, setIsPurchaseEnabled] = useState(true);
-    const [visibility, setVisibility] = useState<'public' | 'hidden'>('public');
+    const [visibility, setVisibility] = useState<'public' | 'private' | 'hidden'>('public');
 
+    // New Fields
+    const [language, setLanguage] = useState('English');
+    const [totalModules, setTotalModules] = useState('');
+    const [totalLessons, setTotalLessons] = useState('');
+    const [estimatedDuration, setEstimatedDuration] = useState('');
+    const [courseFormat, setCourseFormat] = useState('');
+    const [courseType, setCourseType] = useState<'Free' | 'Paid'>('Paid');
+    const [price, setPrice] = useState('');
+    const [discountPrice, setDiscountPrice] = useState('');
+    const [accessValidity, setAccessValidity] = useState('Lifetime');
+    const [isCertificateEnabled, setIsCertificateEnabled] = useState(true);
+    const [isQuizRequired, setIsQuizRequired] = useState(true);
+    const [downloadUrl, setDownloadUrl] = useState('');
+    const [downloadPassword, setDownloadPassword] = useState('');
+    
     const [isSaving, setIsSaving] = useState(false);
 
     // AI State
@@ -109,22 +122,32 @@ export default function EditCoursePage() {
                 if (docSnap.exists()) {
                     const courseData = docSnap.data() as Course;
                     setCourse(courseData);
-                    setTitle(courseData.title);
-                    setSlug(courseData.slug);
-                    setDescription(courseData.description);
+                    setTitle(courseData.title || '');
+                    setSlug(courseData.slug || '');
+                    setDescription(courseData.description || '');
                     setShortDescription(courseData.shortDescription || '');
-                    setPrice(courseData.price.replace('₹', ''));
-                    setStatus(courseData.status as 'draft' | 'published' || 'draft');
-                    setCategory(courseData.category);
+                    setStatus(courseData.status || 'draft');
+                    setCategory(courseData.category || '');
                     setLevel(courseData.level || 'Beginner');
                     setTags(courseData.tags || []);
                     setLearningOutcomes(courseData.learningOutcomes?.length ? courseData.learningOutcomes : ['']);
                     setPrerequisites(courseData.prerequisites || '');
                     setImagePreview(courseData.imageUrl || '');
                     setFinalImageUrl(courseData.imageUrl || '');
+                    setVisibility(courseData.visibility || 'public');
+                    setLanguage(courseData.language || 'English');
+                    setTotalModules(courseData.totalModules?.toString() || '');
+                    setTotalLessons(courseData.totalLessons?.toString() || '');
+                    setEstimatedDuration(courseData.estimatedDuration || '');
+                    setCourseFormat(courseData.courseFormat || 'Recorded');
+                    setCourseType(courseData.courseType || 'Paid');
+                    setPrice(courseData.price?.replace('₹', '') || '');
+                    setDiscountPrice(courseData.discountPrice?.replace('₹', '') || '');
+                    setAccessValidity(courseData.accessValidity || 'Lifetime');
+                    setIsCertificateEnabled(courseData.certificateSettings?.quizEnabled !== false);
+                    setIsQuizRequired(courseData.certificateSettings?.quizRequired !== false);
                     setDownloadUrl(courseData.downloadUrl || '');
                     setDownloadPassword(courseData.downloadPassword || '');
-
                 } else {
                     toast({ variant: 'destructive', title: 'Course not found' });
                 }
@@ -146,7 +169,6 @@ export default function EditCoursePage() {
                 title,
                 description,
                 shortDescription,
-                price: `₹${price}`,
                 status,
                 category,
                 level,
@@ -154,6 +176,18 @@ export default function EditCoursePage() {
                 learningOutcomes: learningOutcomes.filter(o => o.trim() !== ''),
                 prerequisites,
                 imageUrl: finalImageUrl,
+                visibility,
+                language,
+                totalModules: totalModules ? parseInt(totalModules) : 0,
+                totalLessons: totalLessons ? parseInt(totalLessons) : 0,
+                estimatedDuration,
+                courseFormat,
+                courseType,
+                price: courseType === 'Free' ? 'Free' : `₹${price}`,
+                discountPrice: discountPrice ? `₹${discountPrice}` : '',
+                accessValidity,
+                'certificateSettings.quizEnabled': isCertificateEnabled,
+                'certificateSettings.quizRequired': isQuizRequired,
                 downloadUrl,
                 downloadPassword,
                 // Slug is not updated to prevent breaking URLs
@@ -451,10 +485,18 @@ export default function EditCoursePage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Course Content</CardTitle>
-                            <CardDescription>Define what students will learn and what they need to know beforehand.</CardDescription>
+                            <CardTitle>Course Content & Structure</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><Label htmlFor="language">Language</Label><Input id="language" value={language} onChange={e => setLanguage(e.target.value)} /></div>
+                                <div><Label htmlFor="courseFormat">Format</Label><Select value={courseFormat} onValueChange={(v) => setCourseFormat(v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{courseFormats.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent></Select></div>
+                            </div>
+                             <div className="grid grid-cols-3 gap-4">
+                                <div><Label htmlFor="totalModules">Total Modules</Label><Input type="number" id="totalModules" value={totalModules} onChange={e => setTotalModules(e.target.value)} /></div>
+                                <div><Label htmlFor="totalLessons">Total Lessons</Label><Input type="number" id="totalLessons" value={totalLessons} onChange={e => setTotalLessons(e.target.value)} /></div>
+                                <div><Label htmlFor="estimatedDuration">Duration</Label><Input id="estimatedDuration" value={estimatedDuration} onChange={e => setEstimatedDuration(e.target.value)} placeholder="e.g., 8 hours"/></div>
+                            </div>
                             <div className="grid gap-3">
                                 <Label>Learning Outcomes</Label>
                                 {learningOutcomes.map((outcome, index) => (
@@ -492,14 +534,14 @@ export default function EditCoursePage() {
                 <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                      <Card>
                         <CardHeader>
-                            <CardTitle>Status & Visibility</CardTitle>
+                            <CardTitle>Publishing</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label>Course Status</Label>
-                                <Select value={status} onValueChange={(value) => setStatus(value as 'draft' | 'published')}>
+                                <Label>Status</Label>
+                                <Select value={status} onValueChange={(value) => setStatus(value as 'draft' | 'published' | 'unpublished')}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="draft">Draft</SelectItem>
@@ -510,14 +552,14 @@ export default function EditCoursePage() {
                             </div>
                             <div className="grid gap-2">
                                  <Label>Visibility</Label>
-                                 <RadioGroup defaultValue={visibility} onValueChange={(v) => setVisibility(v as 'public' | 'hidden')}>
+                                 <RadioGroup value={visibility} onValueChange={(v) => setVisibility(v as 'public' | 'private')}>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="public" id="v-public" />
                                         <Label htmlFor="v-public">Public</Label>
                                     </div>
                                      <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="hidden" id="v-hidden" />
-                                        <Label htmlFor="v-hidden">Hidden</Label>
+                                        <RadioGroupItem value="private" id="v-private" />
+                                        <Label htmlFor="v-private">Private</Label>
                                     </div>
                                  </RadioGroup>
                             </div>
@@ -525,17 +567,24 @@ export default function EditCoursePage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Pricing</CardTitle>
+                            <CardTitle>Pricing & Access</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-6">
-                             <div className="grid gap-2">
-                                <Label htmlFor="price">Price (INR)</Label>
-                                <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Switch id="purchase-enabled" checked={isPurchaseEnabled} onCheckedChange={setIsPurchaseEnabled}/>
-                                <Label htmlFor="purchase-enabled">Purchase Enabled</Label>
-                            </div>
+                            <div><Label>Course Type</Label><RadioGroup value={courseType} onValueChange={(v) => setCourseType(v as 'Free' | 'Paid')} className="mt-2"><div className="flex items-center space-x-2"><RadioGroupItem value="Paid" id="p-paid" /><Label htmlFor="p-paid">Paid</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="Free" id="p-free" /><Label htmlFor="p-free">Free</Label></div></RadioGroup></div>
+                             {courseType === 'Paid' && (
+                                <>
+                                <div className="grid gap-2"><Label htmlFor="price">Price (INR)</Label><Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
+                                <div className="grid gap-2"><Label htmlFor="discountPrice">Discount Price (Optional)</Label><Input id="discountPrice" type="number" value={discountPrice} onChange={(e) => setDiscountPrice(e.target.value)} /></div>
+                                </>
+                             )}
+                            <div><Label>Access Validity</Label><Select value={accessValidity} onValueChange={setAccessValidity}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{accessOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent></Select></div>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Certificate</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center space-x-2"><Switch id="cert-enabled" checked={isCertificateEnabled} onCheckedChange={setIsCertificateEnabled}/><Label htmlFor="cert-enabled">Certificate Enabled</Label></div>
+                            <div className="flex items-center space-x-2"><Switch id="quiz-required" checked={isQuizRequired} onCheckedChange={setIsQuizRequired} disabled={!isCertificateEnabled}/><Label htmlFor="quiz-required">Quiz Required</Label></div>
                         </CardContent>
                     </Card>
                     <Card>

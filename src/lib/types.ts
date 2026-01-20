@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Enrollment = {
@@ -15,24 +16,35 @@ export type Course = {
   description: string;
   shortDescription?: string;
   price: string;
+  courseType?: 'Free' | 'Paid';
+  discountPrice?: string;
   category: string;
-  imageId: string;
+  imageId: string; // Legacy, prefer imageUrl
   imageUrl?: string;
   lessons: { id: string; title: string; duration: string }[];
   level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  language?: string;
   tags?: string[];
   learningOutcomes?: string[];
   prerequisites?: string;
+  totalModules?: number;
+  totalLessons?: number;
+  estimatedDuration?: string;
+  courseFormat?: 'Recorded' | 'Live' | 'Mixed';
+  downloadableResources?: string[];
+  accessValidity?: 'Lifetime' | string;
   isNew?: boolean;
   isBestseller?: boolean;
   hasPreview?: boolean;
   enrollmentCount?: number;
   status?: 'draft' | 'published' | 'unpublished';
+  visibility?: 'public' | 'private' | 'hidden';
   downloadUrl?: string;
   downloadPassword?: string;
   certificateSettings?: {
-    countdownDays?: number;
     quizEnabled?: boolean;
+    quizRequired?: boolean;
+    countdownDays?: number;
   };
 };
 

@@ -46,11 +46,12 @@ import {
   import { collection } from 'firebase/firestore'
   import { Skeleton } from '@/components/ui/skeleton'
   import Link from 'next/link'
+  import type { Course } from '@/lib/types';
 
 export default function AdminCoursesPage() {
     const firestore = useFirestore();
     const coursesQuery = useMemoFirebase(() => collection(firestore, 'courses'), [firestore]);
-    const { data: courses, isLoading } = useCollection(coursesQuery);
+    const { data: courses, isLoading } = useCollection<Course>(coursesQuery);
     
     const [activeTab, setActiveTab] = useState('all');
 
@@ -61,11 +62,12 @@ export default function AdminCoursesPage() {
     }, [courses, activeTab]);
 
      const counts = useMemo(() => {
-        if (!courses) return { all: 0, published: 0, draft: 0 };
+        if (!courses) return { all: 0, published: 0, draft: 0, unpublished: 0 };
         return {
             all: courses.length,
             published: courses.filter(c => c.status === 'published').length,
             draft: courses.filter(c => c.status === 'draft').length,
+            unpublished: courses.filter(c => c.status === 'unpublished').length,
         };
     }, [courses]);
     
@@ -77,6 +79,7 @@ export default function AdminCoursesPage() {
                 <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
                 <TabsTrigger value="published">Published ({counts.published})</TabsTrigger>
                 <TabsTrigger value="draft">Draft ({counts.draft})</TabsTrigger>
+                <TabsTrigger value="unpublished">Unpublished ({counts.unpublished})</TabsTrigger>
               </TabsList>
               <div className="ml-auto flex items-center gap-2">
                 <Button size="sm" variant="outline" className="h-8 gap-1">
@@ -85,11 +88,13 @@ export default function AdminCoursesPage() {
                     Export
                   </span>
                 </Button>
-                <Button size="sm" className="h-8 gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Course
-                  </span>
+                <Button size="sm" className="h-8 gap-1" asChild>
+                  <Link href="/admin911/courses/new">
+                    <PlusCircle className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Add Course
+                    </span>
+                  </Link>
                 </Button>
               </div>
             </div>
