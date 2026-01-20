@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 
 // This is the core of the PDF generation logic
-async function generatePdf(certificateCode: string, requestUrl: string) {
+async function generatePdf(certificateCode: string, request: NextRequest) {
     let browser;
     try {
         browser = await puppeteer.launch({
@@ -13,12 +13,18 @@ async function generatePdf(certificateCode: string, requestUrl: string) {
         const page = await browser.newPage();
         
         // Construct the full URL to the certificate page for rendering
-        const url = new URL(`/certificate/${certificateCode}?pdf=true`, requestUrl);
+        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        const host = request.headers.get('host');
+        const baseUrl = `${protocol}://${host}`;
+        const url = new URL(`/certificate/${certificateCode}?pdf=true`, baseUrl);
 
         // Navigate to the page and wait for it to be fully loaded
         await page.goto(url.toString(), {
-            waitUntil: 'networkidle0',
+            waitUntil: 'networkidle2', // Use a more lenient wait condition
         });
+        
+        // Explicitly wait for the QR code container to be rendered
+        await page.waitForSelector('[data-testid="qr-code-container"]');
         
         // Generate the PDF from the page content
         const pdfBuffer = await page.pdf({
@@ -46,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const pdfBuffer = await generatePdf(certificateCode, request.url);
+        const pdfBuffer = await generatePdf(certificateCode, request);
 
         return new NextResponse(pdfBuffer, {
             status: 200,
