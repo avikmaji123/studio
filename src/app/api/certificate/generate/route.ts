@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer-core';
-import chrome from 'chrome-aws-lambda';
+import puppeteer from 'puppeteer';
 
 // This is the core of the PDF generation logic
 async function generatePdf(certificateCode: string, requestUrl: string) {
     let browser;
     try {
-        const executablePath = await chrome.executablePath || process.env.PUPPETEER_EXECUTABLE_PATH;
-
         browser = await puppeteer.launch({
-            args: [...chrome.args, '--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
-            executablePath: executablePath,
-            headless: chrome.headless,
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
         const page = await browser.newPage();
@@ -21,7 +17,7 @@ async function generatePdf(certificateCode: string, requestUrl: string) {
 
         // Navigate to the page and wait for it to be fully loaded
         await page.goto(url.toString(), {
-            waitUntil: 'networkidle0', // Wait until there are no more than 0 network connections for at least 500 ms.
+            waitUntil: 'networkidle0',
         });
         
         // Generate the PDF from the page content
@@ -50,10 +46,8 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        // Pass the base request URL to construct the absolute path for Puppeteer
         const pdfBuffer = await generatePdf(certificateCode, request.url);
 
-        // Return the PDF as a response
         return new NextResponse(pdfBuffer, {
             status: 200,
             headers: {
@@ -64,7 +58,6 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
         console.error('PDF Generation Error:', error);
-        // In a real app, you'd want to log this error to a logging service
         return NextResponse.json({ error: 'Failed to generate PDF. An unexpected error occurred on the server.' }, { status: 500 });
     }
 }
