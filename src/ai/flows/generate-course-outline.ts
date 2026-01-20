@@ -16,7 +16,7 @@ const GenerateCourseOutlineInputSchema = z.object({
 });
 export type GenerateCourseOutlineInput = z.infer<typeof GenerateCourseOutlineInputSchema>;
 
-export const GenerateCourseOutlineOutputSchema = z.object({
+const GenerateCourseOutlineOutputSchema = z.object({
   title: z.string().describe('A catchy and descriptive course title.'),
   shortDescription: z.string().describe('A concise, one-sentence summary ideal for a course card or preview.'),
   description: z.string().describe('A detailed and engaging course description. Use markdown for formatting, including paragraphs and bullet points.'),
