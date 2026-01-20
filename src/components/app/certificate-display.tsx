@@ -4,15 +4,14 @@ import React from 'react';
 import type { Certificate } from '@/lib/types';
 import { BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
-import { QRCodeCanvas } from 'qrcode.react';
+import Image from 'next/image';
 
 type CertificateDisplayProps = {
   certificate: Certificate;
-  qrCodeUrl: string;
-  qrLogoSvg: string; // Base64 encoded SVG string for the logo
+  qrCodeDataUrl: string | null;
 };
 
-export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate, qrCodeUrl, qrLogoSvg }) => {
+export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate, qrCodeDataUrl }) => {
     const CERTIFICATE_WIDTH = 1123;
     const CERTIFICATE_HEIGHT = 794;
 
@@ -42,11 +41,11 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
         {/* Main Content (Vertically Centered) */}
         <main className="flex-grow flex flex-col justify-center items-center text-center space-y-2">
             <p className="text-xl text-gray-300">This is to certify that</p>
-            <h1 className="font-headline text-7xl font-bold text-white tracking-tight">
+            <h1 style={{fontFamily: 'Lexend, sans-serif', fontWeight: 700}} className="text-7xl font-bold text-white tracking-tight">
                 {certificate.studentName}
             </h1>
             <p className="text-xl text-gray-300">has successfully completed the course</p>
-            <h2 className="font-headline text-3xl font-semibold text-cyan-400 max-w-3xl">
+            <h2 style={{fontFamily: 'Lexend, sans-serif', fontWeight: 600}} className="text-3xl font-semibold text-cyan-400 max-w-3xl">
                 {certificate.courseName}
             </h2>
             <div className="!mt-4 font-headline text-lg tracking-widest uppercase text-cyan-400/60">
@@ -69,28 +68,19 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
             </div>
 
              {/* Center Section (QR Code) */}
-            <div className="flex-shrink-0" data-testid="qr-code-container">
+            <div className="flex-shrink-0">
                  <div className="bg-white p-2 rounded-md shadow-2xl">
-                    <QRCodeCanvas
-                        value={qrCodeUrl}
-                        size={120}
-                        bgColor={"#ffffff"}
-                        fgColor={"#0F172A"}
-                        level={"H"}
-                        includeMargin={false}
-                        imageSettings={{
-                            src: `data:image/svg+xml;base64,${qrLogoSvg}`,
-                            height: 24,
-                            width: 24,
-                            excavate: true,
-                        }}
-                    />
+                    {qrCodeDataUrl ? (
+                      <Image src={qrCodeDataUrl} alt="QR Code" width={120} height={120} />
+                    ) : (
+                      <div className="w-[120px] h-[120px] bg-gray-300 animate-pulse"></div>
+                    )}
                 </div>
             </div>
 
             {/* Right Section */}
             <div className="text-center">
-                <p className="font-signature text-4xl text-gray-200">Avik Maji</p>
+                <p style={{ fontFamily: '"Dancing Script", cursive', fontSize: '2.25rem' }} className="text-gray-200">Avik Maji</p>
                 <hr className="border-t border-gray-400 w-full my-1"/>
                 <p className="text-xs text-gray-400 tracking-wider">Founder, CourseVerse</p>
             </div>
@@ -98,5 +88,3 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
       </div>
     );
 };
-
-CertificateDisplay.displayName = 'CertificateDisplay';

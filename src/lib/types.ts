@@ -85,7 +85,7 @@ export type Certificate = {
     courseId: string;
     studentName: string;
     courseName: string;
-    courseLevel: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
+    courseLevel?: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
     issueDate: Timestamp;
     certificateCode: string; // The unique code, and the ID for the public collection
     status: 'valid' | 'revoked';
