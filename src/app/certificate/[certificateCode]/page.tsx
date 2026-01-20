@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, notFound, useSearchParams } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Certificate } from '@/lib/types';
@@ -38,9 +38,7 @@ function useViewportScaler(elementWidth: number) {
 
 export default function CertificatePage() {
     const params = useParams();
-    const searchParams = useSearchParams();
     const code = params.certificateCode as string;
-    const isPdfMode = searchParams.get('pdf') === 'true';
 
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -68,13 +66,13 @@ export default function CertificatePage() {
                 }
             } else {
                 setStatus('invalid');
-                if (!isPdfMode) notFound();
+                notFound();
             }
         } catch (error) {
             console.error("Error fetching certificate:", error);
             setStatus('invalid');
         }
-    }, [firestore, code, isPdfMode]);
+    }, [firestore, code, notFound]);
 
     useEffect(() => {
         fetchCertificate();
@@ -129,17 +127,6 @@ export default function CertificatePage() {
         }
     };
     
-    if (isPdfMode) {
-        if (status !== 'valid' || !certificate || !qrCodeUrl) {
-            return (
-                <div style={{width: 1123, height: 794}} className="flex items-center justify-center bg-slate-900 text-white font-sans">
-                     <p>Loading certificate data...</p>
-                </div>
-            )
-        }
-        return <CertificateDisplay certificate={certificate} qrCodeUrl={qrCodeUrl} qrLogoSvg={bookOpenLogoSvg} />;
-    }
-
     // For regular user preview
     const renderContent = () => {
         switch (status) {
