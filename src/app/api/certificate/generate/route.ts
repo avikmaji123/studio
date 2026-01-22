@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Construct the URL to the dedicated PDF render page
-    const renderUrl = `${new URL(request.url).origin}/pdf-render/${code}`;
+    const renderUrl = `${process.env.NEXT_PUBLIC_BASE_URL || new URL(request.url).origin}/pdf-render/${code}`;
 
     let browser;
     try {
@@ -39,14 +39,9 @@ export async function GET(request: NextRequest) {
         });
         const page = await browser.newPage();
         
-        // Go to the page, but wait only until the DOM is loaded. We'll wait for fonts and content manually.
-        await page.goto(renderUrl, { waitUntil: 'domcontentloaded' });
-
-        // Explicitly wait for all fonts to be loaded and ready. This is more reliable than network idle.
-        await page.evaluateHandle('document.fonts.ready');
-        
-        // As a final check, wait for the container element to be present.
-        await page.waitForSelector('#certificate-container');
+        // Go to the page and wait until all network connections have been idle for at least 500ms.
+        // This is the most reliable way to ensure fonts and all other resources are loaded for a static page.
+        await page.goto(renderUrl, { waitUntil: 'networkidle0' });
 
         const pdfBuffer = await page.pdf({
             width: '1123px',
