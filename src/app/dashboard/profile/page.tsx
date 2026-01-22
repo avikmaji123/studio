@@ -22,7 +22,17 @@ function ProfilePageContent() {
     const targetUserId = searchParams.get('userId');
 
     // Get current authenticated user and their profile (and admin status)
-    const { user: authUser, isAdmin } = useUser();
+    // Rename isProfileLoading to avoid naming collisions with the target profile's loading state.
+    const { user: authUser, isAdmin, isProfileLoading: isAuthProfileLoading } = useUser();
+    
+    // Wait for the authenticated user's profile to load to ensure 'isAdmin' is accurate.
+    if (isAuthProfileLoading) {
+         return (
+            <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
+    }
     
     // Determine which user's profile to display.
     // An admin can view other users, otherwise, it defaults to the logged-in user.
@@ -32,7 +42,7 @@ function ProfilePageContent() {
         () => (displayUserId ? doc(firestore, 'users', displayUserId) : null),
         [firestore, displayUserId]
     );
-    const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
+    const { data: userProfile, isLoading: isTargetProfileLoading } = useDoc(userDocRef);
 
     // Fetch all courses once to map IDs to titles
     const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
@@ -52,7 +62,7 @@ function ProfilePageContent() {
     );
     const { data: certificates, isLoading: areCertificatesLoading } = useCollection<Certificate>(certificatesQuery);
 
-    const isLoading = isProfileLoading || areCoursesLoading || areEnrollmentsLoading || areCertificatesLoading;
+    const isLoading = isTargetProfileLoading || areCoursesLoading || areEnrollmentsLoading || areCertificatesLoading;
 
     if (isLoading) {
         return (
