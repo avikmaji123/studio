@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
         });
         const page = await browser.newPage();
         
-        // Go to the page and wait until all network connections have been idle for at least 500ms.
-        // This is the most reliable way to ensure fonts and all other resources are loaded for a static page.
-        await page.goto(renderUrl, { waitUntil: 'networkidle0' });
+        // Use 'networkidle2' which is more reliable than 'networkidle0' in many server environments
+        // as it allows for a couple of lingering network requests.
+        await page.goto(renderUrl, { waitUntil: 'networkidle2' });
 
         const pdfBuffer = await page.pdf({
             width: '1123px',
@@ -58,8 +58,9 @@ export async function GET(request: NextRequest) {
             },
         });
     } catch (error: any) {
-        console.error('Puppeteer PDF Generation Error:', error);
-        return new NextResponse(JSON.stringify({ error: 'An unexpected error occurred on the server.' }), {
+        console.error('Puppeteer PDF Generation Error:', error.message);
+        // Return a more specific error message to the client for better debugging.
+        return new NextResponse(JSON.stringify({ error: `PDF generation failed on server: ${error.message}` }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
