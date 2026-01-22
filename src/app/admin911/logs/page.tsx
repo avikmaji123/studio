@@ -47,9 +47,12 @@ function LogAnalysisCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoadi
             setIsAnalysisLoading(true);
             try {
                 // Pass the most recent 10 logs to the AI flow.
-                // The logs are already sorted by timestamp desc.
                 const recentLogs = logs.slice(0, 10);
-                const result = await analyzeLogs({ logs: recentLogs });
+                const serializableLogs = recentLogs.map(log => ({
+                    ...log,
+                    timestamp: log.timestamp.toDate().toISOString(),
+                }));
+                const result = await analyzeLogs({ logs: serializableLogs });
                 setAnalysis(result);
             } catch (error) {
                 console.error("Log analysis failed:", error);

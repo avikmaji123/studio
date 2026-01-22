@@ -10,12 +10,11 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { LogEntry } from '@/lib/types';
 
 // Define Zod schema for LogEntry to use within Genkit flows
 const LogEntrySchema = z.object({
     id: z.string(),
-    timestamp: z.any(),
+    timestamp: z.string().describe('The ISO 8601 timestamp of the log entry.'),
     severity: z.enum(['info', 'warning', 'critical']),
     source: z.enum(['admin', 'user', 'system', 'api']),
     message: z.string(),

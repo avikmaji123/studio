@@ -50,7 +50,7 @@ export type Course = {
 
 export type LogEntry = {
   id: string;
-  timestamp: any; // Firestore Timestamp
+  timestamp: Timestamp;
   severity: 'info' | 'warning' | 'critical';
   source: 'admin' | 'user' | 'system' | 'api';
   message: string;
