@@ -13,6 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { CertificateDisplay } from '@/components/app/certificate-display';
 import { createLogEntry } from '@/lib/actions';
 import QRCode from 'qrcode';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
 
 // A simple viewport scaler hook to handle the preview display
 function useViewportScaler(elementWidth: number) {
@@ -91,47 +94,57 @@ export default function CertificatePage() {
         if (!certificate) return;
 
         setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
+        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly. Please wait.' });
+
+        const certificateElement = document.getElementById('certificate-canvas');
+
+        if (!certificateElement) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Certificate element not found.' });
+            setIsDownloading(false);
+            return;
+        }
 
         try {
-            // This secret MUST match the one in the API route.
-            const secret = 'COURSEVERSE_PDF_SECRET_KEY_2024';
-            const response = await fetch(`/api/certificate/generate?code=${certificate.certificateCode}&secret=${secret}`);
+            // Wait for all fonts to be loaded and ready. This is crucial.
+            await document.fonts.ready;
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate PDF.');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `CourseVerse_Certificate_${certificate.certificateCode}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            const canvas = await html2canvas(certificateElement, {
+                scale: 3, // Render at 3x resolution for high quality
+                useCORS: true, // Important for external images like QR code
+                logging: false, // Clean up console
+                backgroundColor: null, // Use the element's background
+            });
             
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                // Dimensions based on the certificate component's fixed size
+                format: [1123, 794] 
+            });
+
+            pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
+            pdf.save(`CourseVerse-Certificate-${certificate.certificateCode}.pdf`);
+
             await createLogEntry({
                 source: 'user',
                 severity: 'info',
-                message: 'Certificate PDF downloaded successfully.',
+                message: 'Certificate PDF downloaded successfully (Client-side).',
                 metadata: { certificateCode: certificate.certificateCode },
             });
 
         } catch (error: any) {
-            console.error("PDF Download Error:", error);
+            console.error("Client-side PDF Download Error:", error);
             const errorMessage = error.message || 'An unknown error occurred during PDF generation.';
             toast({
                 variant: 'destructive',
                 title: 'Download Failed',
                 description: errorMessage,
             });
-             await createLogEntry({
+            await createLogEntry({
                 source: 'system',
                 severity: 'critical',
-                message: 'Server-side PDF generation failed.',
+                message: 'Client-side PDF generation failed.',
                 metadata: { certificateCode: certificate.certificateCode, error: errorMessage },
             });
         } finally {
