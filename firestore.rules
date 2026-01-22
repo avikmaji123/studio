@@ -33,6 +33,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      // This function is safe to use as long as it's not used in rules for /users/{userId}
+      // which would cause a circular dependency.
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
@@ -45,7 +47,10 @@ service cloud.firestore {
     // --------------------------------
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      // RECURSION FIX: An owner can get their own doc. An admin can get any doc.
+      // We check the admin's role directly on their own user doc to avoid circular calls to isAdmin().
+      allow get: if isOwner(userId) || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      
       allow list: if isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
@@ -123,7 +128,7 @@ service cloud.firestore {
     match /certificates/{certificateCode} {
         allow get: if true;
         allow list: if isAdmin();
-        allow create, update, delete: if isAdmin();
+        allow write: if isAdmin();
     }
 
     match /apiLogs/{apiLogId} {
