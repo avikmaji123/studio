@@ -21,8 +21,8 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [email, setEmail] = useState('avik911@courseverse.admin');
-  const [password, setPassword] = useState('122911');
+  const [email, setEmail] = useState('admin@courseverse.com');
+  const [password, setPassword] = useState('password123');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isAdmin = profile?.role === 'admin';
