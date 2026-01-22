@@ -49,8 +49,8 @@ import { DatePicker } from '@/components/ui/date-picker';
 
 
 const certificateSchema = z.object({
-  userId: z.string({ required_error: 'Please select a user.' }),
-  courseId: z.string({ required_error: 'Please select a course.' }),
+  userId: z.string({ required_error: 'Please select a user.' }).min(1, 'Please select a user.'),
+  courseId: z.string({ required_error: 'Please select a course.' }).min(1, 'Please select a course.'),
   studentName: z.string().min(1, 'Student name is required.'),
   courseLevel: z.enum(['Beginner', 'Intermediate', 'Advanced', 'All Levels']),
   issueDate: z.date(),
@@ -75,6 +75,9 @@ export default function NewCertificatePage() {
   const form = useForm<CertificateFormValues>({
     resolver: zodResolver(certificateSchema),
     defaultValues: {
+      userId: '',
+      courseId: '',
+      studentName: '',
       issueDate: new Date(),
       status: 'valid',
       courseLevel: 'All Levels',
