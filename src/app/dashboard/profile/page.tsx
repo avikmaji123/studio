@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -22,10 +22,27 @@ function ProfilePageContent() {
     const targetUserId = searchParams.get('userId');
 
     // Get current authenticated user and their profile (and admin status)
-    const { user: authUser, isAdmin, isProfileLoading: isAuthProfileLoading } = useUser();
+    const { user: authUser, profile: authProfile, isProfileLoading: isAuthProfileLoading } = useUser();
     
-    // Determine which user's profile to display, but only after we know if the authUser is an admin.
-    const displayUserId = (authUser && !isAuthProfileLoading) ? (targetUserId && isAdmin ? targetUserId : authUser.uid) : undefined;
+    // Determine which user's profile to display.
+    // We must wait until we know the authUser's admin status.
+    const displayUserId = useMemo(() => {
+        // If the auth user's profile is still loading, we can't make a decision yet.
+        if (isAuthProfileLoading) {
+            return undefined;
+        }
+
+        // We can now safely check the role from the loaded profile
+        const isAdmin = authProfile?.role === 'admin';
+
+        // If a target user ID is provided in the URL AND the current user is an admin, show the target profile.
+        if (targetUserId && isAdmin) {
+            return targetUserId;
+        }
+
+        // Otherwise, default to showing the currently logged-in user's own profile.
+        return authUser?.uid;
+    }, [isAuthProfileLoading, authProfile, targetUserId, authUser]);
 
     const userDocRef = useMemoFirebase(
         () => (displayUserId ? doc(firestore, 'users', displayUserId) : null),
@@ -52,7 +69,7 @@ function ProfilePageContent() {
     const { data: certificates, isLoading: areCertificatesLoading } = useCollection<Certificate>(certificatesQuery);
 
     const isLoading = isAuthProfileLoading || isTargetProfileLoading || areCoursesLoading || areEnrollmentsLoading || areCertificatesLoading;
-
+    
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-8">
