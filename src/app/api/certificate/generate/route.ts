@@ -2,12 +2,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 
+// Define a shared secret key. In a real production app, this would be an environment variable.
+const PDF_GENERATION_SECRET = 'COURSEVERSE_PDF_SECRET_KEY_2024';
+
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const secret = searchParams.get('secret');
 
-    if (secret !== process.env.PDF_GENERATION_SECRET) {
+    if (secret !== PDF_GENERATION_SECRET) {
         return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,
             headers: { 'Content-Type': 'application/json' },
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
             },
         });
     } catch (error: any) {
-        console.error('Puppeteer PDF Generation Error:', error);
+        console.error('Puppeteer PDF Generation Error:', error.message);
         return new NextResponse(JSON.stringify({ error: 'An unexpected error occurred on the server.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -93,9 +94,8 @@ export default function CertificatePage() {
         toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly.' });
 
         try {
-            // Hardcoded secret for demo purposes. In production, this should be a secure,
-            // server-to-server authentication method (e.g., a short-lived JWT).
-            const secret = 'YOUR_SUPER_SECRET_KEY';
+            // This secret MUST match the one in the API route.
+            const secret = 'COURSEVERSE_PDF_SECRET_KEY_2024';
             const response = await fetch(`/api/certificate/generate?code=${certificate.certificateCode}&secret=${secret}`);
 
             if (!response.ok) {
