@@ -38,19 +38,14 @@ export default function CertificatePage() {
             if (docSnap.exists()) {
                 const data = docSnap.data() as Certificate;
                 
-                // Security check: Only the owner or an admin can view a valid certificate.
-                if (data.status === 'valid' && user && (data.userId === user.uid || (user as any).profile?.role === 'admin')) {
+                if (data.status === 'valid') {
                   setCertificate(data);
                   setStatus('valid');
                 } else if (data.status === 'revoked') {
                    setCertificate(data);
                    setStatus('revoked');
-                } else if (!user) {
-                   // If not logged in, redirect to verification page which is public
-                   router.replace(`/verify-certificate?code=${code}`);
-                   return;
                 } else {
-                   setStatus('invalid'); // Or 'unauthorized'
+                   setStatus('invalid');
                 }
                 
                 if (typeof window !== 'undefined') {
@@ -76,25 +71,26 @@ export default function CertificatePage() {
     }, [firestore, code, user, router, isUserLoading]);
 
     useEffect(() => {
-        fetchCertificate();
-    }, [fetchCertificate]);
+        if (!isUserLoading) {
+            fetchCertificate();
+        }
+    }, [isUserLoading, fetchCertificate]);
 
-    const handleDownload = () => {
+    const handlePrint = () => {
         window.print();
     };
     
     if (isUserLoading || status === 'loading') {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-gray-900">
+            <div className="certificate-page">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                <p className="text-muted-foreground">Verifying Certificate...</p>
             </div>
         );
     }
 
     if (status === 'invalid' || status === 'revoked' || !certificate) {
         return (
-             <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+             <div className="certificate-page flex-col">
                 <ShieldAlert className="h-24 w-24 text-destructive mx-auto mb-8" />
                 <h1 className="font-headline text-4xl md:text-5xl font-bold text-destructive text-center">Certificate Invalid</h1>
                 <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto text-center">
@@ -113,7 +109,7 @@ export default function CertificatePage() {
     }
     
     return (
-        <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center p-4 print:p-0 print:bg-white">
+        <div className="certificate-page">
              <div className="no-print fixed top-4 left-4 z-50">
                 <Button asChild variant="outline" className="bg-transparent text-white hover:bg-white/10 hover:text-white border-white/20">
                     <Link href="/dashboard/courses">
@@ -124,7 +120,7 @@ export default function CertificatePage() {
             </div>
              <div className="no-print fixed top-4 right-4 z-50">
                 <Button
-                    onClick={handleDownload}
+                    onClick={handlePrint}
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                     <Printer className="mr-2 h-4 w-4" />
@@ -132,7 +128,7 @@ export default function CertificatePage() {
                 </Button>
             </div>
 
-            <div id="certificate-wrapper" className="my-16 md:my-0">
+            <div className="certificate-canvas">
                 <CertificateDisplay certificate={certificate} qrCodeDataUrl={qrCodeDataUrl} />
             </div>
         </div>
