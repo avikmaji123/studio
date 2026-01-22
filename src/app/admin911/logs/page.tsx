@@ -7,9 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Loader2, ShieldCheck, ShieldAlert, ShieldX, Info } from 'lucide-react';
+import { Search, Loader2, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { analyzeLogs, type AnalyzeLogsOutput } from '@/ai/flows/analyze-logs';
+import { summarizeSystemStatus, type SummarizeSystemStatusOutput } from '@/ai/flows/summarize-system-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
@@ -24,18 +24,8 @@ function getBadgeVariant(level: LogEntry['severity']) {
     }
 }
 
-function getStatusIcon(status: AnalyzeLogsOutput['status']) {
-    switch(status) {
-        case "All OK": return <ShieldCheck className="h-8 w-8 text-green-500" />;
-        case "Normal Activity": return <Info className="h-8 w-8 text-blue-500" />;
-        case "Warning": return <ShieldAlert className="h-8 w-8 text-yellow-500" />;
-        case "Critical Alert": return <ShieldX className="h-8 w-8 text-red-500" />;
-        default: return <Info className="h-8 w-8 text-muted-foreground" />;
-    }
-}
-
-function LogAnalysisCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoading: boolean }) {
-    const [analysis, setAnalysis] = useState<AnalyzeLogsOutput | null>(null);
+function StatusCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoading: boolean }) {
+    const [analysis, setAnalysis] = useState<SummarizeSystemStatusOutput | null>(null);
     const [isAnalysisLoading, setIsAnalysisLoading] = useState(true);
 
     useEffect(() => {
@@ -46,13 +36,12 @@ function LogAnalysisCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoadi
         const runAnalysis = async () => {
             setIsAnalysisLoading(true);
             try {
-                // Pass the most recent 10 logs to the AI flow.
-                const recentLogs = logs.slice(0, 10);
+                const recentLogs = logs.slice(0, 20);
                 const serializableLogs = recentLogs.map(log => ({
                     ...log,
                     timestamp: log.timestamp.toDate().toISOString(),
                 }));
-                const result = await analyzeLogs({ logs: serializableLogs });
+                const result = await summarizeSystemStatus({ logs: serializableLogs });
                 setAnalysis(result);
             } catch (error) {
                 console.error("Log analysis failed:", error);
@@ -73,15 +62,11 @@ function LogAnalysisCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoadi
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>AI Log Analysis</CardTitle>
-                    <CardDescription>The AI is currently analyzing recent system activity...</CardDescription>
+                    <CardTitle>System Status</CardTitle>
                 </CardHeader>
-                <CardContent className="flex items-center gap-4">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="space-y-2 flex-1">
-                        <Skeleton className="h-5 w-1/4" />
-                        <Skeleton className="h-4 w-3/4" />
-                    </div>
+                <CardContent>
+                    <Skeleton className="h-5 w-1/4" />
+                    <Skeleton className="h-4 w-3/4 mt-2" />
                 </CardContent>
             </Card>
         )
@@ -92,20 +77,16 @@ function LogAnalysisCard({ logs, isLoading }: { logs: LogEntry[] | null, isLoadi
     return (
         <Card>
             <CardHeader>
-                <CardTitle>AI Log Analysis</CardTitle>
-                <CardDescription>An automated summary of the latest system events.</CardDescription>
+                <CardTitle>System Status</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-start gap-4">
-                <div>{getStatusIcon(analysis.status)}</div>
-                <div className="flex-1 space-y-1">
-                    <p className="text-lg font-semibold">{analysis.status}</p>
-                    <p className="text-sm text-muted-foreground">{analysis.explanation}</p>
-                    {analysis.action && (
-                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                           <span className="font-bold">Suggested Action:</span> {analysis.action}
-                        </p>
-                    )}
-                </div>
+            <CardContent className="space-y-1">
+                <p className="text-lg font-semibold">{analysis.status}</p>
+                <p className="text-sm text-muted-foreground">{analysis.explanation}</p>
+                {analysis.action && (
+                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400 pt-2">
+                       <span className="font-bold">Suggestion:</span> {analysis.action}
+                    </p>
+                )}
             </CardContent>
         </Card>
     )
@@ -144,7 +125,7 @@ export default function AdminLogsPage() {
                 View critical system events and administrator actions from the live database.
             </p>
 
-            <LogAnalysisCard logs={logs} isLoading={isLoading} />
+            <StatusCard logs={logs} isLoading={isLoading} />
 
             <Card>
                 <CardHeader>

@@ -103,3 +103,20 @@ export type Certificate = {
     status: 'valid' | 'revoked';
     creationMethod?: 'auto' | 'manual';
 };
+
+export type SecurityMetrics = {
+    activeSecurityEvents: number;
+    failedLoginAttempts: number;
+    adminActions: number;
+    highRiskIpCount: number;
+};
+
+export type SecurityAlert = {
+    caseId: string;
+    timestamp: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    title: string;
+    explanation: string;
+    confidence: number;
+    relatedLogIds: string[];
+};

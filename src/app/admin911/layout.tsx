@@ -23,6 +23,7 @@ import {
   LogOut,
   Loader2,
   Award,
+  Shield,
 } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,7 @@ import { createLogEntry } from '@/lib/actions';
 
 const navItems = [
     { href: '/admin911', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
+    { href: '/admin911/siem', icon: <Shield className="h-5 w-5" />, label: 'SIEM' },
     { href: '/admin911/courses', icon: <Book className="h-5 w-5" />, label: 'Courses' },
     { href: '/admin911/payments', icon: <CreditCard className="h-5 w-5" />, label: 'Payments' },
     { href: '/admin911/certificates', icon: <Award className="h-5 w-5" />, label: 'Certificates' },

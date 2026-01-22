@@ -1,0 +1,236 @@
+
+'use client';
+
+import { useState, useMemo, useEffect } from 'react';
+import {
+  ShieldAlert,
+  Clock,
+  Users,
+  FileWarning,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  Gauge,
+  BarChart,
+  PieChartIcon
+} from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import type { LogEntry, SecurityAlert, SecurityMetrics } from '@/lib/types';
+import { summarizeSecurityMetrics } from '@/ai/flows/summarize-security-metrics';
+import { detectThreats } from '@/ai/flows/detect-threats';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import {
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
+
+function MetricCard({
+  title,
+  value,
+  icon: Icon,
+  isLoading,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  isLoading: boolean;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-8 w-1/2" />
+        ) : (
+          <div className="text-2xl font-bold">{value}</div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+const severityConfig = {
+  critical: { color: 'hsl(var(--destructive))', label: 'Critical' },
+  high: { color: 'hsl(var(--chart-1))', label: 'High' },
+  medium: { color: 'hsl(var(--chart-2))', label: 'Medium' },
+  low: { color: 'hsl(var(--chart-4))', label: 'Low' },
+};
+
+
+export default function SiemDashboardPage() {
+  const firestore = useFirestore();
+
+  const logsQuery = useMemoFirebase(
+    () => query(collection(firestore, 'logs'), orderBy('timestamp', 'desc'), limit(200)),
+    [firestore]
+  );
+  const { data: logs, isLoading: areLogsLoading } = useCollection<LogEntry>(logsQuery);
+
+  const [metrics, setMetrics] = useState<SecurityMetrics | null>(null);
+  const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
+  const [isAiLoading, setIsAiLoading] = useState(true);
+
+  useEffect(() => {
+    if (areLogsLoading || !logs) return;
+
+    const runAiAnalysis = async () => {
+      setIsAiLoading(true);
+      const serializableLogs = logs.map(log => ({
+        ...log,
+        timestamp: log.timestamp.toDate().toISOString(),
+      }));
+
+      try {
+        const [metricsResult, alertsResult] = await Promise.all([
+          summarizeSecurityMetrics({ logs: serializableLogs }),
+          detectThreats({ logs: serializableLogs }),
+        ]);
+        setMetrics(metricsResult);
+        setAlerts(alertsResult.alerts);
+      } catch (error) {
+        console.error("AI analysis failed:", error);
+      } finally {
+        setIsAiLoading(false);
+      }
+    };
+    runAiAnalysis();
+  }, [logs, areLogsLoading]);
+
+  const isLoading = areLogsLoading || isAiLoading;
+
+  const caseStatusData = useMemo(() => {
+    const counts = alerts.reduce((acc, alert) => {
+        const severity = alert.severity.toLowerCase() as keyof typeof severityConfig;
+        acc[severity] = (acc[severity] || 0) + 1;
+        return acc;
+    }, {} as Record<keyof typeof severityConfig, number>);
+
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value,
+      fill: severityConfig[name as keyof typeof severityConfig].color,
+    }));
+  }, [alerts]);
+
+  return (
+    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <div className="space-y-1.5">
+        <h1 className="text-3xl font-bold tracking-tight">SIEM Dashboard</h1>
+        <p className="text-muted-foreground">
+          Security Information and Event Management Center
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <MetricCard title="Active Security Events (24h)" value={metrics?.activeSecurityEvents ?? 'N/A'} icon={ShieldAlert} isLoading={isLoading} />
+        <MetricCard title="Failed Logins" value={metrics?.failedLoginAttempts ?? 'N/A'} icon={Users} isLoading={isLoading} />
+        <MetricCard title="High-Risk IPs" value={metrics?.highRiskIpCount ?? 'N/A'} icon={FileWarning} isLoading={isLoading} />
+        <MetricCard title="Admin Actions" value={metrics?.adminActions ?? 'N/A'} icon={Users} isLoading={isLoading} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+         <Card className="lg:col-span-2">
+            <CardHeader>
+                <CardTitle>High Priority Alerts</CardTitle>
+                <CardDescription>Generated by AI based on recent log activity.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Severity</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Time</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading && Array.from({length: 5}).map((_, i) => (
+                             <TableRow key={i}>
+                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                             </TableRow>
+                        ))}
+                        {!isLoading && alerts.length > 0 ? alerts.slice(0, 5).map(alert => (
+                            <TableRow key={alert.caseId}>
+                                <TableCell>
+                                    <Badge variant={alert.severity === 'critical' || alert.severity === 'high' ? 'destructive' : 'secondary'}>
+                                        {alert.severity}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="font-medium">{alert.title}</p>
+                                    <p className="text-xs text-muted-foreground">{alert.explanation}</p>
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                    {formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}
+                                </TableCell>
+                            </TableRow>
+                        )) : !isLoading && (
+                             <TableRow>
+                                <TableCell colSpan={3} className="text-center h-24">Awaiting data...</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+         </Card>
+         <Card>
+            <CardHeader>
+                <CardTitle>Case Status Breakdown</CardTitle>
+                <CardDescription>Distribution of alert severities.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? <Skeleton className="h-48 w-full" /> : caseStatusData.length > 0 ? (
+                <ChartContainer config={{}} className="mx-auto aspect-square h-[250px]">
+                    <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                        <Pie data={caseStatusData} dataKey="value" nameKey="name" innerRadius={60}>
+                             {caseStatusData.map((entry) => (
+                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                            ))}
+                        </Pie>
+                    </PieChart>
+                </ChartContainer>
+                ) : <div className="flex items-center justify-center h-48 text-muted-foreground">Awaiting data...</div>}
+                 <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm mt-4">
+                    {Object.entries(severityConfig).map(([key, config]) => (
+                        <div key={key} className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: config.color }}></span>
+                            <span>{config.label}</span>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+         </Card>
+      </div>
+    </main>
+  );
+}
