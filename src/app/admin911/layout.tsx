@@ -22,6 +22,7 @@ import {
   FileText,
   LogOut,
   Loader2,
+  Award,
 } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +95,7 @@ function AdminSidebar() {
         { href: '/admin911', icon: <Home className="h-4 w-4" />, label: 'Dashboard' },
         { href: '/admin911/courses', icon: <Book className="h-4 w-4" />, label: 'Courses' },
         { href: '/admin911/payments', icon: <CreditCard className="h-4 w-4" />, label: 'Payments' },
+        { href: '/admin911/certificates', icon: <Award className="h-4 w-4" />, label: 'Certificates' },
         { href: '/admin911/users', icon: <Users className="h-4 w-4" />, label: 'Users' },
         { href: '/admin911/downloads', icon: <Download className="h-4 w-4" />, label: 'Downloads' },
         { href: '/admin911/settings', icon: <Settings className="h-4 w-4" />, label: 'Site Settings' },

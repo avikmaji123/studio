@@ -22,7 +22,7 @@ export type Course = {
   imageId: string; // Legacy, prefer imageUrl
   imageUrl?: string;
   lessons: { id: string; title: string; duration: string }[];
-  level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  level?: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
   language?: string;
   tags?: string[];
   learningOutcomes?: string[];
@@ -101,4 +101,5 @@ export type Certificate = {
     issueDate: Timestamp;
     certificateCode: string; // The unique code, and the ID for the public collection
     status: 'valid' | 'revoked';
+    creationMethod?: 'auto' | 'manual';
 };

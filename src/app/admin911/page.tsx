@@ -12,6 +12,7 @@ import {
   Search,
   Users,
   Download,
+  Award,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -47,6 +48,7 @@ import {
 } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Certificate } from '@/lib/types';
 
 export default function AdminDashboard() {
   const firestore = useFirestore();
@@ -60,6 +62,9 @@ export default function AdminDashboard() {
   
   const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
   const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
+
+  const certificatesQuery = useMemoFirebase(() => collection(firestore, 'certificates'), [firestore]);
+  const { data: certificates, isLoading: certsLoading } = useCollection<Certificate>(certificatesQuery);
   
   const { totalSales, pendingVerifications, recentTransactions } = useMemo(() => {
     if (!payments) {
@@ -87,8 +92,16 @@ export default function AdminDashboard() {
     return { publishedCount: published };
   }, [courses]);
 
+  const { activeCerts, revokedCerts } = useMemo(() => {
+      if (!certificates) return { activeCerts: 0, revokedCerts: 0 };
+      return {
+          activeCerts: certificates.filter(c => c.status === 'valid').length,
+          revokedCerts: certificates.filter(c => c.status === 'revoked').length,
+      }
+  }, [certificates]);
 
-  const isLoading = usersLoading || paymentsLoading || coursesLoading;
+
+  const isLoading = usersLoading || paymentsLoading || coursesLoading || certsLoading;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -185,15 +198,15 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Verifications</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Certificates</CardTitle>
+              <Award className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">+{pendingVerifications}</div>}
+              {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">+{certificates?.length || 0}</div> }
               <p className="text-xs text-muted-foreground">
-                Manual review may be required
+                {activeCerts} active, {revokedCerts} revoked
               </p>
             </CardContent>
           </Card>

@@ -61,14 +61,11 @@ service cloud.firestore {
 
     /**
      * @description Manages a user's private references to their certificates. This is for populating the user's dashboard.
-     *   Public verification is handled by the top-level `/certificates` collection.
+     *   Public verification is handled by the top-level `/certificates` collection. Admins have full control here.
      * @path /users/{userId}/certificates/{certificateId}
      */
     match /users/{userId}/certificates/{certificateId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId) || isAdmin();
     }
 
     match /users/{userId}/paymentTransactions/{transactionId} {
@@ -121,11 +118,11 @@ service cloud.firestore {
      * @path /certificates/{certificateCode}
      * @allow (get) Any user (authenticated or not) can fetch a specific certificate if they know its code.
      * @deny (list) Listing all certificates is forbidden to protect privacy.
-     * @deny (create, update, delete) Clients cannot write to this collection unless they are an admin.
+     * @allow (create, update, delete) Admins can manage these records.
      */
     match /certificates/{certificateCode} {
         allow get: if true;
-        allow list: if false;
+        allow list: if isAdmin();
         allow create, update, delete: if isAdmin();
     }
 
@@ -151,5 +148,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

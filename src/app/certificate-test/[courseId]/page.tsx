@@ -98,7 +98,7 @@ export default function CertificateTestPage() {
         if (score >= passingScore) {
             // Passed the quiz
             try {
-                const certificateCode = `CV-${uuidv4().substring(0, 8).toUpperCase()}`;
+                const certificateCode = `CV-AUTO-${uuidv4().substring(0, 8).toUpperCase()}`;
                 const issueDate = Timestamp.now();
                 const studentName = `${profile.firstName} ${profile.lastName}`.trim();
                 
@@ -112,6 +112,7 @@ export default function CertificateTestPage() {
                     issueDate: issueDate,
                     certificateCode: certificateCode,
                     status: 'valid' as const,
+                    creationMethod: 'auto' as const,
                 };
 
                 // Create user's private certificate record
