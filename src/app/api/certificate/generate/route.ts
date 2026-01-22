@@ -31,13 +31,21 @@ export async function GET(request: NextRequest) {
     try {
         browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            args: [
+                '--no-sandbox', 
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage', // Recommended for containerized environments
+            ],
         });
         const page = await browser.newPage();
         
-        await page.goto(renderUrl, { waitUntil: 'networkidle0' });
+        // Go to the page, but wait only until the DOM is loaded. We'll wait for fonts and content manually.
+        await page.goto(renderUrl, { waitUntil: 'domcontentloaded' });
 
-        // Wait for a specific element that indicates the page is fully rendered
+        // Explicitly wait for all fonts to be loaded and ready. This is more reliable than network idle.
+        await page.evaluateHandle('document.fonts.ready');
+        
+        // As a final check, wait for the container element to be present.
         await page.waitForSelector('#certificate-container');
 
         const pdfBuffer = await page.pdf({
@@ -55,7 +63,7 @@ export async function GET(request: NextRequest) {
             },
         });
     } catch (error: any) {
-        console.error('Puppeteer PDF Generation Error:', error.message);
+        console.error('Puppeteer PDF Generation Error:', error);
         return new NextResponse(JSON.stringify({ error: 'An unexpected error occurred on the server.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
