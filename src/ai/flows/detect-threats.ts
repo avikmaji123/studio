@@ -82,12 +82,12 @@ const prompt = ai.definePrompt({
 
 **Output Requirements:**
 
-*   For each detected threat, create a `SecurityAlert` object.
-*   The `caseId` must be a newly generated unique identifier.
-*   The `timestamp` should be the timestamp of the *latest* log entry that triggered the alert.
-*   The `explanation` must be clear and concise.
-*   `confidence` should reflect your certainty. A clear pattern match is high confidence (0.8-1.0), while a weaker correlation is lower (0.5-0.7).
-*   `relatedLogIds` must contain the 'id' of every log entry that contributed to your analysis for that specific alert.
+*   For each detected threat, create a 'SecurityAlert' object.
+*   The 'caseId' must be a newly generated unique identifier.
+*   The 'timestamp' should be the timestamp of the *latest* log entry that triggered the alert.
+*   The 'explanation' must be clear and concise.
+*   'confidence' should reflect your certainty. A clear pattern match is high confidence (0.8-1.0), while a weaker correlation is lower (0.5-0.7).
+*   'relatedLogIds' must contain the 'id' of every log entry that contributed to your analysis for that specific alert.
 *   If no threats are detected, return an empty 'alerts' array.
 
 Your entire output MUST be a valid JSON object matching the specified schema.
