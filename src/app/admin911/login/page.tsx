@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
 import { Loader2, BookOpen } from "lucide-react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { createLogEntry } from "@/lib/actions";
+import { createLogEntry } from '@/lib/actions';
 import { useSiteSettings } from "@/hooks/use-settings";
 
 export default function AdminLoginPage() {
@@ -23,8 +23,8 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [email, setEmail] = useState('admin@courseverse.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('avikmaji911@gmail.com');
+  const [password, setPassword] = useState('122911');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isAdmin = profile?.role === 'admin';
