@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'Certificate | CourseVerse',
@@ -11,7 +9,7 @@ export const metadata: Metadata = {
   }
 };
 
-// This is an isolated layout that does NOT include the site header or footer.
+// This is an isolated layout. The root layout conditionally renders the site header and footer.
 export default function CertificateLayout({
   children,
 }: {
@@ -19,18 +17,9 @@ export default function CertificateLayout({
 }) {
   return (
     // The certificate page is always dark, so we force the dark theme here.
-    <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lexend:wght@100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet" />
-      </head>
-      <body>
-        <FirebaseClientProvider>
-            {children}
-            <Toaster />
-        </FirebaseClientProvider>
-      </body>
-    </html>
+    // The root layout's providers (Firebase, Toaster) will still apply to the children.
+    <div className="dark" style={{ colorScheme: 'dark' }}>
+      {children}
+    </div>
   );
 }

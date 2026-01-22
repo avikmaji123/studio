@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/app/header';
 import Footer from '@/components/app/footer';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import MainSiteLayout from '@/components/app/main-site-layout';
 
 export const metadata: Metadata = {
   title: 'CourseVerse',
@@ -25,11 +26,7 @@ export default function RootLayout({
       <body>
         <div id="app-root">
           <FirebaseClientProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-            </div>
+            <MainSiteLayout>{children}</MainSiteLayout>
             <Toaster />
           </FirebaseClientProvider>
         </div>
