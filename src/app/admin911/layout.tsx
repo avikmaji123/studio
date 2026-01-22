@@ -51,6 +51,119 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { createLogEntry } from '@/lib/actions';
 
+const navItems = [
+    { href: '/admin911', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
+    { href: '/admin911/courses', icon: <Book className="h-5 w-5" />, label: 'Courses' },
+    { href: '/admin911/payments', icon: <CreditCard className="h-5 w-5" />, label: 'Payments' },
+    { href: '/admin911/certificates', icon: <Award className="h-5 w-5" />, label: 'Certificates' },
+    { href: '/admin911/users', icon: <Users className="h-5 w-5" />, label: 'Users' },
+    { href: '/admin911/downloads', icon: <Download className="h-5 w-5" />, label: 'Downloads' },
+    { href: '/admin911/settings', icon: <Settings className="h-5 w-5" />, label: 'Site Settings' },
+    { href: '/admin911/logs', icon: <FileText className="h-5 w-5" />, label: 'Logs' },
+];
+
+function AdminHeader() {
+  const auth = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+      router.push('/admin911/login');
+    } catch (error: any) {
+      console.error('Logout Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Logout Failed',
+        description:
+          error.message || 'An unexpected error occurred during logout.',
+      });
+    }
+  };
+
+  return (
+    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="shrink-0 md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle navigation menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="flex flex-col">
+          <nav className="grid gap-2 text-lg font-medium">
+            <Link
+              href="/admin911"
+              className="flex items-center gap-2 text-lg font-semibold mb-4"
+            >
+              <BookOpen className="h-6 w-6 text-primary" />
+              <span className="">CourseVerse Admin</span>
+            </Link>
+            {navItems.map((item) => {
+                const isActive = (item.href === '/admin911' && pathname === item.href) || 
+                                 (item.href !== '/admin911' && pathname.startsWith(item.href));
+                return (
+                    <Link
+                        key={item.label}
+                        href={item.href}
+                        className={cn(
+                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                            isActive && "bg-muted text-foreground"
+                        )}
+                    >
+                        {item.icon}
+                        {item.label}
+                    </Link>
+                )
+            })}
+          </nav>
+        </SheetContent>
+      </Sheet>
+
+      <div className="w-full flex-1">
+        <form>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+            />
+          </div>
+        </form>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="secondary" size="icon" className="rounded-full">
+            <CircleUser className="h-5 w-5" />
+            <span className="sr-only">Toggle user menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
+  )
+}
+
 function AdminSidebar() {
     const auth = useAuth();
     const router = useRouter();
@@ -90,17 +203,6 @@ function AdminSidebar() {
             });
         }
     };
-
-    const navItems = [
-        { href: '/admin911', icon: <Home className="h-4 w-4" />, label: 'Dashboard' },
-        { href: '/admin911/courses', icon: <Book className="h-4 w-4" />, label: 'Courses' },
-        { href: '/admin911/payments', icon: <CreditCard className="h-4 w-4" />, label: 'Payments' },
-        { href: '/admin911/certificates', icon: <Award className="h-4 w-4" />, label: 'Certificates' },
-        { href: '/admin911/users', icon: <Users className="h-4 w-4" />, label: 'Users' },
-        { href: '/admin911/downloads', icon: <Download className="h-4 w-4" />, label: 'Downloads' },
-        { href: '/admin911/settings', icon: <Settings className="h-4 w-4" />, label: 'Site Settings' },
-        { href: '/admin911/logs', icon: <FileText className="h-4 w-4" />, label: 'Logs' },
-    ];
 
   return (
     <div className="hidden border-r bg-muted/40 md:block">
@@ -192,6 +294,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] dark bg-background text-foreground">
         <AdminSidebar />
         <div className="flex flex-col">
+            <AdminHeader />
             {children}
         </div>
         </div>
