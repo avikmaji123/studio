@@ -26,7 +26,8 @@ export const defaultSettings: SiteSettings = {
         { id: 'github', name: 'GitHub', url: 'https://github.com/alexavik', visible: true },
         { id: 'telegram', name: 'Telegram', url: 'https://t.me/Avikmaji122911', visible: true },
         { id: 'instagram', name: 'Instagram', url: 'https://instagram.com/avik_911', visible: true },
-    ]
+    ],
+    isInitialAdminCreated: false,
 };
 
 export function useSiteSettings() {

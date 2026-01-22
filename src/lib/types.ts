@@ -89,6 +89,7 @@ export interface SiteSettings {
   paymentInstructions: string;
   qrCodeUrl: string;
   socialLinks: SocialLink[];
+  isInitialAdminCreated?: boolean;
 }
 
 export type Certificate = {

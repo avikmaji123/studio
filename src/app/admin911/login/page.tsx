@@ -13,11 +13,13 @@ import { useEffect, useState } from "react";
 import { Loader2, BookOpen } from "lucide-react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { createLogEntry } from "@/lib/actions";
+import { useSiteSettings } from "@/hooks/use-settings";
 
 export default function AdminLoginPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const { user, profile, isUserLoading } = useUser();
+  const { settings, isLoading: settingsLoading } = useSiteSettings();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -35,7 +37,7 @@ export default function AdminLoginPage() {
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !firestore) return;
+    if (!auth || !firestore || settingsLoading) return;
     setIsSubmitting(true);
     
     try {
@@ -54,9 +56,7 @@ export default function AdminLoginPage() {
           title: "Admin Login Successful",
           description: "Welcome back! Redirecting you to the dashboard...",
         });
-        // The useEffect will handle redirection
       } else {
-        // This user exists but is NOT an admin. Log them out.
         await createLogEntry({
           source: 'system',
           severity: 'critical',
@@ -71,18 +71,16 @@ export default function AdminLoginPage() {
         });
       }
     } catch (error: any) {
-      // This is the primary error handler
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-        // This error code can mean "user not found" OR "wrong password".
-        // For our specific admin setup, we assume it means the admin user needs to be created.
-        toast({
-            title: "First-Time Admin Setup",
-            description: "No admin account found. Attempting to create one...",
-        });
-        try {
+      if (error.code === 'auth/user-not-found') {
+        if (settings.isInitialAdminCreated) {
+           await createLogEntry({ source: 'admin', severity: 'warning', message: 'Admin login failed: Invalid credentials (user not found, but setup complete).', metadata: { email }});
+           toast({ variant: "destructive", title: "Invalid Credentials", description: "The email or password you entered is incorrect." });
+        } else {
+          toast({ title: "First-Time Admin Setup", description: "No admin account found. Creating one now..." });
+          try {
             const newUserCredential = await createUserWithEmailAndPassword(auth, email, password);
             const userDocRef = doc(firestore, 'users', newUserCredential.user.uid);
-            // Create the admin profile in Firestore
+            
             await setDoc(userDocRef, {
                 id: newUserCredential.user.uid,
                 firstName: 'Admin',
@@ -94,45 +92,23 @@ export default function AdminLoginPage() {
                 affiliateCode: '',
                 suspended: false,
             });
-            await createLogEntry({
-              source: 'system',
-              severity: 'info',
-              message: 'Initial admin account created.',
-              metadata: { userId: newUserCredential.user.uid },
-            });
-            toast({
-                title: "Admin Account Created!",
-                description: "Login successful. Redirecting...",
-            });
-            // Let the useEffect handle the redirect.
-        } catch (creationError: any) {
-            let title = "Login Failed";
-            let description = creationError.message;
-            if (creationError.code === 'auth/email-already-in-use') {
-                title = "Invalid Credentials";
-                description = "The email or password you entered is incorrect.";
-            }
-             await createLogEntry({
-                source: 'admin',
-                severity: 'warning',
-                message: `Admin login failed: ${description}`,
-                metadata: { email: email, error: creationError.code },
-             });
-             toast({
-                variant: "destructive",
-                title: title,
-                description: description,
-            });
+            
+            const settingsRef = doc(firestore, 'settings', 'global');
+            await setDoc(settingsRef, { isInitialAdminCreated: true }, { merge: true });
+
+            await createLogEntry({ source: 'system', severity: 'info', message: 'Initial admin account created.', metadata: { userId: newUserCredential.user.uid } });
+            toast({ title: "Admin Account Created!", description: "Login successful. Redirecting..." });
+          } catch (creationError: any) {
+             await createLogEntry({ source: 'system', severity: 'critical', message: `Initial admin creation failed: ${creationError.message}`, metadata: { email, error: creationError.code } });
+             toast({ variant: "destructive", title: "Setup Failed", description: creationError.message });
+          }
         }
+      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+          await createLogEntry({ source: 'admin', severity: 'warning', message: 'Admin login failed: Invalid credentials.', metadata: { email } });
+          toast({ variant: "destructive", title: "Invalid Credentials", description: "The email or password you entered is incorrect." });
       } else {
-        // Handle other errors like network issues, etc.
         console.error("Admin Login Error:", error);
-         await createLogEntry({
-            source: 'system',
-            severity: 'critical',
-            message: `Admin login system error: ${error.message}`,
-            metadata: { error: error.code },
-         });
+         await createLogEntry({ source: 'system', severity: 'critical', message: `Admin login system error: ${error.message}`, metadata: { error: error.code } });
         toast({
           variant: "destructive",
           title: "Login Failed",
@@ -144,9 +120,7 @@ export default function AdminLoginPage() {
     }
   };
 
-  // While user status is loading, or if the user is an admin, show a loader.
-  // The useEffect will handle the redirect.
-  if (isUserLoading || (user && isAdmin)) {
+  if (isUserLoading || (user && isAdmin) || settingsLoading) {
     return (
       <div className="flex h-screen w-full justify-center items-center bg-background dark">
           <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -154,7 +128,6 @@ export default function AdminLoginPage() {
     );
   }
 
-  // If loading is done and user is not an admin, show the login form.
   return (
     <div className="flex items-center justify-center min-h-screen bg-background dark">
       <Card className="w-full max-w-sm mx-4">
