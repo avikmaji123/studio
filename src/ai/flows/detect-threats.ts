@@ -83,6 +83,10 @@ const prompt = ai.definePrompt({
     *   **Condition:** Find any log with 'critical' severity and a message indicating "Unauthorized access attempt" or "Access Denied".
     *   **Action:** Generate a 'critical' severity alert. The title should directly reflect the error message.
 
+6.  **Website Vulnerability Scanning:**
+    *   **Condition:** Identify a high volume of requests from a single IP address hitting many different URLs, especially if many of them result in "404 Not Found" errors or access denials. Look for patterns targeting common vulnerability paths (e.g., requests to '/.env', '/wp-admin', '/phpmyadmin').
+    *   **Action:** Generate a 'medium' or 'high' severity alert titled "Potential Vulnerability Scan". The explanation should include the source IP, the number of URLs scanned, and example paths that were targeted.
+
 **Output Requirements:**
 
 *   For each detected threat, create a 'SecurityAlert' object.
