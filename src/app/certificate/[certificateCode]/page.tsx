@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,7 +14,7 @@ import QRCode from 'qrcode';
 export default function CertificatePage() {
     const params = useParams();
     const router = useRouter();
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const code = params.certificateCode as string;
 
     const firestore = useFirestore();
@@ -25,8 +24,14 @@ export default function CertificatePage() {
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
 
     const fetchCertificate = useCallback(async () => {
+        if (isUserLoading) {
+            return;
+        }
+
         if (!firestore || !code) return;
+        
         setStatus('loading');
+        
         const certRef = doc(firestore, 'certificates', code);
         try {
             const docSnap = await getDoc(certRef);
@@ -68,7 +73,7 @@ export default function CertificatePage() {
             console.error("Error fetching certificate:", error);
             setStatus('invalid');
         }
-    }, [firestore, code, user, router]);
+    }, [firestore, code, user, router, isUserLoading]);
 
     useEffect(() => {
         fetchCertificate();
@@ -78,7 +83,7 @@ export default function CertificatePage() {
         window.print();
     };
     
-    if (status === 'loading') {
+    if (isUserLoading || status === 'loading') {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-gray-900">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -133,4 +138,3 @@ export default function CertificatePage() {
         </div>
     );
 }
-
