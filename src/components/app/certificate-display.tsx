@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -12,79 +13,81 @@ type CertificateDisplayProps = {
 };
 
 export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate, qrCodeDataUrl }) => {
+    // A4 Landscape at 96 DPI
     const CERTIFICATE_WIDTH = 1123;
     const CERTIFICATE_HEIGHT = 794;
 
+    const logoUrl = '/icon.svg'; // Assuming a logo exists in public folder
+
     return (
       <div
-        id="certificate-canvas"
-        className="relative font-sans overflow-hidden dark p-16 flex flex-col text-center bg-gradient-to-br from-slate-900 to-slate-800 text-white"
+        id="certificate-container"
+        className="text-white"
         style={{
           width: CERTIFICATE_WIDTH,
           height: CERTIFICATE_HEIGHT,
-          fontFamily: 'Lexend, sans-serif'
+          fontFamily: 'Lexend, sans-serif',
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, hsl(224, 71%, 4%), hsl(222, 47%, 11%))',
+          printColorAdjust: 'exact',
         }}
       >
-        {/* Decorative elements */}
-        <div className="absolute top-0 bottom-0 left-0 w-2 bg-cyan-400/30"></div>
-        <div className="absolute top-0 bottom-0 right-0 w-2 bg-cyan-400/30"></div>
-        <div className="absolute inset-0 shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.5)]"></div>
+        {/* Decorative Accents */}
+        <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '1rem', background: 'linear-gradient(to bottom, hsl(199, 94%, 60%), hsl(180, 80%, 40%))' }}></div>
+        <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '1rem', background: 'linear-gradient(to top, hsl(199, 94%, 60%), hsl(180, 80%, 40%))' }}></div>
 
         {/* Header */}
-        <header className="space-y-4">
-          <BookOpen className="h-12 w-12 mx-auto text-cyan-400" />
-          <p className="font-headline text-2xl tracking-[0.2em] uppercase text-cyan-400/80">
-            Certificate of Completion
-          </p>
-        </header>
+        <div style={{ position: 'absolute', top: 64, width: '100%', textAlign: 'center' }}>
+            <BookOpen style={{ height: 48, width: 48, margin: '0 auto', color: 'hsl(199, 94%, 60%)' }} />
+            <p style={{ fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'hsla(0, 0%, 100%, 0.8)', marginTop: '1rem' }}>
+                Certificate of Completion
+            </p>
+        </div>
 
-        {/* Main Content (Vertically Centered) */}
-        <main className="flex-grow flex flex-col justify-center items-center text-center space-y-2">
-            <p className="text-xl text-gray-300">This is to certify that</p>
-            <h1 style={{fontFamily: 'Lexend, sans-serif', fontWeight: 700}} className="text-7xl font-bold text-white tracking-tight">
+        {/* Main Content */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', textAlign: 'center' }}>
+            <p style={{ fontSize: '1.25rem', color: '#E5E7EB' }}>This is to certify that</p>
+            <h1 style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 700, fontSize: '4.5rem', margin: '0.5rem 0', letterSpacing: '-0.025em' }}>
                 {certificate.studentName}
             </h1>
-            <p className="text-xl text-gray-300">has successfully completed the course</p>
-            <h2 style={{fontFamily: 'Lexend, sans-serif', fontWeight: 600}} className="text-3xl font-semibold text-cyan-400 max-w-3xl">
+            <p style={{ fontSize: '1.25rem', color: '#E5E7EB' }}>has successfully completed the course</p>
+            <h2 style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 600, fontSize: '2.25rem', color: 'hsl(199, 94%, 60%)', marginTop: '0.5rem' }}>
                 {certificate.courseName}
             </h2>
-            <div className="!mt-4 font-headline text-lg tracking-widest uppercase text-cyan-400/60">
-              {(certificate.courseLevel || 'All Levels').toUpperCase()} LEVEL
-            </div>
-        </main>
+            <p style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 500, fontSize: '1.125rem', color: 'hsla(0, 0%, 100%, 0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '1rem' }}>
+                {certificate.courseLevel || 'All Levels'}
+            </p>
+        </div>
         
         {/* Footer */}
-        <footer className="w-full flex justify-between items-end text-sm z-10">
+        <div style={{ position: 'absolute', bottom: 64, width: '100%', paddingLeft: 64, paddingRight: 64, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             {/* Left Section */}
-            <div className="text-left text-gray-300 space-y-4">
-                <div>
-                    <p className="font-bold text-gray-400 tracking-wider">ISSUE DATE</p>
-                    <p className="text-base">{certificate.issueDate?.toDate ? format(certificate.issueDate.toDate(), 'MMMM d, yyyy') : 'N/A'}</p>
-                </div>
-                <div>
-                    <p className="font-bold text-gray-400 tracking-wider">CERTIFICATE ID</p>
-                    <p className="font-mono tracking-widest text-base">{certificate.certificateCode}</p>
-                </div>
+            <div style={{ textAlign: 'left', color: '#E5E7EB', fontSize: '0.875rem' }}>
+                <p style={{ fontWeight: 600, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Issue Date</p>
+                <p style={{ marginTop: '0.25rem', fontSize: '1rem' }}>{certificate.issueDate?.toDate ? format(certificate.issueDate.toDate(), 'MMMM d, yyyy') : 'N/A'}</p>
+                <p style={{ fontWeight: 600, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Certificate ID</p>
+                <p style={{ marginTop: '0.25rem', fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.05em' }}>{certificate.certificateCode}</p>
             </div>
 
-             {/* Center Section (QR Code) */}
-            <div className="flex-shrink-0">
-                 <div className="bg-white p-2 rounded-md shadow-2xl">
+            {/* Center Section (QR Code) */}
+            <div style={{ position: 'absolute', left: '50%', bottom: 0, transform: 'translateX(-50%)' }}>
+                 <div style={{ position: 'relative', width: 120, height: 120, background: 'white', padding: '4px', borderRadius: '4px' }}>
                     {qrCodeDataUrl ? (
-                      <Image src={qrCodeDataUrl} alt="QR Code" width={120} height={120} />
+                      <Image src={qrCodeDataUrl} alt="QR Code for verification" layout="fill" objectFit="contain" />
                     ) : (
-                      <div className="w-[120px] h-[120px] bg-gray-300 animate-pulse"></div>
+                      <div style={{ width: 112, height: 112, background: '#374151' }}></div>
                     )}
-                </div>
+                 </div>
             </div>
 
             {/* Right Section */}
-            <div className="text-center">
-                <p style={{ fontFamily: '"Dancing Script", cursive', fontSize: '2.25rem' }} className="text-gray-200">Avik Maji</p>
-                <hr className="border-t border-gray-400 w-full my-1"/>
-                <p className="text-xs text-gray-400 tracking-wider">Founder, CourseVerse</p>
+            <div style={{ textAlign: 'center' }}>
+                <p style={{ fontFamily: '"Dancing Script", cursive', fontSize: '2.5rem', color: '#E5E7EB' }}>Avik Maji</p>
+                <hr style={{ borderTop: '1px solid #9CA3AF', width: '100%', margin: '4px 0' }}/>
+                <p style={{ fontSize: '0.75rem', color: '#9CA3AF', letterSpacing: '0.1em' }}>Founder, CourseVerse</p>
             </div>
-        </footer>
+        </div>
       </div>
     );
 };

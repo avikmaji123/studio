@@ -2,55 +2,27 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import type { Certificate } from '@/lib/types';
-import { Loader2, ArrowLeft, Download, ShieldAlert } from 'lucide-react';
+import { Loader2, ArrowLeft, Download, ShieldAlert, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
 import { CertificateDisplay } from '@/components/app/certificate-display';
-import { createLogEntry } from '@/lib/actions';
 import QRCode from 'qrcode';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-
-
-// A simple viewport scaler hook to handle the preview display
-function useViewportScaler(elementWidth: number) {
-    const [scale, setScale] = useState(1);
-
-    useEffect(() => {
-        function handleResize() {
-            if (typeof window !== 'undefined') {
-                // 32px padding on each side for the preview
-                const availableWidth = window.innerWidth - 64;
-                setScale(Math.min(1, availableWidth / elementWidth));
-            }
-        }
-
-        handleResize(); // Initial scale
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [elementWidth]);
-
-    return scale;
-}
 
 export default function CertificatePage() {
     const params = useParams();
+    const router = useRouter();
+    const { user } = useUser();
     const code = params.certificateCode as string;
 
     const firestore = useFirestore();
-    const { toast } = useToast();
 
     const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'revoked'>('loading');
     const [certificate, setCertificate] = useState<Certificate | null>(null);
-    const [isDownloading, setIsDownloading] = useState(false);
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
-
-    const scale = useViewportScaler(1123); // Fixed certificate width
 
     const fetchCertificate = useCallback(async () => {
         if (!firestore || !code) return;
@@ -60,162 +32,105 @@ export default function CertificatePage() {
             const docSnap = await getDoc(certRef);
             if (docSnap.exists()) {
                 const data = docSnap.data() as Certificate;
-                setCertificate(data);
-                setStatus(data.status === 'revoked' ? 'revoked' : 'valid');
+                
+                // Security check: Only the owner or an admin can view a valid certificate.
+                if (data.status === 'valid' && user && (data.userId === user.uid || (user as any).profile?.role === 'admin')) {
+                  setCertificate(data);
+                  setStatus('valid');
+                } else if (data.status === 'revoked') {
+                   setCertificate(data);
+                   setStatus('revoked');
+                } else if (!user) {
+                   // If not logged in, redirect to verification page which is public
+                   router.replace(`/verify-certificate?code=${code}`);
+                   return;
+                } else {
+                   setStatus('invalid'); // Or 'unauthorized'
+                }
                 
                 if (typeof window !== 'undefined') {
                     const verificationUrl = `${window.location.origin}/verify-certificate?code=${data.certificateCode}`;
                     const qrUrl = await QRCode.toDataURL(verificationUrl, {
                         errorCorrectionLevel: 'H',
-                        margin: 2,
+                        margin: 1,
                         scale: 4,
                         color: {
-                          dark: '#0F172A',
-                          light: '#FFFFFF',
+                          dark: '#FFFFFF', // QR code dots
+                          light: '#00000000', // Transparent background
                         },
                     });
                     setQrCodeDataUrl(qrUrl);
                 }
             } else {
                 setStatus('invalid');
-                notFound();
             }
         } catch (error) {
             console.error("Error fetching certificate:", error);
             setStatus('invalid');
         }
-    }, [firestore, code, notFound]);
+    }, [firestore, code, user, router]);
 
     useEffect(() => {
         fetchCertificate();
     }, [fetchCertificate]);
 
-    const handleDownload = async () => {
-        if (!certificate) return;
-
-        setIsDownloading(true);
-        toast({ title: 'Generating PDF...', description: 'Your secure download will begin shortly. Please wait.' });
-
-        const certificateElement = document.getElementById('certificate-canvas');
-
-        if (!certificateElement) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Certificate element not found.' });
-            setIsDownloading(false);
-            return;
-        }
-
-        try {
-            // Wait for all fonts to be loaded and ready. This is crucial.
-            await document.fonts.ready;
-
-            const canvas = await html2canvas(certificateElement, {
-                scale: 3, // Render at 3x resolution for high quality
-                useCORS: true, // Important for external images like QR code
-                logging: false, // Clean up console
-                backgroundColor: null, // Use the element's background
-            });
-            
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'px',
-                // Dimensions based on the certificate component's fixed size
-                format: [1123, 794] 
-            });
-
-            pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
-            pdf.save(`CourseVerse-Certificate-${certificate.certificateCode}.pdf`);
-
-            await createLogEntry({
-                source: 'user',
-                severity: 'info',
-                message: 'Certificate PDF downloaded successfully (Client-side).',
-                metadata: { certificateCode: certificate.certificateCode },
-            });
-
-        } catch (error: any) {
-            console.error("Client-side PDF Download Error:", error);
-            const errorMessage = error.message || 'An unknown error occurred during PDF generation.';
-            toast({
-                variant: 'destructive',
-                title: 'Download Failed',
-                description: errorMessage,
-            });
-            await createLogEntry({
-                source: 'system',
-                severity: 'critical',
-                message: 'Client-side PDF generation failed.',
-                metadata: { certificateCode: certificate.certificateCode, error: errorMessage },
-            });
-        } finally {
-            setIsDownloading(false);
-        }
+    const handleDownload = () => {
+        window.print();
     };
     
-    // For regular user preview
-    const renderContent = () => {
-        switch (status) {
-            case 'loading':
-                return (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                        <p className="text-muted-foreground">Verifying Certificate...</p>
-                    </div>
-                );
-            case 'valid':
-                return certificate && (
-                    <div className="my-8 flex justify-center items-center" style={{ minHeight: 794 * scale }}>
-                        <div style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}>
-                           <CertificateDisplay certificate={certificate} qrCodeDataUrl={qrCodeDataUrl} />
-                        </div>
-                    </div>
-                );
-            case 'revoked':
-            case 'invalid':
-            default:
-                return (
-                     <div className="text-center py-20">
-                        <ShieldAlert className="h-24 w-24 text-destructive mx-auto mb-8" />
-                        <h1 className="font-headline text-5xl font-bold text-destructive">Certificate Invalid</h1>
-                        <p className="text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
-                            {status === 'revoked' 
-                                ? 'This certificate has been revoked by the administrator and is no longer valid.'
-                                : 'The certificate code could not be found. Please check the code and try again.'}
-                        </p>
-                    </div>
-                );
-        }
-    };
+    if (status === 'loading') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-gray-900">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                <p className="text-muted-foreground">Verifying Certificate...</p>
+            </div>
+        );
+    }
 
+    if (status === 'invalid' || status === 'revoked' || !certificate) {
+        return (
+             <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+                <ShieldAlert className="h-24 w-24 text-destructive mx-auto mb-8" />
+                <h1 className="font-headline text-4xl md:text-5xl font-bold text-destructive text-center">Certificate Invalid</h1>
+                <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto text-center">
+                    {status === 'revoked' 
+                        ? 'This certificate has been revoked by the administrator and is no longer valid.'
+                        : 'The certificate code could not be found or you do not have permission to view it.'}
+                </p>
+                 <Button asChild variant="secondary" className="mt-8">
+                    <Link href="/dashboard">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Return to Dashboard
+                    </Link>
+                </Button>
+            </div>
+        );
+    }
+    
     return (
-        <div className="bg-slate-900 text-white min-h-screen">
-            <div className="container mx-auto px-4 py-8 sm:py-12">
-                 <div className="mx-auto">
-                    <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                        <Button asChild variant="outline" className="bg-transparent text-white hover:bg-white/10 hover:text-white border-white/20">
-                            <Link href="/dashboard/courses">
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to My Courses
-                            </Link>
-                        </Button>
-                        <h1 className="text-2xl font-bold text-center sm:text-left">Certificate of Completion</h1>
-                        <Button
-                            onClick={handleDownload}
-                            disabled={isDownloading || status !== 'valid'}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                            {isDownloading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Download className="mr-2 h-4 w-4" />
-                            )}
-                            {isDownloading ? 'Generating...' : 'Download PDF'}
-                        </Button>
-                    </header>
-                    
-                    {renderContent()}
-                </div>
+        <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center p-4 print:p-0 print:bg-white">
+             <div className="no-print fixed top-4 left-4 z-50">
+                <Button asChild variant="outline" className="bg-transparent text-white hover:bg-white/10 hover:text-white border-white/20">
+                    <Link href="/dashboard/courses">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Link>
+                </Button>
+            </div>
+             <div className="no-print fixed top-4 right-4 z-50">
+                <Button
+                    onClick={handleDownload}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Save as PDF
+                </Button>
+            </div>
+
+            <div id="certificate-wrapper" className="my-16 md:my-0">
+                <CertificateDisplay certificate={certificate} qrCodeDataUrl={qrCodeDataUrl} />
             </div>
         </div>
     );
 }
+
