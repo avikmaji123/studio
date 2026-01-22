@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -72,11 +71,29 @@ export const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certific
 
             {/* Center Section (QR Code) */}
             <div style={{ position: 'absolute', left: '50%', bottom: 0, transform: 'translateX(-50%)' }}>
-                 <div style={{ position: 'relative', width: 120, height: 120, background: 'white', padding: '4px', borderRadius: '4px' }}>
+                 <div style={{ position: 'relative', width: 120, height: 120 }}>
                     {qrCodeDataUrl ? (
-                      <Image src={qrCodeDataUrl} alt="QR Code for verification" layout="fill" objectFit="contain" />
+                      <>
+                        <Image src={qrCodeDataUrl} alt="QR Code for verification" layout="fill" objectFit="contain" />
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 30,
+                            height: 30,
+                            background: 'hsl(222, 47%, 11%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '4px',
+                            padding: '4px'
+                        }}>
+                           <BookOpen style={{ color: 'white', width: '100%', height: '100%' }} />
+                        </div>
+                      </>
                     ) : (
-                      <div style={{ width: 112, height: 112, background: '#374151' }}></div>
+                      <div style={{ width: 120, height: 120, background: '#374151', borderRadius: '4px' }}></div>
                     )}
                  </div>
             </div>
