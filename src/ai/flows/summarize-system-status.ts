@@ -12,7 +12,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const LogEntrySchema = z.object({
     id: z.string(),
@@ -21,9 +21,11 @@ const LogEntrySchema = z.object({
     source: z.enum(['admin', 'user', 'system', 'api']),
     message: z.string(),
     metadata: z.object({
-        ip: z.string().optional(),
         userId: z.string().optional(),
         courseId: z.string().optional(),
+        paymentId: z.string().optional(),
+        route: z.string().optional(),
+        ip: z.string().optional(),
         error: z.string().optional(),
     }).optional(),
 });
