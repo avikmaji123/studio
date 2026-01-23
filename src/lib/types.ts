@@ -105,6 +105,23 @@ export type Certificate = {
     creationMethod?: 'auto' | 'manual';
 };
 
+export type Review = {
+    id: string;
+    userId: string;
+    courseId: string;
+    userName: string;
+    userAvatar?: string;
+    courseName: string;
+    rating: number;
+    title: string;
+    text: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: Timestamp | string; // Can be string after serialization
+    isVerifiedPurchase: boolean;
+    source: 'user' | 'ai_generated';
+    moderationReason?: string;
+};
+
 export type SecurityMetrics = {
     activeSecurityEvents: number;
     failedLoginAttempts: number;
@@ -121,3 +138,5 @@ export type SecurityAlert = {
     confidence: number;
     relatedLogIds: string[];
 };
+
+    

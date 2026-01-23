@@ -151,5 +151,24 @@ service cloud.firestore {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
+
+    match /reviews/{reviewId} {
+      // Admins can see all reviews
+      allow read: if isAdmin();
+
+      // Anyone can read approved reviews
+      allow get: if resource.data.status == 'approved';
+
+      // Allow public listing only for approved reviews for the homepage/course pages
+      allow list: if request.query.where.status == 'approved';
+
+      // Logged-in users can create reviews for themselves
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // Admins can update/delete reviews
+      allow update, delete: if isAdmin();
+    }
   }
 }
+
+    

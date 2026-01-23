@@ -17,8 +17,8 @@ import {
   Search,
   Loader2,
 } from 'lucide-react';
-import { useMemo, useState, useTransition } from 'react';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useMemo, useState, useTransition, useEffect } from 'react';
+import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +35,6 @@ import {
 } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CourseCard } from '@/components/app/course-card';
-import { testimonials } from '@/lib/testimonials';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   useUser,
@@ -44,16 +43,17 @@ import {
   useMemoFirebase,
 } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Course, Certificate, Enrollment } from '@/lib/types';
+import type { Course, Certificate, Enrollment, Review } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { faqAssistant, type FaqAssistantOutput } from '@/ai/flows/faq-assistant';
-
-const testimonialImages = {
-  'testimonial-1': PlaceHolderImages.find(p => p.id === 'testimonial-1'),
-  'testimonial-2': PlaceHolderImages.find(p => p.id === 'testimonial-2'),
-  'testimonial-3': PlaceHolderImages.find(p => p.id === 'testimonial-3'),
-  'testimonial-4': PlaceHolderImages.find(p => p.id === 'testimonial-4'),
-};
+import { ReviewCard } from '@/components/app/review-card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 function HeroSection() {
   const { user } = useUser();
@@ -202,6 +202,12 @@ function FeaturedCoursesSection() {
     [firestore, user]
   );
   const { data: certificates } = useCollection<Certificate>(certificatesQuery);
+  
+  const userReviewsQuery = useMemoFirebase(
+    () => (user ? query(collection(firestore, 'reviews'), where('userId', '==', user.uid)) : null),
+    [firestore, user]
+  );
+  const { data: userReviews } = useCollection<Review>(userReviewsQuery);
 
   const enrolledCourseIds = useMemo(() => {
     if (!enrollments) return [];
@@ -219,7 +225,7 @@ function FeaturedCoursesSection() {
             Handpicked courses to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-[350px] w-full" />
@@ -227,6 +233,7 @@ function FeaturedCoursesSection() {
             : courses?.map(course => {
                 const certificate = certificates?.find(c => c.courseId === course.id);
                 const enrollment = enrollments?.find(e => e.courseId === course.id);
+                const hasReviewed = userReviews?.some(r => r.courseId === course.id);
                 return (
                   <CourseCard
                     key={course.id}
@@ -234,6 +241,7 @@ function FeaturedCoursesSection() {
                     isEnrolled={enrolledCourseIds.includes(course.id)}
                     certificate={certificate}
                     enrollment={enrollment}
+                    hasReviewed={hasReviewed}
                   />
                 )
             })}
@@ -248,73 +256,60 @@ function FeaturedCoursesSection() {
   );
 }
 
-function TestimonialsSection() {
-  return (
-    <section id="testimonials" className="py-16 sm:py-24">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="mb-12 text-center max-w-3xl mx-auto">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
-            What Our Students Say
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Real stories from users who transformed their careers with courses
-            from CourseVerse.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-          {testimonials.map(testimonial => (
-            <Card
-              key={testimonial.id}
-              className="flex flex-col transition-transform transform hover:-translate-y-1 hover:shadow-xl"
-            >
-              <CardContent className="flex-grow p-6 space-y-4">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${
-                        i < testimonial.rating
-                          ? 'text-yellow-400 fill-yellow-400'
-                          : 'text-muted-foreground/50'
-                      }`}
-                    />
-                  ))}
+function ReviewsSection() {
+    const firestore = useFirestore();
+    const reviewsQuery = useMemoFirebase(() => query(
+        collection(firestore, 'reviews'),
+        where('status', '==', 'approved'),
+        orderBy('createdAt', 'desc'),
+        limit(9)
+    ), [firestore]);
+
+    const { data: reviews, isLoading } = useCollection<Review>(reviewsQuery);
+
+    return (
+        <section id="reviews" className="py-16 sm:py-24">
+            <div className="container mx-auto px-4 md:px-6">
+                <div className="mb-12 text-center max-w-3xl mx-auto">
+                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+                        What Our Students Say
+                    </h2>
+                    <p className="mt-4 text-lg text-muted-foreground">
+                        Real stories from users who transformed their careers with courses from CourseVerse.
+                    </p>
                 </div>
-                <blockquote className="text-base text-foreground/90 italic">
-                  "{testimonial.quote}"
-                </blockquote>
-              </CardContent>
-              <CardHeader className="pt-0 p-6 flex flex-row items-center gap-4">
-                {testimonialImages[
-                  testimonial.imageId as keyof typeof testimonialImages
-                ] && (
-                  <Avatar>
-                    <AvatarImage
-                      src={
-                        testimonialImages[
-                          testimonial.imageId as keyof typeof testimonialImages
-                        ]?.imageUrl
-                      }
-                      alt={testimonial.name}
-                    />
-                    <AvatarFallback>
-                      {testimonial.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                {isLoading ? (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
+                    </div>
+                ) : reviews && reviews.length > 0 ? (
+                    <Carousel
+                        opts={{
+                            align: "start",
+                            loop: true,
+                        }}
+                        className="w-full"
+                    >
+                        <CarouselContent>
+                            {reviews.map((review) => (
+                                <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
+                                    <div className="p-1 h-full">
+                                        <ReviewCard review={review} />
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="hidden sm:flex" />
+                        <CarouselNext className="hidden sm:flex" />
+                    </Carousel>
+                ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                        No reviews yet. Be the first to leave one!
+                    </div>
                 )}
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {testimonial.title}
-                  </p>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+            </div>
+        </section>
+    );
 }
 
 const faqData = [
@@ -463,8 +458,10 @@ export default function Home() {
       <HeroSection />
       <FeaturesSection />
       <FeaturedCoursesSection />
-      <TestimonialsSection />
+      <ReviewsSection />
       <AiFaqSection />
     </>
   );
 }
+
+    

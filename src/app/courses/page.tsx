@@ -121,6 +121,7 @@ export default function CoursesPage() {
     enrollments,
     enrolledCourseIds,
     certificates,
+    userReviews,
   } = useSearchAndFilter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -182,6 +183,7 @@ export default function CoursesPage() {
                         const certificate = certificates.find(c => c.courseId === course.id);
                         const enrollment = enrollments.find(e => e.courseId === course.id);
                         const isEnrolled = enrolledCourseIds.includes(course.id);
+                        const hasReviewed = userReviews.some(r => r.courseId === course.id);
                         return (
                             <CourseCard 
                               key={course.id} 
@@ -189,6 +191,7 @@ export default function CoursesPage() {
                               isEnrolled={isEnrolled} 
                               certificate={certificate}
                               enrollment={enrollment}
+                              hasReviewed={hasReviewed}
                             />
                         )
                     })
@@ -231,3 +234,5 @@ export default function CoursesPage() {
     </div>
   );
 }
+
+    

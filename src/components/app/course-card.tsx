@@ -2,34 +2,38 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Course, Certificate, Enrollment } from '@/lib/types';
-import { Eye, Users, BarChart, CheckCircle, Download, Award } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
-import React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Eye, Users, BarChart, CheckCircle, Download, Award, MessageSquare } from 'lucide-react';
 import { addDays, formatDistanceToNowStrict } from 'date-fns';
-import { useRouter } from 'next/navigation';
 
+import type { Course, Certificate, Enrollment, Review } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { ReviewForm } from './review-form';
 
 type CourseCardProps = {
   course: Course;
   isEnrolled: boolean;
   certificate?: Certificate | null;
   enrollment?: Enrollment | null;
+  hasReviewed?: boolean;
 };
 
-export function CourseCard({ course, isEnrolled, certificate, enrollment }: CourseCardProps) {
+export function CourseCard({ course, isEnrolled, certificate, enrollment, hasReviewed }: CourseCardProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
 
   const CertificateMenuItem = () => {
     // If certificate exists, link to view it.
@@ -83,6 +87,7 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
   };
   
   return (
+    <>
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
         <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="relative aspect-video w-full block">
           {course.imageUrl ? (
@@ -143,6 +148,12 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
                       </Link>
                     </DropdownMenuItem>
                     <CertificateMenuItem />
+                    {!hasReviewed && (
+                      <DropdownMenuItem onSelect={() => setIsReviewFormOpen(true)} className="cursor-pointer">
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        <span>Write a Review</span>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -159,5 +170,9 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment }: Cour
           )}
         </CardFooter>
     </Card>
+    <ReviewForm course={course} open={isReviewFormOpen} onOpenChange={setIsReviewFormOpen} />
+    </>
   );
 }
+
+    

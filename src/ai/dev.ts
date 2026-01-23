@@ -12,3 +12,7 @@ import '@/ai/flows/generate-quiz.ts';
 import '@/ai/flows/generate-course-outline.ts';
 import '@/ai/flows/summarize-security-metrics.ts';
 import '@/ai/flows/detect-threats.ts';
+import '@/ai/flows/moderate-review.ts';
+import '@/ai/flows/generate-reviews.ts';
+
+    

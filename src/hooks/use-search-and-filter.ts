@@ -2,11 +2,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Course, Certificate, Enrollment } from '@/lib/types';
+import type { Course, Certificate, Enrollment, Review } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 
-type SortOption = 'newest' | 'popular' | 'price-asc' | 'price-desc';
+export type SortOption = 'newest' | 'popular' | 'price-asc' | 'price-desc';
 
 export function useSearchAndFilter() {
   const firestore = useFirestore();
@@ -31,6 +31,12 @@ export function useSearchAndFilter() {
     [firestore, user]
   );
   const { data: certificates, isLoading: certificatesLoading } = useCollection<Certificate>(certificatesQuery);
+
+  const userReviewsQuery = useMemoFirebase(
+    () => (user ? query(collection(firestore, 'reviews'), where('userId', '==', user.uid)) : null),
+    [firestore, user]
+  );
+  const { data: userReviews, isLoading: reviewsLoading } = useCollection<Review>(userReviewsQuery);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -126,7 +132,7 @@ export function useSearchAndFilter() {
     return filtered;
   }, [courses, searchTerm, selectedCategories, selectedLevels, priceRange, sortBy]);
   
-  const isLoading = coursesLoading || enrollmentsLoading || certificatesLoading;
+  const isLoading = coursesLoading || enrollmentsLoading || certificatesLoading || reviewsLoading;
 
   return {
     isLoading,
@@ -146,6 +152,9 @@ export function useSearchAndFilter() {
     enrollments: enrollments || [],
     enrolledCourseIds: enrollments?.map(e => e.courseId) || [],
     certificates: certificates || [],
+    userReviews: userReviews || [],
     resetFilters
   };
 }
+
+    

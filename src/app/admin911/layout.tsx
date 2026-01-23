@@ -24,6 +24,7 @@ import {
   Loader2,
   Award,
   Shield,
+  Star,
 } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ const navItems = [
     { href: '/admin911/siem', icon: <Shield className="h-5 w-5" />, label: 'SIEM' },
     { href: '/admin911/courses', icon: <Book className="h-5 w-5" />, label: 'Courses' },
     { href: '/admin911/payments', icon: <CreditCard className="h-5 w-5" />, label: 'Payments' },
+    { href: '/admin911/reviews', icon: <Star className="h-5 w-5" />, label: 'Reviews' },
     { href: '/admin911/certificates', icon: <Award className="h-5 w-5" />, label: 'Certificates' },
     { href: '/admin911/users', icon: <Users className="h-5 w-5" />, label: 'Users' },
     { href: '/admin911/downloads', icon: <Download className="h-5 w-5" />, label: 'Downloads' },
@@ -316,3 +318,5 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+    
