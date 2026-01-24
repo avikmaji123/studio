@@ -95,7 +95,7 @@ export default function VerifyCertificatePage() {
 
         if (result.status === 'invalid') {
             return (
-                <Card className="border-destructive/50 bg-destructive/10">
+                <Card className="border-destructive/50 bg-destructive/10 rounded-2xl shadow-premium-light">
                     <CardHeader className="flex-row items-center gap-4 space-y-0">
                          <XCircle className="h-10 w-10 text-destructive" />
                          <div>
@@ -109,7 +109,7 @@ export default function VerifyCertificatePage() {
 
          if (result.status === 'revoked') {
             return (
-                <Card className="border-amber-500/50 bg-amber-500/10">
+                <Card className="border-amber-500/50 bg-amber-500/10 rounded-2xl shadow-premium-light">
                     <CardHeader className="flex-row items-center gap-4 space-y-0">
                          <XCircle className="h-10 w-10 text-amber-600" />
                          <div>
@@ -136,7 +136,7 @@ export default function VerifyCertificatePage() {
         if (result.status === 'valid' && result.data) {
              const { studentName, courseName, issueDate, certificateCode } = result.data;
              return (
-                <Card className="border-green-500/50 bg-green-500/10">
+                <Card className="border-green-500/50 bg-green-500/10 rounded-2xl shadow-premium-light">
                     <CardHeader className="flex-row items-center gap-4 pb-4">
                         <Award className="h-10 w-10 text-green-600" />
                         <div>
@@ -190,7 +190,7 @@ export default function VerifyCertificatePage() {
     return (
         <div className="container mx-auto px-4 py-16 sm:py-24">
             <div className="max-w-2xl mx-auto">
-                <Card className="shadow-lg">
+                <Card className="rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
                     <CardHeader className="text-center">
                         <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                             <Award className="h-8 w-8 text-primary"/>

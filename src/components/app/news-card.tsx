@@ -14,7 +14,7 @@ export function NewsCard({ article }: NewsCardProps) {
   const imageUrl = article.imageUrl || placeholderImage?.imageUrl;
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
+    <Card className="flex flex-col overflow-hidden group h-full rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
       <Link href={`/news/${article.slug}`} className="flex flex-col h-full">
         <div className="relative aspect-video w-full">
           {imageUrl && (

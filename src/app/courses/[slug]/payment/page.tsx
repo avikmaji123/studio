@@ -223,7 +223,7 @@ export default function CoursePaymentPage() {
             <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-8">
                     {/* Course Info Card */}
-                    <Card className="overflow-hidden">
+                    <Card className="overflow-hidden rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
                         <CardHeader>
                              <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
@@ -244,7 +244,7 @@ export default function CoursePaymentPage() {
                     </Card>
 
                     {/* Payment QR Code Card */}
-                     <Card>
+                     <Card className="rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
                         <CardHeader>
                             <CardTitle>1. Scan & Pay</CardTitle>
                             <CardDescription>Use your favorite UPI app to pay the exact amount shown above.</CardDescription>
@@ -270,7 +270,7 @@ export default function CoursePaymentPage() {
 
                 {/* Submission Form */}
                 <div>
-                    <Card>
+                    <Card className="rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
                         <CardHeader>
                             <CardTitle>2. Confirm Your Payment</CardTitle>
                             <CardDescription>

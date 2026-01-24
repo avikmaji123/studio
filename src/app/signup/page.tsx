@@ -134,7 +134,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-15rem)] py-12">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Sign Up</CardTitle>
           <CardDescription>

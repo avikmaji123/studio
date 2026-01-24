@@ -88,7 +88,7 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
   
   return (
     <>
-    <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group h-full">
+    <Card className="flex flex-col overflow-hidden group h-full rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
         <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="relative aspect-video w-full block">
           {course.imageUrl ? (
                <Image
@@ -174,5 +174,3 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
     </>
   );
 }
-
-    

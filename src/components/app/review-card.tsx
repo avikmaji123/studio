@@ -15,7 +15,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
 
   return (
     // The main card container, matching the reference's rounded corners and shadow.
-    <Card className="h-full flex flex-col rounded-2xl overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:bg-[#0F1B2D] dark:border-slate-800">
+    <Card className="h-full flex flex-col rounded-2xl overflow-hidden shadow-premium-light transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:shadow-lg dark:bg-[#0F1B2D] dark:border-slate-800">
       
       {/* Top Image Section with Avatar */}
       <div className="relative aspect-video w-full">

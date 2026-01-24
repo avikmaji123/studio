@@ -17,6 +17,9 @@ export default {
       },
     },
     extend: {
+      boxShadow: {
+        'premium-light': '0 10px 30px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)',
+      },
       fontFamily: {
         body: ['"Source Sans 3"', 'sans-serif'],
         headline: ['Lexend', 'sans-serif'],

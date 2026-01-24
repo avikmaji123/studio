@@ -155,7 +155,7 @@ function FeaturesSection() {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="text-center transition-transform hover:scale-105 hover:shadow-lg"
+              className="text-center rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg"
             >
               <CardHeader>
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
@@ -412,7 +412,7 @@ function AiFaqSection() {
                 </form>
 
                 {result && result.isGenerated && (
-                    <Card className="max-w-3xl mx-auto mb-8 bg-card border-border">
+                    <Card className="max-w-3xl mx-auto mb-8 bg-card border-border rounded-2xl shadow-premium-light">
                         <CardHeader>
                             <CardTitle className="text-foreground">AI Generated Answer</CardTitle>
                         </CardHeader>
