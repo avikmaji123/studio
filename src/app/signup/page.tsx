@@ -28,7 +28,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [user, isUserLoading, router]);
 
@@ -73,7 +73,7 @@ export default function SignupPage() {
             title: "Account Created",
             description: "Welcome! Redirecting you to the dashboard...",
         });
-        // The useEffect hook will handle the redirect
+        router.push('/dashboard');
       })
       .catch((error: any) => {
         let title = "Sign-up Failed";
@@ -109,16 +109,16 @@ export default function SignupPage() {
     if (!auth || !firestore) return;
     const provider = new GoogleAuthProvider();
     setIsSubmitting(true);
-    signInWithPopup(auth, provider)
-      .then(async (userCredential) => {
+
+    try {
+        const userCredential = await signInWithPopup(auth, provider);
         await createUserProfileIfNotExists(userCredential);
         toast({
           title: "Sign-Up Successful",
           description: "Welcome! Redirecting you to the dashboard...",
         });
-        // Redirect is handled by the useEffect watching the user state
-      })
-      .catch((error) => {
+        router.push('/dashboard');
+    } catch (error: any) {
         let title = "Sign-In Failed";
         let description = "An unexpected error occurred. Please try again.";
 
@@ -137,10 +137,9 @@ export default function SignupPage() {
                 break;
         }
         toast({ variant: "destructive", title, description });
-      })
-      .finally(() => {
+    } finally {
         setIsSubmitting(false);
-      });
+    }
   };
   
   if (isUserLoading || user) {
