@@ -36,7 +36,6 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
 
   const CertificateMenuItem = () => {
-    // If certificate exists, link to view it.
     if (certificate) {
       return (
         <DropdownMenuItem asChild className="cursor-pointer">
@@ -48,12 +47,10 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
       );
     }
     
-    // If quiz is disabled for the course, don't show the option.
     if(course.certificateSettings?.quizEnabled === false) {
         return null;
     }
 
-    // Logic to handle taking the test or seeing countdown.
     const handleSelect = (e: Event) => {
       e.preventDefault(); 
 
@@ -73,7 +70,6 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
           description: `This test unlocks ${formatDistanceToNowStrict(unlockDate, { addSuffix: true })}.`,
         });
       } else {
-        // Redirect to the test page
         router.push(`/certificate-test/${course.id}`);
       }
     };
@@ -88,26 +84,28 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
   
   return (
     <>
-    <Card className="flex flex-col overflow-hidden group h-full rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
-        <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="relative aspect-video w-full block">
+    <Card className="glass-card flex flex-col overflow-hidden h-full rounded-xl shadow-ambient transition-all duration-300 hover:shadow-glow hover:-translate-y-1 group">
+        <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="relative aspect-video w-full block overflow-hidden">
           {course.imageUrl ? (
                <Image
                   src={course.imageUrl}
                   alt={course.title}
                   fill
-                  className="object-cover"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
           ) : <Skeleton className="h-full w-full" />}
           
-          <div className="absolute top-2 right-2 flex gap-1">
-            {course.isNew && <Badge>New</Badge>}
-            {course.isBestseller && <Badge variant="destructive">Bestseller</Badge>}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          
+          <div className="absolute top-3 right-3 flex gap-2">
+            {course.isNew && <Badge variant="destructive" className="shadow-lg">New</Badge>}
+            {course.isBestseller && <Badge className="bg-yellow-500 text-black shadow-lg">Bestseller</Badge>}
           </div>
 
         </Link>
-        <CardHeader className="p-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="outline" className="flex items-center gap-1">
+        <div className="p-5 flex flex-col flex-grow">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+            <Badge variant="secondary" className="flex items-center gap-1">
                 <BarChart className="h-3 w-3" />
                 {course.level || 'All Levels'}
             </Badge>
@@ -118,19 +116,17 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
                 </Badge>
             )}
           </div>
-          <CardTitle className="line-clamp-2 text-base h-[2.5em] leading-tight">
-            <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="hover:underline">
+          <CardTitle className="line-clamp-2 text-lg font-bold h-[3.25rem] leading-tight">
+            <Link href={isEnrolled ? `/dashboard/downloads` : `/courses/${course.slug}`} className="hover:text-primary transition-colors">
               {course.title}
             </Link>
           </CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow p-4 pt-0 pb-2">
-          <CardDescription className="line-clamp-2 text-sm">{course.shortDescription || course.description}</CardDescription>
-        </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center mt-auto">
+          <CardDescription className="line-clamp-2 text-sm mt-1 flex-grow">{course.shortDescription || course.description}</CardDescription>
+        
+        <CardFooter className="p-0 pt-4 flex justify-between items-center mt-auto">
           {isEnrolled ? (
              <div className="w-full flex items-center justify-between">
-                <Badge className="bg-green-600 hover:bg-green-700 pointer-events-none text-green-50">
+                <Badge className="bg-green-600/20 text-green-400 border-green-600/50 pointer-events-none">
                   <CheckCircle className="mr-1.5 h-4 w-4" />
                   Purchased
                 </Badge>
@@ -163,12 +159,13 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
                   <Users className="h-4 w-4" />
                   <span>{course.enrollmentCount || 0}</span>
               </div>
-              <div className="text-lg font-bold text-primary">
+              <div className="text-xl font-bold gradient-text">
                   {course.price}
               </div>
             </>
           )}
         </CardFooter>
+        </div>
     </Card>
     <ReviewForm course={course} open={isReviewFormOpen} onOpenChange={setIsReviewFormOpen} />
     </>

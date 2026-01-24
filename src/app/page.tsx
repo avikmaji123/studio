@@ -59,17 +59,19 @@ import { useSiteSettings } from '@/hooks/use-settings';
 function HeroSection() {
   const { user } = useUser();
   return (
-    <section className="relative w-full overflow-hidden bg-background pt-16 md:pt-24 lg:pt-32">
+    <section className="relative w-full overflow-hidden bg-transparent pt-16 md:pt-24 lg:pt-32">
       <div
         aria-hidden="true"
-        className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-40 dark:opacity-20"
+        className="absolute inset-0 -z-10 grid grid-cols-2 -space-x-52 opacity-20 dark:opacity-20"
       >
         <div className="h-56 bg-gradient-to-br from-primary to-purple-400 blur-[106px] dark:from-blue-700"></div>
         <div className="h-32 bg-gradient-to-r from-cyan-400 to-sky-300 blur-[106px] dark:to-indigo-600"></div>
       </div>
+       <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
       <div className="container relative mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-6 text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl animated-headline">
+          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl gradient-text">
             Unlock Your Potential with CourseVerse
           </h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
@@ -89,7 +91,7 @@ function HeroSection() {
                 </Link>
               </Button>
             )}
-            <Button asChild variant="secondary" size="lg">
+            <Button asChild variant="glass" size="lg">
               <Link href="/courses">Explore All</Link>
             </Button>
           </div>
@@ -143,7 +145,7 @@ function FeaturesSection() {
     <section id="features" className="py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
             A Better Way to Learn
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
@@ -155,13 +157,13 @@ function FeaturesSection() {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="text-center rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg"
+              className="glass-card text-center rounded-xl shadow-ambient transition-all duration-300 hover:shadow-glow hover:-translate-y-1.5 group"
             >
               <CardHeader>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-accent/10 group-hover:from-primary/20 group-hover:to-accent/20 transition-colors">
                   {feature.icon}
                 </div>
-                <CardTitle>{feature.title}</CardTitle>
+                <CardTitle className="font-semibold">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">{feature.description}</p>
@@ -216,20 +218,20 @@ function FeaturedCoursesSection() {
   }, [enrollments]);
 
   return (
-    <section id="courses" className="bg-muted/50 py-16 sm:py-24">
+    <section id="courses" className="bg-background/50 py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
-          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+          <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
             Featured Courses
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             Handpicked courses to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-[350px] w-full" />
+                <Skeleton key={i} className="h-[400px] w-full rounded-xl bg-muted/50" />
               ))
             : courses?.map(course => {
                 const certificate = certificates?.find(c => c.courseId === course.id);
@@ -265,7 +267,7 @@ function ReviewsSection() {
         <section id="reviews" className="py-16 sm:py-24">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="mb-12 text-center max-w-3xl mx-auto">
-                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
                         What Our Students Say
                     </h2>
                     <p className="mt-4 text-lg text-muted-foreground">
@@ -273,8 +275,8 @@ function ReviewsSection() {
                     </p>
                 </div>
                 {isLoading ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
+                    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl bg-muted/50" />)}
                     </div>
                 ) : sortedReviews.length > 0 ? (
                     <Carousel
@@ -284,9 +286,9 @@ function ReviewsSection() {
                         }}
                         className="w-full"
                     >
-                        <CarouselContent>
+                        <CarouselContent className="-ml-4">
                             {sortedReviews.map((review) => (
-                                <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
+                                <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
                                     <div className="p-1 h-full">
                                         <ReviewCard review={review} />
                                     </div>
@@ -387,10 +389,10 @@ function AiFaqSection() {
     };
 
     return (
-        <section id="faq" className="py-16 sm:py-24 bg-muted/50">
+        <section id="faq" className="py-16 sm:py-24 bg-background/50">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="mb-12 text-center max-w-3xl mx-auto">
-                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl animated-headline">
+                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
                         Frequently Asked Questions
                     </h2>
                     <p className="mt-4 text-lg text-muted-foreground">
@@ -403,7 +405,7 @@ function AiFaqSection() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input 
                             placeholder="Ask a question..." 
-                            className="pl-12 h-14 text-lg"
+                            className="pl-12 h-14 text-lg rounded-full focus:ring-primary/50 shadow-ambient"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
@@ -412,9 +414,9 @@ function AiFaqSection() {
                 </form>
 
                 {result && result.isGenerated && (
-                    <Card className="max-w-3xl mx-auto mb-8 bg-card border-border rounded-2xl shadow-premium-light">
+                    <Card className="glass-card max-w-3xl mx-auto mb-8 rounded-xl shadow-ambient">
                         <CardHeader>
-                            <CardTitle className="text-foreground">AI Generated Answer</CardTitle>
+                            <CardTitle className="gradient-text">AI Generated Answer</CardTitle>
                         </CardHeader>
                         <CardContent>
                              <p className="text-muted-foreground">{result.answer}</p>
@@ -425,16 +427,16 @@ function AiFaqSection() {
                 <Accordion 
                     type="single" 
                     collapsible 
-                    className="w-full max-w-3xl mx-auto"
+                    className="w-full max-w-3xl mx-auto space-y-3"
                     value={activeAccordionItem || ''}
                     onValueChange={setActiveAccordionItem}
                 >
                     {allFaqs.map((faq) => (
-                        <AccordionItem key={faq.id} value={`item-${faq.id}`}>
-                            <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                        <AccordionItem key={faq.id} value={`item-${faq.id}`} className="glass-card rounded-xl border-none shadow-ambient">
+                            <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline px-6">
                                 {faq.question}
                             </AccordionTrigger>
-                            <AccordionContent className="text-base text-muted-foreground">
+                            <AccordionContent className="text-base text-muted-foreground px-6">
                                 {faq.answer}
                             </AccordionContent>
                         </AccordionItem>

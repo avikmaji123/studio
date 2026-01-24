@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -18,7 +17,8 @@ export default {
     },
     extend: {
       boxShadow: {
-        'premium-light': '0 10px 30px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)',
+        'ambient': 'var(--shadow-ambient)',
+        'glow': 'var(--shadow-glow)',
       },
       fontFamily: {
         body: ['"Source Sans 3"', 'sans-serif'],
@@ -27,7 +27,7 @@ export default {
         signature: ['"Dancing Script"', 'cursive'],
       },
       colors: {
-        background: 'hsl(var(--background))',
+        background: 'rgb(var(--background-start-rgb))',
         foreground: 'hsl(var(--foreground))',
         card: {
           DEFAULT: 'hsl(var(--card))',
@@ -79,9 +79,10 @@ export default {
         },
       },
       borderRadius: {
+        xl: 'calc(var(--radius) + 4px)',
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 8px)',
       },
       keyframes: {
         'accordion-down': {
@@ -100,10 +101,16 @@ export default {
             height: '0',
           },
         },
+        'gradient-pan': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'gradient-pan': 'gradient-pan 5s ease infinite',
       },
     },
   },

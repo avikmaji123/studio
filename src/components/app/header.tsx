@@ -13,7 +13,7 @@ export default function Header() {
   const { settings, isLoading } = useSiteSettings();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/20 bg-background/60 backdrop-blur-lg">
       <div className="container flex h-16 items-center">
         <div className="mr-4 md:hidden">
           <MobileNav />
@@ -27,13 +27,13 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href!}
-              className="text-foreground/60 transition-colors hover:text-foreground/80"
+              className="text-foreground/60 transition-colors hover:text-foreground/80 font-medium"
             >
               {item.title}
             </Link>
           ))}
         </nav>
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex flex-1 items-center justify-end space-x-2">
           <ThemeToggle />
           <UserNav />
         </div>
