@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
@@ -39,6 +39,9 @@ import { refineText, type RefineTextInput } from '@/ai/flows/refine-text';
 import { generateTags } from '@/ai/flows/generate-tags';
 import { createLogEntry } from '@/lib/actions';
 import { useUser } from '@/firebase';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 
 export default function EditCoursePage() {
@@ -94,6 +97,7 @@ export default function EditCoursePage() {
     const [courseType, setCourseType] = useState<'Free' | 'Paid'>('Paid');
     const [price, setPrice] = useState('');
     const [discountPrice, setDiscountPrice] = useState('');
+    const [offerEndDate, setOfferEndDate] = useState<Date | null>(null);
     const [accessValidity, setAccessValidity] = useState('Lifetime');
     const [isCertificateEnabled, setIsCertificateEnabled] = useState(true);
     const [isQuizRequired, setIsQuizRequired] = useState(true);
@@ -143,6 +147,7 @@ export default function EditCoursePage() {
                     setCourseType(courseData.courseType || 'Paid');
                     setPrice(courseData.price?.replace('₹', '') || '');
                     setDiscountPrice(courseData.discountPrice?.replace('₹', '') || '');
+                    setOfferEndDate(courseData.offerEndDate ? courseData.offerEndDate.toDate() : null);
                     setAccessValidity(courseData.accessValidity || 'Lifetime');
                     setIsCertificateEnabled(courseData.certificateSettings?.quizEnabled !== false);
                     setIsQuizRequired(courseData.certificateSettings?.quizRequired !== false);
@@ -185,6 +190,7 @@ export default function EditCoursePage() {
                 courseType,
                 price: courseType === 'Free' ? 'Free' : `₹${price}`,
                 discountPrice: discountPrice ? `₹${discountPrice}` : '',
+                offerEndDate: offerEndDate ? Timestamp.fromDate(offerEndDate) : null,
                 accessValidity,
                 'certificateSettings.quizEnabled': isCertificateEnabled,
                 'certificateSettings.quizRequired': isQuizRequired,
@@ -567,7 +573,7 @@ export default function EditCoursePage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Pricing & Access</CardTitle>
+                            <CardTitle>Pricing & Offers</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-6">
                             <div><Label>Course Type</Label><RadioGroup value={courseType} onValueChange={(v) => setCourseType(v as 'Free' | 'Paid')} className="mt-2"><div className="flex items-center space-x-2"><RadioGroupItem value="Paid" id="p-paid" /><Label htmlFor="p-paid">Paid</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="Free" id="p-free" /><Label htmlFor="p-free">Free</Label></div></RadioGroup></div>
@@ -575,6 +581,18 @@ export default function EditCoursePage() {
                                 <>
                                 <div className="grid gap-2"><Label htmlFor="price">Price (INR)</Label><Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
                                 <div className="grid gap-2"><Label htmlFor="discountPrice">Discount Price (Optional)</Label><Input id="discountPrice" type="number" value={discountPrice} onChange={(e) => setDiscountPrice(e.target.value)} /></div>
+                                 <div className="grid gap-2"><Label>Offer End Date (Optional)</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !offerEndDate && "text-muted-foreground")}>
+                                                {offerEndDate ? (new Date(offerEndDate).toLocaleDateString()) : (<span>Pick a date</span>)}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <DatePicker selected={offerEndDate || undefined} onSelect={(date) => setOfferEndDate(date || null)} />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
                                 </>
                              )}
                             <div><Label>Access Validity</Label><Select value={accessValidity} onValueChange={setAccessValidity}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{accessOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent></Select></div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -15,12 +16,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, Users, BarChart, CheckCircle, Download, Award, MessageSquare } from 'lucide-react';
+import { Eye, Users, BarChart, CheckCircle, Download, Award, MessageSquare, Clock } from 'lucide-react';
 import { addDays, formatDistanceToNowStrict } from 'date-fns';
 
 import type { Course, Certificate, Enrollment, Review } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { ReviewForm } from './review-form';
+import { CountdownTimer } from './countdown-timer';
 
 type CourseCardProps = {
   course: Course;
@@ -34,6 +36,10 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
   const { toast } = useToast();
   const router = useRouter();
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+
+  const isOfferActive = course.discountPrice && course.offerEndDate && course.offerEndDate.toDate() > new Date();
+  const displayPrice = isOfferActive ? course.discountPrice : course.price;
+  const originalPrice = isOfferActive ? course.price : null;
 
   const CertificateMenuItem = () => {
     if (certificate) {
@@ -98,7 +104,8 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           
           <div className="absolute top-3 right-3 flex gap-2">
-            {course.isNew && <Badge variant="destructive" className="shadow-lg">New</Badge>}
+            {isOfferActive && <Badge variant="destructive" className="shadow-lg animate-pulse">Sale!</Badge>}
+            {course.isNew && <Badge variant="secondary" className="shadow-lg">New</Badge>}
             {course.isBestseller && <Badge className="bg-yellow-500 text-black shadow-lg">Bestseller</Badge>}
           </div>
 
@@ -123,6 +130,12 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
           </CardTitle>
           <CardDescription className="line-clamp-2 text-sm mt-1 flex-grow">{course.shortDescription || course.description}</CardDescription>
         
+        {isOfferActive && course.offerEndDate && (
+          <div className="mt-4 flex justify-center">
+            <CountdownTimer endDate={course.offerEndDate.toDate()} />
+          </div>
+        )}
+
         <CardFooter className="p-0 pt-4 flex justify-between items-center mt-auto">
           {isEnrolled ? (
              <div className="w-full flex items-center justify-between">
@@ -159,8 +172,11 @@ export function CourseCard({ course, isEnrolled, certificate, enrollment, hasRev
                   <Users className="h-4 w-4" />
                   <span>{course.enrollmentCount || 0}</span>
               </div>
-              <div className="text-xl font-bold gradient-text">
-                  {course.price}
+              <div className="flex items-baseline gap-2">
+                 {originalPrice && <span className="text-muted-foreground line-through text-base">{originalPrice}</span>}
+                 <div className="text-xl font-bold gradient-text">
+                    {displayPrice}
+                </div>
               </div>
             </>
           )}

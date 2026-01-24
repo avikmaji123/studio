@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import type { Course } from '@/lib/data';
+import type { Course } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CountdownTimer } from '@/components/app/countdown-timer';
 
 // This is now a Client Component that receives course data as a prop.
 export default function CourseDetailClientPage({ course }: { course: Course }) {
@@ -32,6 +33,10 @@ export default function CourseDetailClientPage({ course }: { course: Course }) {
         </div>
     )
   }
+
+  const isOfferActive = course.discountPrice && course.offerEndDate && course.offerEndDate.toDate() > new Date();
+  const displayPrice = isOfferActive ? course.discountPrice : course.price;
+  const originalPrice = isOfferActive ? course.price : null;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -70,7 +75,17 @@ export default function CourseDetailClientPage({ course }: { course: Course }) {
               <CardTitle>Purchase Course</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Badge variant="secondary" className="text-2xl font-bold w-full justify-center py-2">{course.price}</Badge>
+              <div className="flex justify-center items-baseline gap-2">
+                {originalPrice && <span className="text-2xl text-muted-foreground line-through">{originalPrice}</span>}
+                <Badge variant="secondary" className="text-3xl font-bold w-full justify-center py-2">{displayPrice}</Badge>
+              </div>
+
+               {isOfferActive && course.offerEndDate && (
+                <div className="mt-4 flex justify-center">
+                  <CountdownTimer endDate={course.offerEndDate.toDate()} />
+                </div>
+              )}
+
               <Button asChild className="w-full" size="lg">
                 <Link href={`/courses/${course.slug}/payment`}>Buy Course</Link>
               </Button>

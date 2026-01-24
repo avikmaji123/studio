@@ -11,7 +11,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { useFirestore, useUser, useStorage } from '@/firebase';
-import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,9 @@ import { createLogEntry } from '@/lib/actions';
 import { generateCourseOutline } from '@/ai/flows/generate-course-outline';
 import { slugify } from '@/lib/utils';
 import type { Course } from '@/lib/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DatePicker } from '@/components/ui/date-picker';
+import { cn } from '@/lib/utils';
 
 
 const courseSchema = z.object({
@@ -44,6 +47,7 @@ const courseSchema = z.object({
     courseType: z.enum(['Free', 'Paid']),
     price: z.string().optional(),
     discountPrice: z.string().optional(),
+    offerEndDate: z.date().optional().nullable(),
     accessValidity: z.string().min(1, 'Access validity is required'),
     status: z.enum(['draft', 'published', 'unpublished']),
     visibility: z.enum(['public', 'private', 'hidden']),
@@ -86,13 +90,11 @@ export default function NewCoursePage() {
             category: '',
             level: 'Beginner',
             language: 'English',
-            totalModules: '',
-            totalLessons: '',
-            estimatedDuration: '',
             courseFormat: 'Recorded',
             courseType: 'Paid',
             price: '499',
             discountPrice: '',
+            offerEndDate: null,
             accessValidity: 'Lifetime',
             status: 'draft',
             visibility: 'public',
@@ -188,6 +190,7 @@ export default function NewCoursePage() {
                 courseType: data.courseType,
                 price: data.courseType === 'Free' ? 'Free' : `₹${data.price || 0}`,
                 discountPrice: data.discountPrice ? `₹${data.discountPrice}` : '',
+                offerEndDate: data.offerEndDate ? Timestamp.fromDate(data.offerEndDate) : null,
                 accessValidity: data.accessValidity,
                 status: data.status,
                 visibility: data.visibility,
@@ -294,13 +297,30 @@ export default function NewCoursePage() {
                                     </CardContent>
                                 </Card>
                                  <Card>
-                                    <CardHeader><CardTitle>Pricing & Access</CardTitle></CardHeader>
+                                    <CardHeader><CardTitle>Pricing & Offers</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         <FormField control={form.control} name="courseType" render={({ field }) => (<FormItem><FormLabel>Type</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 mt-2"><FormItem><FormControl><RadioGroupItem value="Paid" id="paid" /></FormControl><FormLabel htmlFor="paid">Paid</FormLabel></FormItem><FormItem><FormControl><RadioGroupItem value="Free" id="free" /></FormControl><FormLabel htmlFor="free">Free</FormLabel></FormItem></RadioGroup></FormControl></FormItem>)}/>
                                         {watchCourseType === 'Paid' && (
                                             <>
                                             <FormField control={form.control} name="price" render={({ field }) => (<FormItem><FormLabel>Price (₹)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                             <FormField control={form.control} name="discountPrice" render={({ field }) => (<FormItem><FormLabel>Discount Price (₹, Optional)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                             <FormField control={form.control} name="offerEndDate" render={({ field }) => (
+                                                <FormItem className="flex flex-col"><FormLabel>Offer End Date</FormLabel>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                            {field.value ? (new Date(field.value).toLocaleDateString()) : (<span>Pick a date</span>)}
+                                                            </Button>
+                                                        </FormControl>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0" align="start">
+                                                            <DatePicker selected={field.value || undefined} onSelect={field.onChange} />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )} />
                                             </>
                                         )}
                                         <FormField control={form.control} name="accessValidity" render={({ field }) => (<FormItem><FormLabel>Access Validity</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Lifetime">Lifetime</SelectItem><SelectItem value="12 Months">12 Months</SelectItem><SelectItem value="6 Months">6 Months</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />

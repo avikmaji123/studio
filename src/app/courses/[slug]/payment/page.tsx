@@ -19,17 +19,14 @@ import { Label } from '@/components/ui/label';
 import { createLogEntry } from '@/lib/actions';
 import type { Course } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
-
-// Hardcoded site configuration for payment verification
-const SITE_CONFIG = {
-    RECEIVER_UPI_ID: 'avik911@fam'
-};
+import { useSiteSettings } from '@/hooks/use-settings';
 
 export default function CoursePaymentPage() {
     const router = useRouter();
     const params = useParams();
     const { user } = useUser();
     const firestore = useFirestore();
+    const { settings } = useSiteSettings();
     const slug = params.slug as string;
     const { toast } = useToast();
 
@@ -39,6 +36,9 @@ export default function CoursePaymentPage() {
     const [utr, setUtr] = useState('');
     const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+    
+    const isOfferActive = course?.discountPrice && course.offerEndDate && course.offerEndDate.toDate() > new Date();
+    const displayPrice = isOfferActive ? course.discountPrice : course?.price;
 
     useEffect(() => {
         if (!slug || !firestore) return;
@@ -64,8 +64,6 @@ export default function CoursePaymentPage() {
         notFound();
     }
     
-    const qrCodeImage = PlaceHolderImages.find(p => p.id === 'payment-qr-code');
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -90,7 +88,7 @@ export default function CoursePaymentPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!user || !firestore) {
+        if (!user || !firestore || !displayPrice) {
             toast({
                 variant: "destructive",
                 title: "Authentication Error",
@@ -128,7 +126,7 @@ export default function CoursePaymentPage() {
         try {
             // 2. Get AI analysis
             const aiResult = await autoHandleEngine({ 
-                coursePrice: course.price,
+                coursePrice: displayPrice,
                 screenshotDataUri: screenshotPreview,
             });
 
@@ -139,13 +137,13 @@ export default function CoursePaymentPage() {
             let finalStatus: 'AI-Approved' | 'Pending' | 'Rejected' = 'Pending';
             let failureReason = '';
 
-            const expectedAmount = parseFloat(course.price.replace('₹', ''));
+            const expectedAmount = parseFloat(displayPrice.replace('₹', ''));
             const detectedAmount = aiResult.amountDetected ? parseFloat(aiResult.amountDetected.replace('₹', '')) : 0;
             
             if (aiResult.riskScore === 'high') {
                 finalStatus = 'Rejected';
                 failureReason = `High-risk screenshot: ${aiResult.reasoning}`;
-            } else if (aiResult.receiverUpiIdDetected && aiResult.receiverUpiIdDetected.toLowerCase() !== SITE_CONFIG.RECEIVER_UPI_ID.toLowerCase()) {
+            } else if (settings.upiId && aiResult.receiverUpiIdDetected && aiResult.receiverUpiIdDetected.toLowerCase() !== settings.upiId.toLowerCase()) {
                 finalStatus = 'Rejected';
                 failureReason = `Payment sent to incorrect UPI ID. Detected: ${aiResult.receiverUpiIdDetected}`;
             } else if (detectedAmount < expectedAmount) {
@@ -239,7 +237,10 @@ export default function CoursePaymentPage() {
                                 </div>
                             )}
                             <h2 className="text-xl font-semibold">{course.title}</h2>
-                            <p className="text-3xl font-bold text-primary">{course.price}</p>
+                            <div className="flex items-baseline gap-2">
+                                {isOfferActive && course.price && <span className="text-muted-foreground line-through text-2xl">{course.price}</span>}
+                                <p className="text-3xl font-bold text-primary">{displayPrice}</p>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -247,22 +248,21 @@ export default function CoursePaymentPage() {
                      <Card className="rounded-2xl shadow-premium-light transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl dark:shadow-lg">
                         <CardHeader>
                             <CardTitle>1. Scan & Pay</CardTitle>
-                            <CardDescription>Use your favorite UPI app to pay the exact amount shown above.</CardDescription>
+                            <CardDescription>{settings.paymentInstructions}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center justify-center space-y-4">
-                            {qrCodeImage && (
+                            {settings.qrCodeUrl && (
                                 <Image 
-                                    src={qrCodeImage.imageUrl} 
+                                    src={settings.qrCodeUrl} 
                                     alt="Payment QR Code" 
                                     width={250} 
                                     height={250}
-                                    data-ai-hint={qrCodeImage.imageHint}
                                     className="rounded-lg border p-2"
                                 />
                             )}
                              <div className="text-center">
-                                <p className="font-bold text-lg">CourseVerse</p>
-                                <p className="text-muted-foreground">UPI ID: {SITE_CONFIG.RECEIVER_UPI_ID}</p>
+                                <p className="font-bold text-lg">{settings.receiverName}</p>
+                                <p className="text-muted-foreground">UPI ID: {settings.upiId}</p>
                             </div>
                         </CardContent>
                     </Card>
