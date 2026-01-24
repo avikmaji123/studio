@@ -261,11 +261,19 @@ function ReviewsSection() {
     const reviewsQuery = useMemoFirebase(() => query(
         collection(firestore, 'reviews'),
         where('status', '==', 'approved'),
-        orderBy('createdAt', 'desc'),
         limit(9)
     ), [firestore]);
 
     const { data: reviews, isLoading } = useCollection<Review>(reviewsQuery);
+
+    const sortedReviews = useMemo(() => {
+        if (!reviews) return [];
+        return [...reviews].sort((a, b) => {
+            const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt) : a.createdAt.toDate();
+            const dateB = typeof b.createdAt === 'string' ? new Date(b.createdAt) : b.createdAt.toDate();
+            return dateB.getTime() - dateA.getTime();
+        });
+    }, [reviews]);
 
     return (
         <section id="reviews" className="py-16 sm:py-24">
@@ -282,7 +290,7 @@ function ReviewsSection() {
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
                     </div>
-                ) : reviews && reviews.length > 0 ? (
+                ) : sortedReviews && sortedReviews.length > 0 ? (
                     <Carousel
                         opts={{
                             align: "start",
@@ -291,7 +299,7 @@ function ReviewsSection() {
                         className="w-full"
                     >
                         <CarouselContent>
-                            {reviews.map((review) => (
+                            {sortedReviews.map((review) => (
                                 <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
                                     <div className="p-1 h-full">
                                         <ReviewCard review={review} />
@@ -463,5 +471,3 @@ export default function Home() {
     </>
   );
 }
-
-    
