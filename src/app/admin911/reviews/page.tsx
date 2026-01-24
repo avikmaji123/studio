@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { MoreHorizontal, PlusCircle, Star, Sparkles, Check, X, Trash2 } from 'lucide-react';
-import { doc, updateDoc, deleteDoc, collection, query, orderBy } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, collection, query, orderBy, setDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createLogEntry } from '@/lib/actions';
 import type { Review } from '@/lib/types';
 import { StarRating } from '@/components/app/star-rating';
+import { useSiteSettings } from '@/hooks/use-settings';
 
 export default function AdminReviewsPage() {
     const firestore = useFirestore();
@@ -36,6 +38,8 @@ export default function AdminReviewsPage() {
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState('pending');
     const [dialogState, setDialogState] = useState({ open: false, review: null as Review | null, action: '' });
+
+    const { settings } = useSiteSettings();
 
     const reviewsQuery = useMemoFirebase(() => query(collection(firestore, 'reviews'), orderBy('createdAt', 'desc')), [firestore]);
     const { data: reviews, isLoading } = useCollection<Review>(reviewsQuery);
@@ -61,17 +65,38 @@ export default function AdminReviewsPage() {
         if (!review || !action || !firestore || !adminUser) return;
 
         const reviewRef = doc(firestore, 'reviews', review.id);
+        const settingsRef = doc(firestore, 'settings', 'global');
 
         try {
+            let currentFeatured: Review[] = settings.featuredReviews || [];
+
             if (action === 'delete') {
                 await deleteDoc(reviewRef);
+                currentFeatured = currentFeatured.filter(r => r.id !== review.id);
                 toast({ title: "Review Deleted", description: "The review has been permanently removed." });
                  await createLogEntry({ source: 'admin', severity: 'warning', message: `Review deleted for course: ${review.courseName}`, metadata: { userId: adminUser.uid, reviewId: review.id } });
             } else {
                 await updateDoc(reviewRef, { status: action });
+                
+                if (action === 'approved') {
+                    if (!currentFeatured.some(r => r.id === review.id)) {
+                        const newFeatured = [{...review, status: 'approved'}, ...currentFeatured];
+                        currentFeatured = newFeatured.sort((a, b) => {
+                            const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt) : a.createdAt.toDate();
+                            const dateB = typeof b.createdAt === 'string' ? new Date(b.createdAt) : b.createdAt.toDate();
+                            return dateB.getTime() - dateA.getTime();
+                        }).slice(0, 9);
+                    }
+                } else { // 'rejected' or 'pending'
+                    currentFeatured = currentFeatured.filter(r => r.id !== review.id);
+                }
+
                 toast({ title: "Review Updated", description: `The review has been ${action}.` });
                 await createLogEntry({ source: 'admin', severity: 'info', message: `Review status changed to ${action}`, metadata: { userId: adminUser.uid, reviewId: review.id } });
             }
+            
+            await setDoc(settingsRef, { featuredReviews: currentFeatured }, { merge: true });
+
         } catch (error: any) {
             toast({ variant: 'destructive', title: "Action Failed", description: error.message });
         } finally {

@@ -90,6 +90,7 @@ export interface SiteSettings {
   qrCodeUrl: string;
   socialLinks: SocialLink[];
   isInitialAdminCreated?: boolean;
+  featuredReviews?: Review[];
 }
 
 export type Certificate = {

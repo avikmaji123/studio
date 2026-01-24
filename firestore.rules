@@ -153,22 +153,14 @@ service cloud.firestore {
     }
 
     match /reviews/{reviewId} {
-      // Admins can see all reviews
-      allow read: if isAdmin();
+      // Admins can do anything.
+      allow read, write: if isAdmin();
 
-      // Anyone can read approved reviews
-      allow get: if resource.data.status == 'approved';
-
-      // Allow public listing only for approved reviews for the homepage/course pages
-      allow list: if request.query.where.status == 'approved';
-
-      // Logged-in users can create reviews for themselves
+      // Logged-in users can create reviews for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // Admins can update/delete reviews
-      allow update, delete: if isAdmin();
+
+      // The public can fetch individual approved reviews, but cannot list the collection.
+      allow get: if resource.data.status == 'approved';
     }
   }
 }
-
-    

@@ -53,7 +53,8 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel"
+} from "@/components/ui/carousel";
+import { useSiteSettings } from '@/hooks/use-settings';
 
 function HeroSection() {
   const { user } = useUser();
@@ -257,23 +258,8 @@ function FeaturedCoursesSection() {
 }
 
 function ReviewsSection() {
-    const firestore = useFirestore();
-    const reviewsQuery = useMemoFirebase(() => query(
-        collection(firestore, 'reviews'),
-        where('status', '==', 'approved'),
-        limit(9)
-    ), [firestore]);
-
-    const { data: reviews, isLoading } = useCollection<Review>(reviewsQuery);
-
-    const sortedReviews = useMemo(() => {
-        if (!reviews) return [];
-        return [...reviews].sort((a, b) => {
-            const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt) : a.createdAt.toDate();
-            const dateB = typeof b.createdAt === 'string' ? new Date(b.createdAt) : b.createdAt.toDate();
-            return dateB.getTime() - dateA.getTime();
-        });
-    }, [reviews]);
+    const { settings, isLoading } = useSiteSettings();
+    const sortedReviews = settings.featuredReviews || [];
 
     return (
         <section id="reviews" className="py-16 sm:py-24">
@@ -290,7 +276,7 @@ function ReviewsSection() {
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
                     </div>
-                ) : sortedReviews && sortedReviews.length > 0 ? (
+                ) : sortedReviews.length > 0 ? (
                     <Carousel
                         opts={{
                             align: "start",

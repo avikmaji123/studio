@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -28,6 +29,7 @@ export const defaultSettings: SiteSettings = {
         { id: 'instagram', name: 'Instagram', url: 'https://instagram.com/avik_911', visible: true },
     ],
     isInitialAdminCreated: false,
+    featuredReviews: [],
 };
 
 export function useSiteSettings() {
