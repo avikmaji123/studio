@@ -4,7 +4,7 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, getRedirectResult, UserCredential } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { Storage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useDoc, WithId } from './firestore/use-doc';
@@ -75,36 +75,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
   storage,
 }) => {
-  const router = useRouter();
-  const { toast } = useToast();
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true,
     userError: null,
   });
-
-  const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
-    const user = userCredential.user;
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-      const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ['', ''];
-      const lastName = lastNameParts.join(' ');
-      
-      await setDoc(userDocRef, {
-        id: user.uid,
-        firstName: firstName || '',
-        lastName: lastName || '',
-        email: user.email,
-        role: 'student',
-        themePreference: 'light',
-        walletBalance: 0,
-        affiliateCode: '',
-        suspended: false,
-      });
-    }
-  };
 
   useEffect(() => {
     if (!auth) {
@@ -112,30 +87,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       return;
     }
 
-    // This handles the result from a a `signInWithRedirect` call.
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result) {
-          // User has successfully signed in.
-          await createUserProfileIfNotExists(result);
-           toast({
-            title: "Login Successful",
-            description: "Welcome! Redirecting you to the dashboard...",
-          });
-          router.push('/dashboard');
-        }
-        // If result is null, it means the user has not just signed in via redirect.
-        // The onAuthStateChanged listener below will handle existing sessions.
-      })
-      .catch((error) => {
-        console.error("Redirect Result Error:", error);
-        toast({
-          variant: "destructive",
-          title: "Sign-In Failed",
-          description: error.message || "An error occurred during the sign-in process.",
-        });
-      });
-
+    // onAuthStateChanged is the single source of truth for the user's login state.
+    // It handles session persistence, sign-in, and sign-out events.
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
@@ -147,7 +100,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth, firestore, router, toast]);
+  }, [auth]);
 
   const userDocRef = useMemoFirebase(
     () => (userAuthState.user ? doc(firestore, 'users', userAuthState.user.uid) : null),

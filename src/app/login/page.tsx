@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, UserCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
@@ -104,22 +104,41 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
     const provider = new GoogleAuthProvider();
     setIsSubmitting(true);
-    try {
-      await signInWithRedirect(auth, provider);
-      // The user will be redirected to Google to sign in.
-      // The result is handled in the FirebaseProvider.
-    } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Google Sign-In Failed",
-        description: error.message || "Could not initiate Google Sign-In. Please try again.",
+    signInWithPopup(auth, provider)
+      .then(async (userCredential) => {
+        await createUserProfileIfNotExists(userCredential);
+        toast({
+          title: "Login Successful",
+          description: "Welcome! Redirecting you to the dashboard...",
+        });
+        // The useEffect hook will handle the redirect
+      })
+      .catch((error) => {
+        let title = "Sign-In Failed";
+        let description = "An unexpected error occurred. Please try again.";
+
+        switch (error.code) {
+            case 'auth/popup-closed-by-user':
+                title = "Login Cancelled";
+                description = "You closed the login window before completing sign-in.";
+                break;
+            case 'auth/account-exists-with-different-credential':
+                title = "Email In Use";
+                description = "This email is already associated with another login method.";
+                break;
+            default:
+                console.error("Google Sign-In Error:", error);
+                description = error.message;
+                break;
+        }
+        toast({ variant: "destructive", title, description });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-      setIsSubmitting(false);
-    }
   };
 
 
