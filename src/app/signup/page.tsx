@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from "@/firebase";
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithRedirect, getRedirectResult, UserCredential } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -25,12 +25,44 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
 
   useEffect(() => {
     if (!isUserLoading && user) {
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    if (!auth) return;
+
+    setIsCheckingRedirect(true);
+
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          setIsSubmitting(true);
+          await createUserProfileIfNotExists(result);
+          toast({
+            title: "Sign-Up Successful",
+            description: "Welcome! Redirecting you to the dashboard...",
+          });
+          // Redirect will be handled by the other useEffect
+        }
+      })
+      .catch((error) => {
+        console.error("Google Redirect Error:", error);
+        toast({
+          variant: "destructive",
+          title: "Google Sign-Up Failed",
+          description: error.message || "Could not complete sign-up with Google.",
+        });
+      })
+      .finally(() => {
+        setIsCheckingRedirect(false);
+        setIsSubmitting(false);
+      });
+  }, [auth]);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential, fName?: string, lName?: string) => {
     if (!firestore) return;
@@ -105,44 +137,18 @@ export default function SignupPage() {
       });
   };
 
-  const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
+  const handleGoogleSignIn = () => {
+    if (!auth) return;
     const provider = new GoogleAuthProvider();
     setIsSubmitting(true);
-
-    try {
-        const userCredential = await signInWithPopup(auth, provider);
-        await createUserProfileIfNotExists(userCredential);
-        toast({
-          title: "Sign-Up Successful",
-          description: "Welcome! Redirecting you to the dashboard...",
-        });
-        router.push('/dashboard');
-    } catch (error: any) {
-        let title = "Sign-In Failed";
-        let description = "An unexpected error occurred. Please try again.";
-
-        switch (error.code) {
-            case 'auth/popup-closed-by-user':
-                title = "Sign-Up Cancelled";
-                description = "You closed the window before completing sign-up.";
-                break;
-            case 'auth/account-exists-with-different-credential':
-                title = "Email In Use";
-                description = "This email is already associated with another login method. Please try logging in.";
-                break;
-            default:
-                console.error("Google Sign-In Error:", error);
-                description = error.message;
-                break;
-        }
-        toast({ variant: "destructive", title, description });
-    } finally {
-        setIsSubmitting(false);
-    }
+    signInWithRedirect(auth, provider).catch(error => {
+      console.error("signInWithRedirect error:", error);
+      toast({ variant: 'destructive', title: "Error", description: "Could not initiate Google sign-up. Please try again."})
+      setIsSubmitting(false);
+    });
   };
   
-  if (isUserLoading || user) {
+  if (isUserLoading || isCheckingRedirect || user) {
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />

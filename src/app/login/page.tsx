@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, UserCredential } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
@@ -22,12 +22,46 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
 
   useEffect(() => {
     if (!isUserLoading && user) {
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    if (!auth) return;
+
+    // Set loading state to true when we start checking.
+    setIsCheckingRedirect(true);
+
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          setIsSubmitting(true); // Show loading state while we process
+          await createUserProfileIfNotExists(result);
+          toast({
+            title: "Login Successful",
+            description: "Welcome! Redirecting you to the dashboard...",
+          });
+          // router.push is handled by the other useEffect on user state change.
+        }
+      })
+      .catch((error) => {
+        console.error("Google Redirect Error:", error);
+        toast({
+          variant: "destructive",
+          title: "Google Sign-In Failed",
+          description: error.message || "Could not complete sign-in with Google.",
+        });
+      })
+      .finally(() => {
+        setIsCheckingRedirect(false);
+        setIsSubmitting(false);
+      });
+  }, [auth]);
+
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
     if (!firestore) return;
@@ -103,45 +137,19 @@ export default function LoginPage() {
       });
   };
 
-  const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
+  const handleGoogleSignIn = () => {
+    if (!auth) return;
     const provider = new GoogleAuthProvider();
     setIsSubmitting(true);
-    
-    try {
-        const userCredential = await signInWithPopup(auth, provider);
-        await createUserProfileIfNotExists(userCredential);
-        toast({
-          title: "Login Successful",
-          description: "Welcome! Redirecting you to the dashboard...",
-        });
-        router.push('/dashboard');
-    } catch (error: any) {
-        let title = "Sign-In Failed";
-        let description = "An unexpected error occurred. Please try again.";
-
-        switch (error.code) {
-            case 'auth/popup-closed-by-user':
-                title = "Login Cancelled";
-                description = "You closed the login window before completing sign-in.";
-                break;
-            case 'auth/account-exists-with-different-credential':
-                title = "Email In Use";
-                description = "This email is already associated with another login method.";
-                break;
-            default:
-                console.error("Google Sign-In Error:", error);
-                description = error.message;
-                break;
-        }
-        toast({ variant: "destructive", title, description });
-    } finally {
-        setIsSubmitting(false);
-    }
+    signInWithRedirect(auth, provider).catch(error => {
+      console.error("signInWithRedirect error:", error);
+      toast({ variant: 'destructive', title: "Error", description: "Could not initiate Google sign-in. Please try again."})
+      setIsSubmitting(false);
+    });
   };
 
 
-  if (isUserLoading || user) {
+  if (isUserLoading || isCheckingRedirect || user) {
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
