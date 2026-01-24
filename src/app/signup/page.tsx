@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from "@/firebase";
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithRedirect, getRedirectResult, UserCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -25,44 +25,12 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
 
   useEffect(() => {
     if (!isUserLoading && user) {
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, router]);
-
-  useEffect(() => {
-    if (!auth) return;
-
-    setIsCheckingRedirect(true);
-
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result) {
-          setIsSubmitting(true);
-          await createUserProfileIfNotExists(result);
-          toast({
-            title: "Sign-Up Successful",
-            description: "Welcome! Redirecting you to the dashboard...",
-          });
-          // Redirect will be handled by the other useEffect
-        }
-      })
-      .catch((error) => {
-        console.error("Google Redirect Error:", error);
-        toast({
-          variant: "destructive",
-          title: "Google Sign-Up Failed",
-          description: error.message || "Could not complete sign-up with Google.",
-        });
-      })
-      .finally(() => {
-        setIsCheckingRedirect(false);
-        setIsSubmitting(false);
-      });
-  }, [auth]);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential, fName?: string, lName?: string) => {
     if (!firestore) return;
@@ -138,17 +106,51 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignIn = () => {
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
+    if (!auth) {
+      toast({ variant: "destructive", title: "Error", description: "Authentication service not ready." });
+      return;
+    }
+
     setIsSubmitting(true);
-    signInWithRedirect(auth, provider).catch(error => {
-      console.error("signInWithRedirect error:", error);
-      toast({ variant: 'destructive', title: "Error", description: "Could not initiate Google sign-up. Please try again."})
-      setIsSubmitting(false);
-    });
+    const provider = new GoogleAuthProvider();
+
+    signInWithPopup(auth, provider)
+      .then(async (result) => {
+        await createUserProfileIfNotExists(result);
+        toast({
+          title: "Sign-Up Successful",
+          description: "Welcome! Redirecting you to the dashboard...",
+        });
+        router.push('/dashboard');
+      })
+      .catch((error) => {
+        if (error.code === 'auth/popup-closed-by-user') {
+          toast({
+            variant: "destructive",
+            title: "Sign-Up Cancelled",
+            description: "You closed the Google Sign-Up window.",
+          });
+        } else if (error.code === 'auth/popup-blocked') {
+           toast({
+            variant: "destructive",
+            title: "Popup Blocked",
+            description: "Your browser blocked the Google Sign-Up popup. Please allow popups for this site and try again.",
+          });
+        } else {
+          console.error("Google Popup Error:", error);
+          toast({
+            variant: "destructive",
+            title: "Google Sign-Up Failed",
+            description: error.message || "Could not complete sign-up with Google.",
+          });
+        }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
   
-  if (isUserLoading || isCheckingRedirect || user) {
+  if (isUserLoading || user) {
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
