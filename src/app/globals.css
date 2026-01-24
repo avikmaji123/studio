@@ -8,7 +8,6 @@
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
   }
   :root {
     --background-start-rgb: 247, 249, 252;
@@ -20,8 +19,8 @@
     --popover-foreground: 222 47% 11%;
     
     --primary: 224 82% 57%;
-    --primary-gradient-start: 34, 97, 237; /* hsl(224, 82%, 57%) */
-    --primary-gradient-end: 14, 165, 233; /* hsl(199, 94%, 52%) */
+    --primary-gradient-start: hsl(224, 82%, 57%);
+    --primary-gradient-end: hsl(199, 94%, 52%);
     
     --primary-foreground: 0 0% 100%;
     --secondary: 220 13% 96%;
@@ -56,7 +55,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 224 82% 57%;
     
-    --shadow-ambient: 0 30px 60px -10px rgba(15, 23, 42, 0.1), 0 8px 16px -8px rgba(15, 23, 42, 0.05);
+    --shadow-ambient: 0 10px 30px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
     --shadow-glow: 0 0 20px -5px hsl(var(--primary) / 0.5);
   }
   .dark {
@@ -71,8 +70,8 @@
     --popover-foreground: 220 13% 91%;
     
     --primary: 199 94% 60%;
-    --primary-gradient-start: 14, 165, 233; /* hsl(199, 94%, 60%) */
-    --primary-gradient-end: 124, 58, 237; /* violet-500 */
+    --primary-gradient-start: hsl(199, 94%, 60%);
+    --primary-gradient-end: hsl(258, 80%, 62%);
     
     --primary-foreground: 222 47% 11%;
     --secondary: 217 21% 21%;
