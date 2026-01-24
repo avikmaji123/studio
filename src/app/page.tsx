@@ -17,7 +17,7 @@ import {
   Search,
   Loader2,
 } from 'lucide-react';
-import { useMemo, useState, useTransition, useEffect } from 'react';
+import { useMemo, useState, useTransition, useEffect, useRef } from 'react';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -56,10 +56,31 @@ import {
 } from "@/components/ui/carousel";
 import { useSiteSettings } from '@/hooks/use-settings';
 
+// Custom hook for scroll-reveal animations
+function useScrollReveal() {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const elements = document.querySelectorAll('.fade-in-on-scroll');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => elements.forEach((el) => observer.unobserve(el));
+  }, []);
+}
+
 function HeroSection() {
   const { user } = useUser();
   return (
-    <section className="relative w-full overflow-hidden bg-transparent pt-16 md:pt-24 lg:pt-32">
+    <section className="relative w-full overflow-hidden bg-transparent pt-16 md:pt-24 lg:pt-32 fade-in-on-scroll">
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10 grid grid-cols-2 -space-x-52 opacity-20 dark:opacity-20"
@@ -71,15 +92,15 @@ function HeroSection() {
 
       <div className="container relative mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-6 text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl gradient-text">
+          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl gradient-text animate-fade-in-up">
             Unlock Your Potential with CourseVerse
           </h1>
-          <p className="max-w-2xl text-lg text-muted-foreground">
+          <p className="max-w-2xl text-lg text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             A course distribution and access management platform. My role is
             limited to platform administration, content distribution, and
             access control.
           </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex flex-col gap-4 sm:flex-row animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             {user ? (
               <Button asChild size="lg">
                 <Link href="/dashboard">Go to Dashboard</Link>
@@ -142,7 +163,7 @@ function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-16 sm:py-24">
+    <section id="features" className="py-16 sm:py-24 fade-in-on-scroll">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
@@ -218,7 +239,7 @@ function FeaturedCoursesSection() {
   }, [enrollments]);
 
   return (
-    <section id="courses" className="bg-background/50 py-16 sm:py-24">
+    <section id="courses" className="bg-background/50 py-16 sm:py-24 fade-in-on-scroll">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
           <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
@@ -231,7 +252,7 @@ function FeaturedCoursesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-[400px] w-full rounded-xl bg-muted/50" />
+                <Skeleton key={i} className="h-[400px] w-full rounded-xl skeleton-shimmer" />
               ))
             : courses?.map(course => {
                 const certificate = certificates?.find(c => c.courseId === course.id);
@@ -264,7 +285,7 @@ function ReviewsSection() {
     const sortedReviews = settings.featuredReviews || [];
 
     return (
-        <section id="reviews" className="py-16 sm:py-24">
+        <section id="reviews" className="py-16 sm:py-24 fade-in-on-scroll">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="mb-12 text-center max-w-3xl mx-auto">
                     <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
@@ -276,7 +297,7 @@ function ReviewsSection() {
                 </div>
                 {isLoading ? (
                     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl bg-muted/50" />)}
+                        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl skeleton-shimmer" />)}
                     </div>
                 ) : sortedReviews.length > 0 ? (
                     <Carousel
@@ -389,7 +410,7 @@ function AiFaqSection() {
     };
 
     return (
-        <section id="faq" className="py-16 sm:py-24 bg-background/50">
+        <section id="faq" className="py-16 sm:py-24 bg-background/50 fade-in-on-scroll">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="mb-12 text-center max-w-3xl mx-auto">
                     <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl gradient-text">
@@ -432,7 +453,7 @@ function AiFaqSection() {
                     onValueChange={setActiveAccordionItem}
                 >
                     {allFaqs.map((faq) => (
-                        <AccordionItem key={faq.id} value={`item-${faq.id}`} className="glass-card rounded-xl border-none shadow-ambient">
+                        <AccordionItem key={faq.id} value={`item-${faq.id}`} className="glass-card rounded-xl border-none shadow-ambient transition-colors data-[state=open]:bg-card/80">
                             <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline px-6">
                                 {faq.question}
                             </AccordionTrigger>
@@ -449,6 +470,7 @@ function AiFaqSection() {
 
 
 export default function Home() {
+  useScrollReveal();
   return (
     <>
       <HeroSection />

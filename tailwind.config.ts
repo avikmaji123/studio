@@ -106,11 +106,28 @@ export default {
           '50%': { backgroundPosition: '100% 50%' },
           '100%': { backgroundPosition: '0% 50%' },
         },
+        'fade-in-up': {
+            '0%': {
+                opacity: '0',
+                transform: 'translateY(20px)',
+            },
+            '100%': {
+                opacity: '1',
+                transform: 'translateY(0)',
+            },
+        },
+        'shimmer': {
+          '100%': {
+            transform: 'translateX(100%)',
+          }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'gradient-pan': 'gradient-pan 5s ease infinite',
+        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+        'shimmer': 'shimmer 2s infinite',
       },
     },
   },

@@ -8,12 +8,26 @@ import { BookOpen } from 'lucide-react';
 import { MobileNav } from './mobile-nav';
 import { navConfig } from '@/lib/nav-config';
 import { useSiteSettings } from '@/hooks/use-settings';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function Header() {
   const { settings, isLoading } = useSiteSettings();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/20 bg-background/60 backdrop-blur-lg">
+    <header className={cn(
+        "sticky top-0 z-50 w-full border-b border-transparent transition-all duration-300",
+        isScrolled ? "navbar-scrolled" : "bg-transparent"
+    )}>
       <div className="container flex h-16 items-center">
         <div className="mr-4 md:hidden">
           <MobileNav />
