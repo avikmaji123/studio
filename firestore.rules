@@ -154,13 +154,13 @@ service cloud.firestore {
 
     match /reviews/{reviewId} {
       // Admins can do anything.
-      allow read, write: if isAdmin();
+      allow write: if isAdmin();
 
       // Logged-in users can create reviews for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-
-      // The public can fetch individual approved reviews, but cannot list the collection.
-      allow get: if resource.data.status == 'approved';
+      
+      // Admins can read any review. Logged-in users can read their own reviews.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
   }
 }
