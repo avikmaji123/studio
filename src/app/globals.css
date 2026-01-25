@@ -140,75 +140,52 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
   }
 
+  /* Light Theme Hero: Clean image, no overlay */
   .hero-background {
-    background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 25%, rgba(var(--background-start-rgb), 0.5) 40%, transparent 60%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
+    background-image: url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
     background-position: center right;
     background-size: cover;
   }
 
+  /* Dark Theme Hero: Adds a dark gradient for text readability */
   .dark .hero-background {
       background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 25%, rgba(var(--background-start-rgb), 0.5) 40%, transparent 60%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
   }
 
   /* Mobile-specific hero background adjustments. */
   @media (max-width: 768px) {
-    /*
-      The previous fix used 'background-size: contain', which created letterboxing (empty gaps).
-      This reverts to 'cover' to ensure the image always fills the hero section height.
-      The hero section's padding is reduced below to prevent excessive zooming on the image.
-    */
     .hero-background {
       background-size: cover;
       background-position: center right;
     }
     
-    /*
-      The hero section's content container had large vertical padding (py-24), making it very tall.
-      This reduces the padding to make the hero section shorter, which in turn prevents 'background-size: cover'
-      from zooming in too much and cropping the subject.
-    */
     .hero-background > .container {
       padding-top: 4rem; /* 16 */
       padding-bottom: 4rem; /* 16 */
     }
     
-    /*
-      The hero headline font size is reduced for better visual balance on mobile screens.
-      The original Tailwind class was 'text-4xl' (2.25rem). This brings it down to a more manageable size.
-    */
     .hero-background h1 {
       font-size: 2rem;
       line-height: 1.2;
     }
     
-    /*
-      The hero paragraph font size is also reduced slightly for mobile.
-      The original Tailwind class was 'text-lg' (1.125rem). This brings it to a standard base size.
-    */
     .hero-background p {
       font-size: 1rem;
     }
   }
 
   @media (max-width: 480px) {
-    /*
-      The gradient is extended on small mobile screens to ensure the text on the left remains readable.
-      This rule is preserved from the previous state as it's still beneficial.
-    */
-    .hero-background {
-      background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 40%, rgba(var(--background-start-rgb), 0.7) 55%, transparent 70%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
-    }
+    /* The base .hero-background rule for mobile has no gradient and is inherited. */
+    /* Dark theme on small mobile: apply the stronger gradient for readability. */
     .dark .hero-background {
         background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 40%, rgba(var(--background-start-rgb), 0.7) 55%, transparent 70%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
     }
     
-    /* Further reduce padding for very small screens to keep it compact */
     .hero-background > .container {
       padding-top: 3rem; /* 12 */
       padding-bottom: 3rem; /* 12 */
     }
 
-    /* Further reduce headline size for very small screens */
     .hero-background h1 {
       font-size: 1.875rem; /* text-3xl */
     }
