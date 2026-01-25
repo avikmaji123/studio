@@ -80,19 +80,10 @@ function useScrollReveal() {
 function HeroSection() {
   const { user } = useUser();
   return (
-    <section className="relative w-full overflow-hidden bg-transparent pt-16 md:pt-24 lg:pt-32 fade-in-on-scroll">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 grid grid-cols-2 -space-x-52 opacity-20 dark:opacity-20"
-      >
-        <div className="h-56 bg-gradient-to-br from-primary to-purple-400 blur-[106px] dark:from-blue-700"></div>
-        <div className="h-32 bg-gradient-to-r from-cyan-400 to-sky-300 blur-[106px] dark:to-indigo-600"></div>
-      </div>
-       <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-
-      <div className="container relative mx-auto px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-6 text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl max-w-4xl gradient-text animate-fade-in-up">
+    <section className="relative w-full overflow-hidden hero-background fade-in-on-scroll">
+      <div className="container relative mx-auto px-4 md:px-6 py-24 md:py-32 lg:py-40">
+        <div className="flex flex-col items-start justify-center space-y-6 text-left max-w-xl lg:max-w-2xl">
+          <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl gradient-text animate-fade-in-up">
             Unlock Your Potential with CourseVerse
           </h1>
           <p className="max-w-2xl text-lg text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
