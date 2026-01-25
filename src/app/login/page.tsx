@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, UserCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, UserCredential } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
@@ -19,15 +19,11 @@ export default function LoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isUserLoading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, isUserLoading, router]);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
   const createUserProfileIfNotExists = async (userCredential: UserCredential) => {
     if (!firestore) return;
@@ -52,6 +48,50 @@ export default function LoginPage() {
       });
     }
   };
+  
+  useEffect(() => {
+    if (!auth) {
+        setIsProcessingRedirect(false);
+        return;
+    };
+
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          // User has just been redirected from Google.
+          toast({
+            title: "Processing Login...",
+            description: "Please wait while we set up your account.",
+          });
+          await createUserProfileIfNotExists(result);
+          toast({
+            title: "Login Successful",
+            description: "Welcome back! Redirecting you to the dashboard...",
+          });
+          router.push('/dashboard');
+        } else {
+            // No redirect result, so we're not in a redirect flow.
+            setIsProcessingRedirect(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Google Redirect Error:", error);
+        toast({
+          variant: "destructive",
+          title: "Google Sign-In Failed",
+          description: error.message || "Could not complete sign-in with Google.",
+        });
+        setIsProcessingRedirect(false);
+      });
+  }, [auth, router, toast, firestore]);
+
+  useEffect(() => {
+    // This effect handles redirecting already-logged-in users
+    if (!isUserLoading && !isProcessingRedirect && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, isUserLoading, isProcessingRedirect, router]);
+
 
   const handleEmailLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,45 +151,11 @@ export default function LoginPage() {
     
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
-
-    signInWithPopup(auth, provider)
-      .then(async (result) => {
-        await createUserProfileIfNotExists(result);
-        toast({
-          title: "Login Successful",
-          description: "Welcome! Redirecting you to the dashboard...",
-        });
-        router.push('/dashboard');
-      })
-      .catch((error) => {
-        if (error.code === 'auth/popup-closed-by-user') {
-          toast({
-            variant: "destructive",
-            title: "Login Cancelled",
-            description: "You closed the Google Sign-In window.",
-          });
-        } else if (error.code === 'auth/popup-blocked') {
-           toast({
-            variant: "destructive",
-            title: "Popup Blocked",
-            description: "Your browser blocked the Google Sign-In popup. Please allow popups for this site and try again.",
-          });
-        } else {
-          console.error("Google Popup Error:", error);
-          toast({
-            variant: "destructive",
-            title: "Google Sign-In Failed",
-            description: error.message || "Could not complete sign-in with Google.",
-          });
-        }
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+    signInWithRedirect(auth, provider);
   };
 
 
-  if (isUserLoading || user) {
+  if (isUserLoading || isProcessingRedirect || user) {
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-15rem)]">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
