@@ -249,7 +249,7 @@ function FeaturedCoursesSection() {
             Handpicked courses to kickstart your learning adventure.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:grid-cols-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-[400px] w-full rounded-xl skeleton-shimmer" />
@@ -481,3 +481,4 @@ export default function Home() {
     </>
   );
 }
+
