@@ -1,0 +1,11 @@
+# humans.txt file for CourseVerse
+
+# TEAM
+Project: CourseVerse
+Role: Platform Owner / Administrator
+Website: https://courseverse-app.com
+Contact: See /contact page
+
+# SITE
+Last update: 2024-07-31
+Standards: HTML5, CSS3, JavaScript, React, Next.js

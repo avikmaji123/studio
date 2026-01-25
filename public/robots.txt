@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /admin911/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /signup
+Disallow: /certificate/
+Disallow: /certificate-issued/
+Disallow: /certificate-test/
+
+Sitemap: https://courseverse-app.com/sitemap.xml

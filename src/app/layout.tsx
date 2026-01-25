@@ -7,8 +7,22 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import MainSiteLayout from '@/components/app/main-site-layout';
 
 export const metadata: Metadata = {
-  title: 'CourseVerse',
-  description: 'Your universe of knowledge.',
+  metadataBase: new URL('https://courseverse-app.com'),
+  title: {
+    default: 'CourseVerse',
+    template: `%s | CourseVerse`,
+  },
+  description: 'Your universe for high-quality licensed courses.',
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F6F7FB' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
+  ],
 };
 
 export default function RootLayout({
