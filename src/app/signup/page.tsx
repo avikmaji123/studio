@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useAuth, useUser, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithRedirect, getRedirectResult, UserCredential } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from "lucide-react";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
