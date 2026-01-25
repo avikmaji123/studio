@@ -83,7 +83,7 @@ export default function LoginPage() {
         });
         setIsProcessingRedirect(false);
       });
-  }, [auth, router, toast, firestore]);
+  }, [auth]);
 
   useEffect(() => {
     // This effect handles redirecting already-logged-in users
@@ -93,21 +93,20 @@ export default function LoginPage() {
   }, [user, isUserLoading, isProcessingRedirect, router]);
 
 
-  const handleEmailLogin = (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     setIsSubmitting(true);
     
-    signInWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         await createUserProfileIfNotExists(userCredential);
         toast({
           title: "Login Successful",
           description: "Welcome back! Redirecting you to the dashboard...",
         });
         router.push('/dashboard');
-      })
-      .catch((error: any) => {
+    } catch (error: any) {
         let title = "Login Failed";
         let description = "An unexpected error occurred. Please try again.";
 
@@ -137,10 +136,9 @@ export default function LoginPage() {
         }
 
         toast({ variant: "destructive", title, description });
-      })
-      .finally(() => {
+    } finally {
         setIsSubmitting(false);
-      });
+    }
   };
 
   const handleGoogleSignIn = () => {

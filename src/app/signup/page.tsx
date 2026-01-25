@@ -86,7 +86,7 @@ export default function SignupPage() {
         });
         setIsProcessingRedirect(false);
       });
-  }, [auth, router, toast, firestore]);
+  }, [auth]);
 
   useEffect(() => {
     if (!isUserLoading && !isProcessingRedirect && user) {
@@ -94,13 +94,13 @@ export default function SignupPage() {
     }
   }, [user, isUserLoading, isProcessingRedirect, router]);
 
-  const handleEmailSignUp = (e: React.FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !firestore) return;
     setIsSubmitting(true);
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await updateProfile(user, {
           displayName: `${firstName} ${lastName}`.trim(),
@@ -111,8 +111,7 @@ export default function SignupPage() {
             description: "Welcome! Redirecting you to the dashboard...",
         });
         router.push('/dashboard');
-      })
-      .catch((error: any) => {
+    } catch (error: any) {
         let title = "Sign-up Failed";
         let description = "An unexpected error occurred. Please try again.";
 
@@ -136,10 +135,9 @@ export default function SignupPage() {
         }
         
         toast({ variant: "destructive", title, description });
-      })
-      .finally(() => {
+    } finally {
         setIsSubmitting(false);
-      });
+    }
   };
 
   const handleGoogleSignIn = () => {
