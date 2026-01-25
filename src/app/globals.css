@@ -154,32 +154,24 @@
   @media (max-width: 768px) {
     .hero-background {
       /*
-        FIX: Use 'auto 100%' for background-size.
-        This forces the background image's height to match the container's height,
-        eliminating any vertical gaps. The width scales proportionally.
-        This is better than 'cover' which can over-zoom on tall screens.
+        FIX: Use 'background-size: contain' for mobile devices.
+        This rule ensures the entire 16:9 image composition is visible without any cropping or zooming,
+        as explicitly requested. This may result in empty space (letterboxing) above and below the image
+        on tall screens, which is the necessary trade-off to prevent cropping the subject.
       */
-      background-size: auto 100%;
+      background-size: contain;
+      background-repeat: no-repeat;
       /*
-        FIX: Use 'right center' for background-position.
-        This ensures the right edge of the image (where the subject is)
-        is always aligned with the right edge of the container, keeping the subject in view.
+        Position the contained image in the center. On portrait viewports, this will center the image
+        vertically, while horizontally it will fill the width.
       */
-      background-position: right center;
+      background-position: center;
     }
   }
 
   @media (max-width: 480px) {
     .hero-background {
-      /*
-        On smaller screens, we maintain the same sizing and positioning strategy
-        to ensure consistency and prevent cropping. 'auto 100%' and 'right center'
-        are robust enough for various small screen aspect ratios.
-      */
-      background-size: auto 100%;
-      background-position: right center;
-      
-      /* The gradient is extended to ensure the text on the left remains readable as the background image shifts. */
+      /* The gradient is extended on small mobile screens to ensure the text on the left remains readable. */
       background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 40%, rgba(var(--background-start-rgb), 0.7) 55%, transparent 70%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
     }
     .dark .hero-background {
