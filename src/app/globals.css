@@ -150,20 +150,35 @@
       background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 25%, rgba(var(--background-start-rgb), 0.5) 40%, transparent 60%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
   }
 
-  /* Mobile-specific hero background adjustments to prevent cropping the subject. */
+  /* Mobile-specific hero background adjustments. */
   @media (max-width: 768px) {
     .hero-background {
-      /* Adjust background size and position to zoom out and re-center the subject on mobile. */
-      background-size: 180% auto;
-      background-position: 85% center;
+      /*
+        FIX: Use 'auto 100%' for background-size.
+        This forces the background image's height to match the container's height,
+        eliminating any vertical gaps. The width scales proportionally.
+        This is better than 'cover' which can over-zoom on tall screens.
+      */
+      background-size: auto 100%;
+      /*
+        FIX: Use 'right center' for background-position.
+        This ensures the right edge of the image (where the subject is)
+        is always aligned with the right edge of the container, keeping the subject in view.
+      */
+      background-position: right center;
     }
   }
 
   @media (max-width: 480px) {
     .hero-background {
-      /* Further zoom out for very narrow screens to ensure the subject is not cropped. */
-      background-size: 220% auto;
-      background-position: 80% center;
+      /*
+        On smaller screens, we maintain the same sizing and positioning strategy
+        to ensure consistency and prevent cropping. 'auto 100%' and 'right center'
+        are robust enough for various small screen aspect ratios.
+      */
+      background-size: auto 100%;
+      background-position: right center;
+      
       /* The gradient is extended to ensure the text on the left remains readable as the background image shifts. */
       background-image: linear-gradient(90deg, rgb(var(--background-start-rgb)) 40%, rgba(var(--background-start-rgb), 0.7) 55%, transparent 70%), url('https://i.ibb.co/Df1kFX3t/717049c7-58b7-4300-870a-947d865f8238.jpg');
     }
