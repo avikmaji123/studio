@@ -110,6 +110,10 @@ service cloud.firestore {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
+    
+    match /coupons/{couponId} {
+      allow read, write: if isAdmin();
+    }
 
     match /lessons/{lessonId} {
       allow get, list: if true;

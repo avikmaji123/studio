@@ -141,4 +141,14 @@ export type SecurityAlert = {
     relatedLogIds: string[];
 };
 
-    
+export type Coupon = {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  status: 'active' | 'inactive';
+  usageLimit: number;
+  usageCount: number;
+  expiresAt: Timestamp;
+  applicableCourseIds: string[];
+};
