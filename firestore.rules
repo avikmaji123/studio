@@ -112,7 +112,10 @@ service cloud.firestore {
     }
     
     match /coupons/{couponId} {
-      allow read, write: if isAdmin();
+      // Use email check for list to avoid using get() in a query rule.
+      allow list: if request.auth.token.email == 'avik911@courseverse.admin';
+      // Get and write can still use the more robust role-based check.
+      allow get, create, update, delete: if isAdmin();
     }
 
     match /lessons/{lessonId} {
