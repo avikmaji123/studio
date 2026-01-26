@@ -31,24 +31,24 @@ const growthFeatures = [
   },
   {
     title: 'Coupons',
-    description: 'Create and manage discount codes.',
+    description: 'Create and manage discount codes for specific courses or global use.',
     Icon: Percent,
     href: '/admin911/growth/coupons',
-    isReady: false,
+    isReady: true,
   },
   {
     title: 'Affiliate Program',
-    description: 'Oversee your referral and commission system.',
+    description: 'Oversee your referral program, commissions, and performance.',
     Icon: UserPlus,
     href: '/admin911/growth/affiliates',
-    isReady: false,
+    isReady: true,
   },
   {
     title: 'Course Bundles',
-    description: 'Group courses together for special pricing.',
+    description: 'Group courses together and sell them at a special, unified price.',
     Icon: Package,
     href: '/admin911/growth/bundles',
-    isReady: false,
+    isReady: true,
   },
 ];
 
@@ -113,24 +113,22 @@ export default function GrowthDashboardPage() {
         ))}
       </div>
 
-      <Card className="opacity-60 blur-[0.5px] cursor-not-allowed select-none">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-lg font-medium">
-            AI Pricing Intelligence
-          </CardTitle>
-          <Sparkles className="h-6 w-6 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Get AI-driven insights to optimize your pricing, offers, and
-            bundles. This feature is under development.
-          </p>
-          <Badge variant="outline" className="mt-4">
-            <Lock className="mr-1.5 h-3 w-3" />
-            Under Development
-          </Badge>
-        </CardContent>
-      </Card>
+       <Link href="/admin911/growth/ai-insights">
+        <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-medium">
+              AI Pricing Intelligence
+            </CardTitle>
+            <Sparkles className="h-6 w-6 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Get AI-driven insights to optimize your pricing, offers, and
+              bundles.
+            </p>
+          </CardContent>
+        </Card>
+      </Link>
     </main>
   );
 }
