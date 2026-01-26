@@ -344,7 +344,7 @@ export default function NewCoursePage() {
                                     <CardHeader><CardTitle>Thumbnail Image</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         {imagePreview && <div className="relative aspect-video"><Image src={imagePreview} alt="Preview" fill className="object-cover rounded-md" /></div>}
-                                        <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://" value={form.watch('imageUrl')} onChange={handleImageUrlChange} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://..." value={form.watch('imageUrl')} onChange={handleImageUrlChange} /></FormControl><FormMessage /></FormItem>
                                         <div className="text-center my-2 text-xs text-muted-foreground">OR</div>
                                         <FormItem><FormLabel>Upload Image</FormLabel><FormControl><Input type="file" accept="image/*" onChange={handleImageFileChange} /></FormControl></FormItem>
                                     </CardContent>

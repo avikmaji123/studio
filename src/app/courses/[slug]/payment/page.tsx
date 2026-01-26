@@ -10,7 +10,6 @@ import { doc, setDoc, Timestamp, query, where, collection, getDocs, limit, colle
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { autoHandleEngine } from '@/ai/flows/auto-handle-engine';
 import { Loader2, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';

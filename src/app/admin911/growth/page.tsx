@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -23,7 +24,7 @@ import React from 'react';
 const growthFeatures = [
   {
     title: 'Limited-Time Offers',
-    description: 'Manage AI-powered and manual sales campaigns.',
+    description: 'Manage sales campaigns by setting offer prices on courses.',
     Icon: DollarSign,
     href: '/admin911/courses',
     isReady: true,

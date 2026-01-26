@@ -40,6 +40,10 @@ export function CountdownTimer({ endDate, onEnd }: CountdownTimerProps) {
     return () => clearInterval(interval);
   }, [endDate, onEnd]);
 
+  if (differenceInSeconds(endDate, new Date()) <= 0) {
+    return null;
+  }
+
   return (
     <div className="flex items-center gap-1.5 text-xs font-mono rounded-full bg-destructive/10 text-destructive px-2 py-1">
       <span>Offer ends in:</span>

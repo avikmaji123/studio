@@ -92,7 +92,7 @@ export default function CourseDetailClientPage({ course }: { course: Course }) {
               <div className="space-y-2 text-sm text-muted-foreground pt-4">
                 <p className="flex items-center"><Star className="w-4 h-4 mr-2 text-yellow-400" /> 4.5 star rating</p>
                 <p className="flex items-center"><BarChart className="w-4 h-4 mr-2" /> {course.level || 'All levels'}</p>
-                <p className="flex items-center"><Clock className="w-4 h-4 mr-2" /> 8 hours total</p>
+                <p className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {course.estimatedDuration || 'Self-paced'}</p>
               </div>
             </CardContent>
           </Card>

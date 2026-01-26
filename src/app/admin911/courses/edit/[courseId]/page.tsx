@@ -558,7 +558,7 @@ export default function EditCoursePage() {
                             </div>
                             <div className="grid gap-2">
                                  <Label>Visibility</Label>
-                                 <RadioGroup value={visibility} onValueChange={(v) => setVisibility(v as 'public' | 'private')}>
+                                 <RadioGroup value={visibility} onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'hidden')}>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="public" id="v-public" />
                                         <Label htmlFor="v-public">Public</Label>
@@ -566,6 +566,10 @@ export default function EditCoursePage() {
                                      <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="private" id="v-private" />
                                         <Label htmlFor="v-private">Private</Label>
+                                    </div>
+                                     <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="hidden" id="v-hidden" />
+                                        <Label htmlFor="v-hidden">Hidden</Label>
                                     </div>
                                  </RadioGroup>
                             </div>

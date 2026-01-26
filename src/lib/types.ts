@@ -18,7 +18,7 @@ export type Course = {
   price: string;
   courseType?: 'Free' | 'Paid';
   discountPrice?: string;
-  offerEndDate?: Timestamp;
+  offerEndDate?: Timestamp | null;
   category: string;
   imageId: string; // Legacy, prefer imageUrl
   imageUrl?: string;
