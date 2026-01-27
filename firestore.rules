@@ -33,9 +33,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // This function is safe to use as long as it's not used in rules for /users/{userId}
-      // which would cause a circular dependency.
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Use a direct email check for the admin role. This is more reliable for list queries
+      // than using get() and avoids cross-document read limitations.
+      return isSignedIn() && request.auth.token.email == 'avik911@courseverse.admin';
     }
     
     function isExistingAdmin() {
@@ -47,10 +47,7 @@ service cloud.firestore {
     // --------------------------------
 
     match /users/{userId} {
-      // RECURSION FIX: An owner can get their own doc. An admin can get any doc.
-      // We check the admin's role directly on their own user doc to avoid circular calls to isAdmin().
-      allow get: if isOwner(userId) || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-      
+      allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
@@ -112,10 +109,8 @@ service cloud.firestore {
     }
     
     match /coupons/{couponId} {
-      // Use email check for list to avoid using get() in a query rule.
-      allow list: if request.auth.token.email == 'avik911@courseverse.admin';
-      // Get and write can still use the more robust role-based check.
-      allow get, create, update, delete: if isAdmin();
+      // Admin has full read/write access. The isAdmin() function is now safe for list operations.
+      allow read, write: if isAdmin();
     }
 
     match /lessons/{lessonId} {
