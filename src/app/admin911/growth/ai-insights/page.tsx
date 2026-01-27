@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -204,12 +203,17 @@ export default function AiInsightsPage() {
                 transactionDate: t.transactionDate.toDate().toISOString(),
                 couponUsed: 'N/A' // This would require a field on the transaction
             })) || [];
+
+            const couponsForAI = coupons?.map(c => ({
+                ...c,
+                expiresAt: c.expiresAt.toDate().toISOString(),
+            })) || [];
             
             try {
                 const result = await generatePricingInsights({
                     courses: coursesForAI,
                     transactions: transactionsForAI,
-                    coupons: coupons || []
+                    coupons: couponsForAI
                 });
                 setInsights(result.insights);
             } catch (e) {

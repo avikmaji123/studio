@@ -23,11 +23,23 @@ const TransactionDataSchema = z.object({
   couponUsed: z.string().optional(),
 });
 
+const CouponDataSchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  type: z.enum(['percentage', 'fixed']),
+  value: z.number(),
+  status: z.enum(['active', 'inactive']),
+  usageLimit: z.number(),
+  usageCount: z.number(),
+  expiresAt: z.string(),
+  applicableCourseIds: z.array(z.string()),
+});
+
 // Define the structure of the input for our main flow
 const GeneratePricingInsightsInputSchema = z.object({
   courses: z.array(CourseDataSchema),
   transactions: z.array(TransactionDataSchema),
-  coupons: z.array(z.any()), // Keeping coupons flexible for now
+  coupons: z.array(CouponDataSchema),
 });
 export type GeneratePricingInsightsInput = z.infer<typeof GeneratePricingInsightsInputSchema>;
 
