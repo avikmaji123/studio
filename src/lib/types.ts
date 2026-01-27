@@ -13,6 +13,7 @@ export type Course = {
   id: string;
   slug: string;
   title: string;
+  tagline?: string;
   description: string;
   shortDescription?: string;
   price: string;
@@ -27,7 +28,11 @@ export type Course = {
   language?: string;
   tags?: string[];
   learningOutcomes?: string[];
-  prerequisites?: string;
+  prerequisites?: string[];
+  highlights?: string[];
+  whoIsThisFor?: string[];
+  courseFaqs?: { id: string; question: string; answer: string; }[];
+  rating?: number;
   totalModules?: number;
   totalLessons?: number;
   estimatedDuration?: string;
