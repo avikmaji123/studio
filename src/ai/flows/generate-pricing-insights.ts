@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI-powered engine to analyze sales data and generate actionable growth insights.
@@ -45,7 +46,7 @@ export type GeneratePricingInsightsInput = z.infer<typeof GeneratePricingInsight
 
 // Define the structures for the different types of insights the AI can generate
 const PriceSuggestionInsightSchema = z.object({
-  type: z.literal('PRICE_SUGGESTION'),
+  type: z.enum(['PRICE_SUGGESTION']),
   courseId: z.string(),
   courseTitle: z.string(),
   currentPrice: z.number(),
@@ -54,7 +55,7 @@ const PriceSuggestionInsightSchema = z.object({
 });
 
 const OfferOpportunityInsightSchema = z.object({
-  type: z.literal('OFFER_OPPORTUNITY'),
+  type: z.enum(['OFFER_OPPORTUNITY']),
   courseId: z.string(),
   courseTitle: z.string(),
   currentPrice: z.number(),
@@ -64,7 +65,7 @@ const OfferOpportunityInsightSchema = z.object({
 });
 
 const CouponPerformanceInsightSchema = z.object({
-    type: z.literal('COUPON_ANALYSIS'),
+    type: z.enum(['COUPON_ANALYSIS']),
     couponCode: z.string(),
     conversionRate: z.number(),
     totalUses: z.number(),
