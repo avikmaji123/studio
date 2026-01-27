@@ -152,3 +152,45 @@ export type Coupon = {
   expiresAt: Timestamp;
   applicableCourseIds: string[];
 };
+
+export type PaymentTransaction = {
+    id: string;
+    userId: string;
+    courseId: string;
+    amount: number;
+    pointsAwarded: number;
+    upiTransactionReference: string;
+    screenshotUrl?: string;
+    status: 'Pending' | 'approved' | 'AI-Approved' | 'Rejected';
+    transactionDate: Timestamp;
+    adminNotes?: string;
+}
+
+type PriceSuggestionInsight = {
+  type: 'PRICE_SUGGESTION';
+  courseId: string;
+  courseTitle: string;
+  currentPrice: number;
+  suggestedPrice: number;
+  reasoning: string;
+};
+
+type OfferOpportunityInsight = {
+  type: 'OFFER_OPPORTUNITY';
+  courseId: string;
+  courseTitle: string;
+  currentPrice: number;
+  suggestedDiscountPercentage: number;
+  durationHours: number;
+  reasoning: string;
+};
+
+type CouponPerformanceInsight = {
+    type: 'COUPON_ANALYSIS';
+    couponCode: string;
+    conversionRate: number;
+    totalUses: number;
+    reasoning: string;
+};
+
+export type Insight = PriceSuggestionInsight | OfferOpportunityInsight | CouponPerformanceInsight;

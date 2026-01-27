@@ -1,4 +1,3 @@
-
 'use server';
 import { config } from 'dotenv';
 config();
@@ -14,5 +13,6 @@ import '@/ai/flows/summarize-security-metrics.ts';
 import '@/ai/flows/detect-threats.ts';
 import '@/ai/flows/moderate-review.ts';
 import '@/ai/flows/generate-reviews.ts';
+import '@/ai/flows/generate-pricing-insights.ts';
 
     
