@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import {
-  Clock, BarChart, Star, CheckCircle, Download, BookCopy, ShieldCheck, Zap, Layers, Target, Info, Package
+  Clock, BarChart, Star, CheckCircle, Download, BookCopy, ShieldCheck, Zap, Layers, Target, Info, Package, Award, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -181,11 +181,14 @@ export default function CourseDetailClientPage({ course }: { course: Course | nu
             {course.prerequisites && course.prerequisites.length > 0 && (
               <Section id="prerequisites" title="Prerequisites" icon={Package}>
                 <ul className="space-y-3 text-lg">
-                  {course.prerequisites.map((req, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                      <span>{req}</span>
-                    </li>
+                  {(Array.isArray(course.prerequisites) ? course.prerequisites : [course.prerequisites])
+                    .flatMap(req => typeof req === 'string' ? req.split('\n') : [])
+                    .filter(line => line.trim())
+                    .map((req, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                        <span>{req}</span>
+                      </li>
                   ))}
                 </ul>
               </Section>

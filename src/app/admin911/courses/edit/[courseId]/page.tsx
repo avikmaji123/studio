@@ -80,7 +80,7 @@ export default function EditCoursePage() {
     const [tags, setTags] = useState<string[]>([]);
     const [currentTag, setCurrentTag] = useState('');
     const [learningOutcomes, setLearningOutcomes] = useState<string[]>(['']);
-    const [prerequisites, setPrerequisites] = useState('');
+    const [prerequisites, setPrerequisites] = useState<string[]>(['']);
     
     // Image state
     const [imagePreview, setImagePreview] = useState('');
@@ -135,7 +135,16 @@ export default function EditCoursePage() {
                     setLevel(courseData.level || 'Beginner');
                     setTags(courseData.tags || []);
                     setLearningOutcomes(courseData.learningOutcomes?.length ? courseData.learningOutcomes : ['']);
-                    setPrerequisites(courseData.prerequisites || '');
+                    if (courseData.prerequisites) {
+                        if (Array.isArray(courseData.prerequisites)) {
+                            setPrerequisites(courseData.prerequisites.length > 0 ? courseData.prerequisites : ['']);
+                        } else if (typeof courseData.prerequisites === 'string') {
+                            const splitPrereqs = courseData.prerequisites.split('\n').filter(p => p.trim() !== '');
+                            setPrerequisites(splitPrereqs.length > 0 ? splitPrereqs : ['']);
+                        }
+                    } else {
+                        setPrerequisites(['']);
+                    }
                     setImagePreview(courseData.imageUrl || '');
                     setFinalImageUrl(courseData.imageUrl || '');
                     setVisibility(courseData.visibility || 'public');
@@ -179,7 +188,7 @@ export default function EditCoursePage() {
                 level,
                 tags,
                 learningOutcomes: learningOutcomes.filter(o => o.trim() !== ''),
-                prerequisites,
+                prerequisites: prerequisites.filter(p => p.trim() !== ''),
                 imageUrl: finalImageUrl,
                 visibility,
                 language,
@@ -258,6 +267,20 @@ export default function EditCoursePage() {
             setLearningOutcomes(learningOutcomes.filter((_, i) => i !== index));
         }
     };
+    
+    // Prerequisites management
+    const handlePrerequisiteChange = (index: number, value: string) => {
+        const newPrerequisites = [...prerequisites];
+        newPrerequisites[index] = value;
+        setPrerequisites(newPrerequisites);
+    };
+    const addPrerequisite = () => setPrerequisites([...prerequisites, '']);
+    const removePrerequisite = (index: number) => {
+        if (prerequisites.length > 1) {
+            setPrerequisites(prerequisites.filter((_, i) => i !== index));
+        }
+    };
+
 
     const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const url = e.target.value;
@@ -508,14 +531,20 @@ export default function EditCoursePage() {
                                 {learningOutcomes.map((outcome, index) => (
                                      <div key={index} className="flex items-center gap-2">
                                         <Input value={outcome} onChange={(e) => handleOutcomeChange(index, e.target.value)} placeholder={`Outcome #${index + 1}`}/>
-                                        <Button variant="ghost" size="icon" onClick={() => removeOutcome(index)} disabled={learningOutcomes.length === 1}><X className="h-4 w-4 text-muted-foreground"/></Button>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeOutcome(index)} disabled={learningOutcomes.length === 1}><X className="h-4 w-4 text-muted-foreground"/></Button>
                                      </div>
                                 ))}
-                                <Button variant="outline" size="sm" onClick={addOutcome} className="mt-2">Add Outcome</Button>
+                                <Button type="button" variant="outline" size="sm" onClick={addOutcome} className="mt-2">Add Outcome</Button>
                             </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="prerequisites">Prerequisites</Label>
-                                <Textarea id="prerequisites" value={prerequisites} onChange={(e) => setPrerequisites(e.target.value)} rows={3} placeholder="e.g., Basic knowledge of HTML & CSS"/>
+                             <div className="grid gap-3">
+                                <Label>Prerequisites</Label>
+                                {prerequisites.map((prereq, index) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <Input value={prereq} onChange={(e) => handlePrerequisiteChange(index, e.target.value)} placeholder={`Prerequisite #${index + 1}`}/>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removePrerequisite(index)} disabled={prerequisites.length === 1}><X className="h-4 w-4 text-muted-foreground"/></Button>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="outline" size="sm" onClick={addPrerequisite} className="mt-2">Add Prerequisite</Button>
                             </div>
                         </CardContent>
                     </Card>
