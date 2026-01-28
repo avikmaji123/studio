@@ -70,13 +70,6 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    match /users/{userId}/paymentTransactions/{transactionId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
     match /users/{userId}/affiliateCommissions/{affiliateCommissionId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.affiliateId == userId;
@@ -92,14 +85,6 @@ service cloud.firestore {
     }
     
     // --------------------------------
-    // Collection Group Rules
-    // --------------------------------
-
-    match /{path=**}/paymentTransactions/{transactionId} {
-      allow get, list: if isAdmin();
-    }
-
-    // --------------------------------
     // Public & Admin Collections
     // --------------------------------
 
@@ -111,6 +96,15 @@ service cloud.firestore {
     match /coupons/{couponId} {
       // Admin has full read/write access. The isAdmin() function is now safe for list operations.
       allow read, write: if isAdmin();
+    }
+
+    match /paymentTransactions/{transactionId} {
+      // Admins can read any transaction for reporting.
+      allow read: if isAdmin();
+      // Users can only create their own transaction record.
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Admins can update/delete records for moderation.
+      allow update, delete: if isAdmin();
     }
 
     match /lessons/{lessonId} {

@@ -799,18 +799,14 @@
         }
       },
       {
-        "path": "/users/{userId}/paymentTransactions/{transactionId}",
+        "path": "/paymentTransactions/{transactionId}",
         "definition": {
           "entityName": "PaymentTransaction",
           "schema": {
             "$ref": "#/backend/entities/PaymentTransaction"
           },
-          "description": "Stores payment transactions made by users. No denormalized authorization fields are needed as transactions are accessed via path-based ownership.",
+          "description": "Stores all payment transactions. Access is restricted to admins for reads and authenticated users for creation.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
             {
               "name": "transactionId",
               "description": "The unique identifier for the transaction."
@@ -964,6 +960,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the CourseVerse application, adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity. User data is stored under `/users/{userId}`. Courses are stored in a top-level `/courses` collection. Enrollments, PaymentTransactions, and AffiliateCommissions are organized as subcollections under the respective user document. A new top-level `/certificates/{certificateCode}` collection is added to store public, denormalized certificate data for secure and efficient public verification, where the document ID is the unique certificate code. The existing `/users/{userId}/certificates` subcollection is retained for storing private user-specific references. ApiKeys are also stored as a subcollection under `/users/{userId}/apiKeys/{apiKeyId}` enabling admin-level management of keys. ApiLogs and AdminActionLogs are segregated into top-level collections for admin-only access. A `/logs` collection is added to store immutable system audit trails. A new singleton collection, `/settings`, is added to store global site configuration in a single document, typically `/settings/global`, allowing for dynamic control over site behavior. A new top-level `/reviews` collection is added to store user-submitted and AI-generated course reviews. A new top-level `/coupons` collection is added to manage discount codes, with access restricted to administrators."
+    "reasoning": "The Firestore data structure is designed to support the CourseVerse application. Payment transactions have been moved to a top-level `/paymentTransactions` collection to simplify queries and security rules, enhancing reliability for admin dashboard analytics. Other collections like `/users`, `/courses`, and `/certificates` remain structured for clear ownership and access patterns."
   }
 }

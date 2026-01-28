@@ -77,7 +77,7 @@ export default function CoursePaymentPage() {
 
     const isUtrUsed = async (utr: string): Promise<boolean> => {
         if (!firestore) return true; // Fail safe
-        const paymentsRef = collectionGroup(firestore, 'paymentTransactions');
+        const paymentsRef = collection(firestore, 'paymentTransactions');
         const q = query(paymentsRef, where('upiTransactionReference', '==', utr));
         const snapshot = await getDocs(q);
         return !snapshot.empty;
@@ -130,7 +130,7 @@ export default function CoursePaymentPage() {
             });
 
             const transactionId = uuidv4();
-            const paymentRef = doc(firestore, 'users', user.uid, 'paymentTransactions', transactionId);
+            const paymentRef = doc(firestore, 'paymentTransactions', transactionId);
 
             // 3. Perform Hard Validation Checks
             let finalStatus: 'AI-Approved' | 'Pending' | 'Rejected' = 'Pending';

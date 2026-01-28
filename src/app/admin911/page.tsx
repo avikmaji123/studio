@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +48,7 @@ import {
 } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Certificate } from '@/lib/types';
+import type { Certificate, PaymentTransaction } from '@/lib/types';
 
 export default function AdminDashboard() {
   const firestore = useFirestore();
@@ -60,8 +60,8 @@ export default function AdminDashboard() {
   const coursesQuery = useMemoFirebase(() => collection(firestore, 'courses'), [firestore]);
   const { data: courses, isLoading: coursesLoading } = useCollection(coursesQuery);
   
-  const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
-  const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
+  const paymentsQuery = useMemoFirebase(() => query(collection(firestore, 'paymentTransactions'), orderBy('transactionDate', 'desc')), [firestore]);
+  const { data: payments, isLoading: paymentsLoading } = useCollection<PaymentTransaction>(paymentsQuery);
 
   const certificatesQuery = useMemoFirebase(() => collection(firestore, 'certificates'), [firestore]);
   const { data: certificates, isLoading: certsLoading } = useCollection<Certificate>(certificatesQuery);
@@ -75,12 +75,10 @@ export default function AdminDashboard() {
     const total = approved.reduce((acc, p) => acc + p.amount, 0);
     const pending = payments.filter(p => p.status === 'Pending').length;
 
-    const sorted = [...payments].sort((a, b) => b.transactionDate.toDate() - a.transactionDate.toDate());
-    
     return { 
       totalSales: total, 
       pendingVerifications: pending,
-      recentTransactions: sorted.slice(0, 5)
+      recentTransactions: payments.slice(0, 5) // Already sorted by query
     };
   }, [payments]);
 
@@ -218,6 +216,13 @@ export default function AdminDashboard() {
                       <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto"/></TableCell>
                     </TableRow>
                   ))}
+                  {!isLoading && recentTransactions.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center">
+                        No verified transactions yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {recentTransactions.map(tx => {
                     const user = findUserByTx(tx.userId);
                     return (

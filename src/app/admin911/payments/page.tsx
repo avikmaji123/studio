@@ -42,9 +42,9 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase'
-import { collection, collectionGroup, query } from 'firebase/firestore'
+import { collection, query, orderBy } from 'firebase/firestore'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Course } from '@/lib/types';
+import type { Course, PaymentTransaction } from '@/lib/types';
 
 
 export default function AdminPaymentsPage() {
@@ -54,8 +54,8 @@ export default function AdminPaymentsPage() {
     const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
     const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
-    const paymentsQuery = useMemoFirebase(() => collectionGroup(firestore, 'paymentTransactions'), [firestore]);
-    const { data: payments, isLoading: paymentsLoading } = useCollection(paymentsQuery);
+    const paymentsQuery = useMemoFirebase(() => query(collection(firestore, 'paymentTransactions'), orderBy('transactionDate', 'desc')), [firestore]);
+    const { data: payments, isLoading: paymentsLoading } = useCollection<PaymentTransaction>(paymentsQuery);
     
     const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses')), [firestore]);
     const { data: courses, isLoading: coursesLoading } = useCollection<Course>(coursesQuery);
@@ -153,6 +153,13 @@ export default function AdminPaymentsPage() {
                                 <TableCell><Skeleton className="h-8 w-8"/></TableCell>
                              </TableRow>
                         ))}
+                        {!isLoading && filteredPayments.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={7} className="h-24 text-center">
+                                    No transactions found for this filter.
+                                </TableCell>
+                            </TableRow>
+                        )}
                         {filteredPayments.map(payment => {
                             const user = getUserForPayment(payment.userId);
                             const course = getCourseForPayment(payment.courseId);
