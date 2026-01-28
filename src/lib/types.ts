@@ -28,7 +28,7 @@ export type Course = {
   language?: string;
   tags?: string[];
   learningOutcomes?: string[];
-  prerequisites?: string[];
+  prerequisites?: string[] | string;
   highlights?: string[];
   whoIsThisFor?: string[];
   courseFaqs?: { id: string; question: string; answer: string; }[];

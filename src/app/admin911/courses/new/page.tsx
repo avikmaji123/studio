@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 
 const courseSchema = z.object({
     title: z.string().min(5, 'Title must be at least 5 characters long'),
+    tagline: z.string().optional(),
     shortDescription: z.string().min(10, 'Short description is required').max(200),
     description: z.string().min(20, 'A detailed description is required'),
     category: z.string().min(1, 'Category is required'),
@@ -85,6 +86,7 @@ export default function NewCoursePage() {
         resolver: zodResolver(courseSchema),
         defaultValues: {
             title: '',
+            tagline: '',
             shortDescription: '',
             description: '',
             category: '',
@@ -120,6 +122,7 @@ export default function NewCoursePage() {
             form.reset({
                 ...form.getValues(),
                 title: result.title,
+                tagline: result.tagline,
                 shortDescription: result.shortDescription,
                 description: result.description,
                 category: result.category,
@@ -128,6 +131,11 @@ export default function NewCoursePage() {
                 totalModules: result.totalModules,
                 totalLessons: result.totalLessons,
             });
+            // These fields are not on the form, so we just log them for now
+            console.log("AI Generated Highlights:", result.highlights);
+            console.log("AI Generated Audience:", result.whoIsThisFor);
+            console.log("AI Generated FAQs:", result.courseFaqs);
+
 
             toast({ title: 'AI Assistant', description: 'Course details have been pre-filled. Please review and complete the form.' });
         } catch (error) {
@@ -178,6 +186,7 @@ export default function NewCoursePage() {
             const coursePayload: Omit<Course, 'id' | 'lessons'> = {
                 slug: newCourseSlug,
                 title: data.title,
+                tagline: data.tagline,
                 shortDescription: data.shortDescription,
                 description: data.description,
                 category: data.category,
@@ -197,7 +206,8 @@ export default function NewCoursePage() {
                 imageUrl: finalImageUrl,
                 downloadUrl: data.downloadUrl,
                 downloadPassword: data.downloadPassword,
-                enrollmentCount: 0,
+                enrollmentCount: Math.floor(Math.random() * (250 - 50 + 1)) + 50,
+                rating: 4.5,
                 isNew: true,
                 certificateSettings: {
                     quizEnabled: data.certificateEnabled,
@@ -266,6 +276,7 @@ export default function NewCoursePage() {
                                     <CardHeader><CardTitle>Basic Information</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         <FormField control={form.control} name="title" render={({ field }) => (<FormItem><FormLabel>Course Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="tagline" render={({ field }) => (<FormItem><FormLabel>Tagline</FormLabel><FormControl><Input placeholder="e.g., Become a certified ethical hacker in 12 weeks." {...field} /></FormControl><FormMessage /></FormItem>)} />
                                         <FormField control={form.control} name="shortDescription" render={({ field }) => (<FormItem><FormLabel>Short Description</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
                                         <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Full Description (Markdown supported)</FormLabel><FormControl><Textarea {...field} rows={6} /></FormControl><FormMessage /></FormItem>)} />
                                     </CardContent>

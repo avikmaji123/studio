@@ -87,6 +87,10 @@
           "type": "string",
           "description": "Title of the course."
         },
+        "tagline": {
+          "type": "string",
+          "description": "A short, catchy tagline for the course."
+        },
         "description": {
           "type": "string",
           "description": "Detailed description of the course."
@@ -106,6 +110,37 @@
           "items": {
             "type": "string"
           }
+        },
+        "rating": {
+          "type": "number",
+          "description": "The average user rating for the course."
+        },
+        "prerequisites": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "highlights": {
+            "type": "array",
+            "description": "Key features or highlights of the course.",
+            "items": { "type": "string" }
+        },
+        "whoIsThisFor": {
+            "type": "array",
+            "description": "Defines the target audience for the course.",
+            "items": { "type": "string" }
+        },
+        "courseFaqs": {
+            "type": "array",
+            "description": "Frequently asked questions specific to the course.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string" },
+                    "question": { "type": "string" },
+                    "answer": { "type": "string" }
+                },
+                "required": ["id", "question", "answer"]
+            }
         }
       },
       "required": [
