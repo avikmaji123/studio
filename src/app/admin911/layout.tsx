@@ -56,7 +56,6 @@ import { createLogEntry } from '@/lib/actions';
 
 const navItems = [
     { href: '/admin911', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-    { href: '/admin911/siem', icon: <Shield className="h-5 w-5" />, label: 'SIEM' },
     { href: '/admin911/growth', icon: <TrendingUp className="h-5 w-5" />, label: 'Growth' },
     { href: '/admin911/courses', icon: <Book className="h-5 w-5" />, label: 'Courses' },
     { href: '/admin911/payments', icon: <CreditCard className="h-5 w-5" />, label: 'Payments' },
